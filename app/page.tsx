@@ -8,6 +8,8 @@ import {
   EnvelopeSimple,
 } from "@phosphor-icons/react/dist/ssr";
 import BrandMark from "@/components/BrandMark";
+import Radar from "@/components/Radar";
+import MontantSplitFlap from "@/components/MontantSplitFlap";
 
 const ETAPES = [
   {
@@ -33,10 +35,10 @@ const ETAPES = [
 export default function HomePage() {
   return (
     <main>
-      {/* Hero : asymétrique, texte à gauche, aperçu produit réel à droite */}
+      {/* Hero : asymétrique, radar en arrière-plan, carte d'embarquement au premier plan */}
       <section className="conteneur grid items-center gap-12 pt-14 pb-20 sm:pt-20 sm:pb-28 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
         <div className="entree-fade max-w-[34rem]">
-          <h1 className="text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl">
             Vol retardé, annulé ?{" "}
             <span className="text-[var(--color-accent-500)]">Récupérez</span>{" "}
             ce qu&apos;on vous doit.
@@ -55,30 +57,30 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="entree-fade relative h-[22rem] sm:h-[26rem] lg:h-[28rem]">
-          <div className="carte absolute right-2 top-6 w-[15rem] rotate-[4deg] p-4 opacity-70 sm:w-[16rem]">
-            <p className="etiquette">Vol FR8821</p>
-            <p className="mt-1 text-sm font-semibold">Lisbonne → Bruxelles</p>
-            <span className="pilule pilule-attente mt-3">En cours</span>
+        <div className="entree-fade relative flex h-[24rem] items-center justify-center sm:h-[28rem]">
+          <div className="absolute inset-0 flex items-center justify-center opacity-80">
+            <Radar size={320} />
           </div>
 
-          <div className="carte absolute left-0 top-24 w-[19rem] -rotate-[3deg] p-6 sm:w-[21rem] sm:top-28">
+          <div className="carte-embarquement relative w-[19rem] p-6 sm:w-[21rem]">
             <div className="flex items-center justify-between">
               <p className="etiquette">Vol AF1380</p>
               <span className="pilule pilule-eligible">Éligible</span>
             </div>
-            <p className="mt-2 text-sm font-medium text-[var(--texte-attenue)]">
-              Paris CDG → Rome FCO
+            <p className="mt-2 text-sm font-medium text-[var(--texte-attenue)] mono">
+              CDG → FCO
             </p>
             <p className="text-sm text-[var(--texte-attenue)]">
               Retard à l&apos;arrivée : 3h42
             </p>
-            <p className="mt-4 text-4xl font-extrabold tabular-nums">
-              250 <span className="text-xl font-bold">€</span>
-            </p>
-            <p className="mt-1 text-xs text-[var(--texte-attenue)]">
-              Estimation au titre du règlement EU261
-            </p>
+            <div className="souche mt-4 pt-4">
+              <p className="text-4xl font-bold">
+                <MontantSplitFlap montant={250} devise="EUR" />
+              </p>
+              <p className="mt-1 text-xs text-[var(--texte-attenue)]">
+                Estimation au titre du règlement EU261
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -87,7 +89,7 @@ export default function HomePage() {
       <section className="border-t border-[var(--bordure)] bg-[var(--bg-eleve)]">
         <div className="conteneur grid gap-10 py-20 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
           <div>
-            <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
               Trois étapes, aucune paperasse
             </h2>
             <p className="mt-3 max-w-[32ch] text-[15px] leading-relaxed text-[var(--texte-attenue)]">
@@ -102,7 +104,7 @@ export default function HomePage() {
               return (
                 <li key={etape.titre} className="relative flex gap-5">
                   <div className="flex flex-col items-center">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent-50)] text-[var(--color-accent-600)]">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent-50)] text-[var(--color-accent-500)]">
                       <Icone size={20} weight="bold" />
                     </span>
                     {index < ETAPES.length - 1 && (
@@ -110,7 +112,7 @@ export default function HomePage() {
                     )}
                   </div>
                   <div className="pb-2">
-                    <h3 className="text-lg font-bold">{etape.titre}</h3>
+                    <h3 className="text-lg font-semibold">{etape.titre}</h3>
                     <p className="mt-1 max-w-[46ch] text-[15px] leading-relaxed text-[var(--texte-attenue)]">
                       {etape.description}
                     </p>
@@ -125,7 +127,7 @@ export default function HomePage() {
       {/* Confiance : stat asymétrique + liste, pas de cartes */}
       <section className="conteneur grid gap-10 py-20 lg:grid-cols-[0.7fr_1.3fr] lg:items-center lg:gap-16">
         <div>
-          <p className="text-6xl font-extrabold tracking-tight text-[var(--color-accent-500)] sm:text-7xl">
+          <p className="mono text-6xl font-bold tracking-tight text-[var(--color-accent-500)] sm:text-7xl">
             22%
           </p>
           <p className="mt-2 max-w-[24ch] text-[15px] leading-relaxed text-[var(--texte-attenue)]">
@@ -162,14 +164,11 @@ export default function HomePage() {
 
       {/* Bandeau CTA final */}
       <section className="bg-[var(--color-accent-500)]">
-        <div className="conteneur flex flex-col items-center gap-6 py-16 text-center text-white">
-          <h2 className="max-w-[24ch] text-2xl font-extrabold tracking-tight sm:text-3xl">
+        <div className="conteneur flex flex-col items-center gap-6 py-16 text-center">
+          <h2 className="max-w-[24ch] text-2xl font-semibold tracking-tight text-[#1a1103] sm:text-3xl">
             Votre vol a peut-être une valeur que vous ignorez.
           </h2>
-          <Link
-            href="/check"
-            className="bouton bg-white text-[var(--color-accent-600)] hover:bg-white/90"
-          >
+          <Link href="/check" className="bouton bg-[#1a1103] text-[var(--color-accent-400)]">
             Vérifier mon vol
           </Link>
         </div>

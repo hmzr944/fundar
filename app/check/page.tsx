@@ -10,6 +10,8 @@ import {
   MagnifyingGlass,
   ArrowRight,
 } from "@phosphor-icons/react/dist/ssr";
+import Radar from "@/components/Radar";
+import MontantSplitFlap from "@/components/MontantSplitFlap";
 
 interface Resultat {
   statut: "ELIGIBLE" | "INELIGIBLE" | "REVIEW_MANUEL" | "WAITLIST";
@@ -160,10 +162,9 @@ function CheckPageInterieur() {
       </form>
 
       {chargement && (
-        <div className="carte mt-6 flex flex-col gap-3 p-6">
-          <div className="h-4 w-1/3 animate-pulse rounded-full bg-[var(--bordure)]" />
-          <div className="h-9 w-1/2 animate-pulse rounded-full bg-[var(--bordure)]" />
-          <div className="h-4 w-2/3 animate-pulse rounded-full bg-[var(--bordure)]" />
+        <div className="carte mt-6 flex flex-col items-center gap-3 p-10">
+          <Radar size={96} />
+          <p className="text-sm text-[var(--texte-attenue)]">Scan de votre dossier en cours...</p>
         </div>
       )}
 
@@ -174,18 +175,23 @@ function CheckPageInterieur() {
       )}
 
       {reponse?.resultat && Icone && (
-        <div className="carte mt-6 p-6">
+        <div className="carte-embarquement mt-6 p-6" key={reponse.resultat.motif + numeroVol}>
           <span className={`pilule ${PILULE_PAR_STATUT[reponse.resultat.statut]}`}>
             <Icone size={14} weight="bold" />
             {LIBELLE_PAR_STATUT[reponse.resultat.statut]}
           </span>
 
-          {reponse.resultat.statut === "ELIGIBLE" && reponse.vol && (
+          {reponse.resultat.statut === "ELIGIBLE" && reponse.vol && reponse.resultat.montantEstime !== null && (
             <>
-              <p className="mt-4 text-4xl font-extrabold tabular-nums">
-                {reponse.resultat.montantEstime} <span className="text-2xl">{reponse.resultat.devise}</span>
-              </p>
-              <p className="mt-2 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+              <div className="souche mt-4 pt-4">
+                <p className="text-4xl font-bold">
+                  <MontantSplitFlap
+                    montant={reponse.resultat.montantEstime}
+                    devise={reponse.resultat.devise}
+                  />
+                </p>
+              </div>
+              <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
                 {reponse.resultat.explication}
               </p>
               <Link

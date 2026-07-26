@@ -1,60 +1,53 @@
 @import "tailwindcss";
 
 /*
-  Système de tokens Refund Radar.
-  Lecture design : outil grand public "trust-first premium-consumer" pour des
-  voyageurs sur mobile. Une seule couleur d'accent (bleu confiant), palette
-  neutre zinc, aucun violet/gradient IA. Rayon mixte documenté :
-  boutons/badges = pilule, cartes = 20px, champs = 12px.
+  Identité "Night Radar".
+  Lecture design : produit de réclamation EU261/UK261 qui doit se distinguer
+  du bleu fintech générique du secteur (AirHelp, Compensair, Bird sont tous
+  bleu/blanc). Parti pris : fond encre comme identité de marque (pas un
+  simple mode sombre optionnel), accent ambre "panneau d'affichage
+  d'aéroport", chiffres en monospace façon afficheur de bord. Deux motifs
+  signature justifiés : balayage radar (on scanne le dossier) et défilement
+  mécanique du montant façon split-flap.
+  Rayon mixte documenté : boutons/badges = pilule, cartes = 18px, champs = 10px.
 */
 @theme {
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-affichage), ui-sans-serif, system-ui, sans-serif;
+  --font-mono-affichage: var(--font-mono), ui-monospace, monospace;
 
-  --color-accent-50: #eef2ff;
-  --color-accent-100: #e0e7ff;
-  --color-accent-400: #6b8bff;
-  --color-accent-500: #3358e0;
-  --color-accent-600: #2846c2;
-  --color-accent-700: #1f379a;
+  --color-accent-50: #3a2c0f;
+  --color-accent-400: #ffc04d;
+  --color-accent-500: #ffb020;
+  --color-accent-600: #d99110;
+  --color-accent-700: #a86f0a;
 
-  --color-succes-50: #ecfdf5;
-  --color-succes-500: #0e9f6e;
-  --color-succes-600: #0b8a5f;
+  --color-succes-50: #113328;
+  --color-succes-500: #34e6a0;
+  --color-succes-600: #22c988;
 
-  --color-attente-50: #fffbeb;
-  --color-attente-500: #d97706;
-  --color-attente-600: #b45f04;
+  --color-attente-50: #3a2c0f;
+  --color-attente-500: #ffb020;
+  --color-attente-600: #d99110;
 
-  --color-revue-50: #eef2f6;
-  --color-revue-500: #475569;
-  --color-revue-600: #334155;
+  --color-revue-50: #172336;
+  --color-revue-500: #6fa8ff;
+  --color-revue-600: #4d8bef;
 
-  --radius-champ: 0.75rem;
-  --radius-carte: 1.25rem;
+  --radius-champ: 0.625rem;
+  --radius-carte: 1.125rem;
   --radius-pilule: 999px;
 
-  --shadow-carte: 0 1px 2px rgb(24 24 27 / 0.04), 0 8px 24px -8px rgb(24 24 27 / 0.10);
-  --shadow-carte-dark: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --shadow-carte: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 12px 32px -12px rgb(0 0 0 / 0.6);
 }
 
 :root {
-  color-scheme: light;
-  --bg: #fafafa;
-  --bg-eleve: #ffffff;
-  --texte: #18181b;
-  --texte-attenue: #52525b;
-  --bordure: #e4e4e7;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --bg: #0b0b0d;
-    --bg-eleve: #17171a;
-    --texte: #f4f4f5;
-    --texte-attenue: #a1a1aa;
-    --bordure: #2a2a2e;
-  }
+  color-scheme: dark;
+  --bg: #0a0c10;
+  --bg-eleve: #14171d;
+  --bg-eleve-2: #1c2029;
+  --texte: #f2ede2;
+  --texte-attenue: #8b8f9b;
+  --bordure: #262b34;
 }
 
 * {
@@ -72,6 +65,12 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  background-image: radial-gradient(circle at 15% 0%, rgb(255 176 32 / 0.06), transparent 40%);
+  background-attachment: fixed;
+}
+
+.mono {
+  font-family: var(--font-mono-affichage);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -100,8 +99,7 @@ body {
   animation: entree-fade 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Composants partagés (utilisés par les pages fonctionnelles autant que
-   par les pages vitrine, pour garder une seule identité visuelle). */
+/* --- Composants partagés --- */
 
 .conteneur {
   max-width: 1180px;
@@ -122,19 +120,13 @@ body {
   box-shadow: var(--shadow-carte);
 }
 
-@media (prefers-color-scheme: dark) {
-  .carte {
-    box-shadow: var(--shadow-carte-dark);
-  }
-}
-
 .champ {
   width: 100%;
   font-size: 0.9375rem;
   padding: 0.75rem 0.9rem;
   border-radius: var(--radius-champ);
   border: 1.5px solid var(--bordure);
-  background: var(--bg-eleve);
+  background: var(--bg-eleve-2);
   color: var(--texte);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -146,18 +138,14 @@ body {
 .champ:focus {
   outline: none;
   border-color: var(--color-accent-500);
-  box-shadow: 0 0 0 3px var(--color-accent-100);
-}
-
-@media (prefers-color-scheme: dark) {
-  .champ:focus {
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent-500) 30%, transparent);
-  }
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent-500) 22%, transparent);
 }
 
 .etiquette {
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   color: var(--texte-attenue);
 }
 
@@ -167,7 +155,7 @@ body {
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 700;
   padding: 0.8rem 1.4rem;
   border-radius: var(--radius-pilule);
   border: none;
@@ -188,11 +176,11 @@ body {
 
 .bouton-primaire {
   background: var(--color-accent-500);
-  color: white;
+  color: #1a1103;
 }
 
 .bouton-primaire:hover:not(:disabled) {
-  background: var(--color-accent-600);
+  background: var(--color-accent-400);
 }
 
 .bouton-secondaire {
@@ -228,36 +216,147 @@ body {
 
 .pilule-eligible {
   background: var(--color-succes-50);
-  color: var(--color-succes-600);
+  color: var(--color-succes-500);
 }
 
 .pilule-ineligible {
-  background: var(--bg);
+  background: var(--bg-eleve-2);
   color: var(--texte-attenue);
   border: 1px solid var(--bordure);
 }
 
 .pilule-attente {
   background: var(--color-attente-50);
-  color: var(--color-attente-600);
+  color: var(--color-attente-500);
 }
 
 .pilule-revue {
   background: var(--color-revue-50);
-  color: var(--color-revue-600);
+  color: var(--color-revue-500);
 }
 
-@media (prefers-color-scheme: dark) {
-  .pilule-eligible {
-    background: color-mix(in srgb, var(--color-succes-500) 18%, transparent);
-    color: #4ade9b;
+/* --- Carte d'embarquement : forme signature des verdicts --- */
+
+.carte-embarquement {
+  position: relative;
+  background: var(--bg-eleve);
+  border: 1px solid var(--bordure);
+  border-radius: var(--radius-carte);
+  box-shadow: var(--shadow-carte);
+}
+
+.carte-embarquement::before,
+.carte-embarquement::after {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: var(--bg);
+  border: 1px solid var(--bordure);
+  border-radius: 999px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.carte-embarquement::before {
+  left: -11px;
+}
+
+.carte-embarquement::after {
+  right: -11px;
+}
+
+.souche {
+  position: relative;
+  border-top: 2px dashed var(--bordure);
+}
+
+/* --- Balayage radar : motif signature de la vérification --- */
+
+.radar {
+  position: relative;
+  border-radius: 999px;
+  aspect-ratio: 1;
+}
+
+.radar__anneaux {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background:
+    repeating-radial-gradient(
+      circle at center,
+      color-mix(in srgb, var(--color-accent-500) 22%, transparent) 0,
+      color-mix(in srgb, var(--color-accent-500) 22%, transparent) 1px,
+      transparent 1px,
+      transparent calc(100% / 5)
+    );
+}
+
+.radar__balayage {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: conic-gradient(
+    from 0deg,
+    color-mix(in srgb, var(--color-accent-500) 70%, transparent),
+    transparent 32%
+  );
+  animation: radar-tourne 2.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radar__balayage {
+    animation: none;
+    opacity: 0.5;
   }
-  .pilule-attente {
-    background: color-mix(in srgb, var(--color-attente-500) 18%, transparent);
-    color: #f2b451;
+}
+
+@keyframes radar-tourne {
+  to {
+    transform: rotate(360deg);
   }
-  .pilule-revue {
-    background: color-mix(in srgb, var(--color-revue-500) 22%, transparent);
-    color: #cbd5e1;
+}
+
+.radar__point {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-accent-400);
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--color-accent-500) 60%, transparent);
+  animation: radar-clignote 1.8s ease-in-out infinite;
+}
+
+@keyframes radar-clignote {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+/* --- Split-flap : défilement mécanique du montant --- */
+
+.split-flap {
+  display: inline-flex;
+  gap: 0.15em;
+}
+
+.split-flap__tuile {
+  display: inline-block;
+  animation: split-flap-pose 0.5s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  transform-origin: 50% 100%;
+}
+
+@keyframes split-flap-pose {
+  0% {
+    opacity: 0;
+    transform: rotateX(70deg) translateY(-6%);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: rotateX(0deg) translateY(0);
   }
 }

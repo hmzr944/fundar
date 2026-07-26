@@ -1,12 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope } from "next/font/google";
+import { Space_Grotesk, Space_Mono } from "next/font/google";
 import SiteHeader from "@/components/SiteHeader";
 import "./globals.css";
 
-const manrope = Manrope({
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
-  variable: "--font-manrope",
+  weight: ["500", "600", "700"],
+  variable: "--font-affichage",
+  display: "swap",
+});
+
+const spaceMono = Space_Mono({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -19,10 +26,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0b0d" },
-  ],
+  themeColor: "#0a0c10",
 };
 
 export default function RootLayout({
@@ -31,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={manrope.variable}>
+    <html lang="fr" className={`${spaceGrotesk.variable} ${spaceMono.variable}`}>
       <body>
         <SiteHeader />
         {children}
