@@ -3,6 +3,13 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import {
+  CheckCircle,
+  Prohibit,
+  Clock,
+  MagnifyingGlass,
+  ArrowRight,
+} from "@phosphor-icons/react/dist/ssr";
 
 interface Resultat {
   statut: "ELIGIBLE" | "INELIGIBLE" | "REVIEW_MANUEL" | "WAITLIST";
@@ -18,19 +25,33 @@ interface ReponseCheck {
   erreur?: string;
 }
 
-const CLASSE_PAR_STATUT: Record<Resultat["statut"], string> = {
-  ELIGIBLE: "eligible",
-  INELIGIBLE: "ineligible",
-  REVIEW_MANUEL: "revue",
-  WAITLIST: "attente",
+const PILULE_PAR_STATUT: Record<Resultat["statut"], string> = {
+  ELIGIBLE: "pilule-eligible",
+  INELIGIBLE: "pilule-ineligible",
+  REVIEW_MANUEL: "pilule-revue",
+  WAITLIST: "pilule-attente",
+};
+
+const LIBELLE_PAR_STATUT: Record<Resultat["statut"], string> = {
+  ELIGIBLE: "Éligible",
+  INELIGIBLE: "Non éligible",
+  REVIEW_MANUEL: "À vérifier",
+  WAITLIST: "Liste d'attente",
+};
+
+const ICONE_PAR_STATUT: Record<Resultat["statut"], React.ElementType> = {
+  ELIGIBLE: CheckCircle,
+  INELIGIBLE: Prohibit,
+  REVIEW_MANUEL: MagnifyingGlass,
+  WAITLIST: Clock,
 };
 
 export default function CheckPage() {
   return (
     <Suspense
       fallback={
-        <main className="page">
-          <p>Chargement...</p>
+        <main className="conteneur-etroit py-16">
+          <div className="carte h-64 animate-pulse" />
         </main>
       }
     >
@@ -92,46 +113,81 @@ function CheckPageInterieur() {
     setEmailEnvoye(true);
   }
 
-  const demandePreavis =
-    reponse?.resultat?.motif === "REVIEW_PREAVIS_INCONNU";
+  const demandePreavis = reponse?.resultat?.motif === "REVIEW_PREAVIS_INCONNU";
+  const Icone = reponse?.resultat ? ICONE_PAR_STATUT[reponse.resultat.statut] : null;
 
   return (
-    <main className="page">
-      <h1>Vérifier mon vol</h1>
-      <p>Aucune inscription nécessaire pour obtenir votre verdict.</p>
+    <main className="conteneur-etroit py-14 sm:py-20">
+      <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+        Vérifiez votre indemnisation
+      </h1>
+      <p className="mt-2 text-[15px] text-[var(--texte-attenue)]">
+        Numéro de vol et date suffisent. Aucune inscription requise.
+      </p>
 
-      <form onSubmit={verifier}>
-        <input
-          placeholder="Numéro de vol (ex: AF1234)"
-          required
-          value={numeroVol}
-          onChange={(e) => setNumeroVol(e.target.value.toUpperCase())}
-        />
-        <input
-          type="date"
-          required
-          value={dateVol}
-          onChange={(e) => setDateVol(e.target.value)}
-        />
-        <button type="submit" disabled={chargement}>
+      <form onSubmit={verifier} className="carte mt-8 flex flex-col gap-4 p-6">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="numeroVol" className="etiquette">
+              Numéro de vol
+            </label>
+            <input
+              id="numeroVol"
+              className="champ"
+              placeholder="AF1380"
+              required
+              value={numeroVol}
+              onChange={(e) => setNumeroVol(e.target.value.toUpperCase())}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="dateVol" className="etiquette">
+              Date du vol
+            </label>
+            <input
+              id="dateVol"
+              type="date"
+              className="champ"
+              required
+              value={dateVol}
+              onChange={(e) => setDateVol(e.target.value)}
+            />
+          </div>
+        </div>
+        <button type="submit" className="bouton bouton-primaire mt-1" disabled={chargement}>
           {chargement ? "Vérification..." : "Vérifier"}
         </button>
       </form>
 
-      {erreur && (
-        <div className="verdict ineligible">
-          <p>{erreur}</p>
+      {chargement && (
+        <div className="carte mt-6 flex flex-col gap-3 p-6">
+          <div className="h-4 w-1/3 animate-pulse rounded-full bg-[var(--bordure)]" />
+          <div className="h-9 w-1/2 animate-pulse rounded-full bg-[var(--bordure)]" />
+          <div className="h-4 w-2/3 animate-pulse rounded-full bg-[var(--bordure)]" />
         </div>
       )}
 
-      {reponse?.resultat && (
-        <div className={`verdict ${CLASSE_PAR_STATUT[reponse.resultat.statut]}`}>
+      {erreur && (
+        <div className="carte mt-6 border-[var(--color-attente-500)]/30 p-5 text-[15px]">
+          {erreur}
+        </div>
+      )}
+
+      {reponse?.resultat && Icone && (
+        <div className="carte mt-6 p-6">
+          <span className={`pilule ${PILULE_PAR_STATUT[reponse.resultat.statut]}`}>
+            <Icone size={14} weight="bold" />
+            {LIBELLE_PAR_STATUT[reponse.resultat.statut]}
+          </span>
+
           {reponse.resultat.statut === "ELIGIBLE" && reponse.vol && (
             <>
-              <p className="montant">
-                {reponse.resultat.montantEstime} {reponse.resultat.devise}
+              <p className="mt-4 text-4xl font-extrabold tabular-nums">
+                {reponse.resultat.montantEstime} <span className="text-2xl">{reponse.resultat.devise}</span>
               </p>
-              <p>{reponse.resultat.explication}</p>
+              <p className="mt-2 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+                {reponse.resultat.explication}
+              </p>
               <Link
                 href={{
                   pathname: "/claim",
@@ -147,55 +203,71 @@ function CheckPageInterieur() {
                     explication: reponse.resultat.explication,
                   },
                 }}
+                className="bouton bouton-primaire mt-5"
               >
-                <button type="button">Lancer ma réclamation</button>
+                Lancer ma réclamation
+                <ArrowRight size={16} weight="bold" />
               </Link>
             </>
           )}
 
           {reponse.resultat.statut === "INELIGIBLE" && (
-            <p>{reponse.resultat.explication}</p>
+            <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+              {reponse.resultat.explication}
+            </p>
           )}
 
           {reponse.resultat.statut === "WAITLIST" && !emailEnvoye && (
             <>
-              <p>{reponse.resultat.explication}</p>
-              <form onSubmit={enregistrerWaitlist}>
+              <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+                {reponse.resultat.explication}
+              </p>
+              <form onSubmit={enregistrerWaitlist} className="mt-4 flex flex-col gap-3 sm:flex-row">
                 <input
                   type="email"
                   required
                   placeholder="vous@exemple.com"
+                  className="champ"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
-                <button type="submit">Me prévenir</button>
+                <button type="submit" className="bouton bouton-secondaire sm:shrink-0">
+                  Me prévenir
+                </button>
               </form>
             </>
           )}
           {reponse.resultat.statut === "WAITLIST" && emailEnvoye && (
-            <p>Merci, nous vous préviendrons dès que ce dossier sera traité.</p>
+            <p className="mt-3 text-[15px] text-[var(--texte-attenue)]">
+              Merci, nous vous préviendrons dès que ce dossier sera traité.
+            </p>
           )}
 
           {reponse.resultat.statut === "REVIEW_MANUEL" && !demandePreavis && (
-            <p>{reponse.resultat.explication}</p>
+            <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+              {reponse.resultat.explication}
+            </p>
           )}
 
           {demandePreavis && (
             <>
-              <p>
+              <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
                 Il nous manque une information : combien de jours avant le
                 vol l&apos;annulation vous a-t-elle été annoncée ?
               </p>
-              <form onSubmit={verifier}>
+              <form onSubmit={verifier} className="mt-4 flex flex-col gap-3 sm:flex-row">
                 <input
                   type="number"
                   min={0}
                   required
                   placeholder="Nombre de jours"
+                  className="champ"
                   value={preavisAnnulationJours}
                   onChange={(e) => setPreavisAnnulationJours(e.target.value)}
                 />
-                <button type="submit">Recalculer</button>
+                <button type="submit" className="bouton bouton-secondaire sm:shrink-0">
+                  Recalculer
+                </button>
               </form>
             </>
           )}

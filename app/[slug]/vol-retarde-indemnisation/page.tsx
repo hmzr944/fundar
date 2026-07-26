@@ -35,10 +35,12 @@ export default function PageCompagnie({
   if (!compagnie) notFound();
 
   return (
-    <main className="page">
+    <main className="conteneur-etroit py-14 sm:py-20">
       <CheckWidget />
-      <h1>Vol {compagnie.nom} retardé ou annulé ? Vérifiez votre indemnisation</h1>
-      <p>
+      <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+        Vol {compagnie.nom} retardé ou annulé ?
+      </h1>
+      <p className="mt-4 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
         Si votre vol {compagnie.nom} a été retardé de plus de 3 heures à
         l&apos;arrivée, annulé, ou si vous avez été refusé à
         l&apos;embarquement pour surbooking, vous avez peut-être droit à une
@@ -46,20 +48,22 @@ export default function PageCompagnie({
         {compagnie.immatriculeeUeUk ? " ou UK261" : ""}.
       </p>
 
-      <h2>Barème indicatif</h2>
-      <ul>
-        <li>
-          Vol ≤ 1 500 km : {BAREME.EUR.COURT} € / {BAREME.GBP.COURT} £
-        </li>
-        <li>
-          Vol 1 500 – 3 500 km : {BAREME.EUR.MOYEN} € / {BAREME.GBP.MOYEN} £
-        </li>
-        <li>
-          Vol &gt; 3 500 km : {BAREME.EUR.LONG} € / {BAREME.GBP.LONG} £
-        </li>
-      </ul>
+      <div className="carte mt-8 grid grid-cols-3 divide-x divide-[var(--bordure)] p-6 text-center">
+        <div>
+          <p className="text-2xl font-extrabold tabular-nums">{BAREME.EUR.COURT} €</p>
+          <p className="mt-1 text-xs text-[var(--texte-attenue)]">Jusqu&apos;à 1 500 km</p>
+        </div>
+        <div>
+          <p className="text-2xl font-extrabold tabular-nums">{BAREME.EUR.MOYEN} €</p>
+          <p className="mt-1 text-xs text-[var(--texte-attenue)]">De 1 500 à 3 500 km</p>
+        </div>
+        <div>
+          <p className="text-2xl font-extrabold tabular-nums">{BAREME.EUR.LONG} €</p>
+          <p className="mt-1 text-xs text-[var(--texte-attenue)]">Au-delà de 3 500 km</p>
+        </div>
+      </div>
 
-      <p>
+      <p className="mt-6 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
         Nous gérons la réclamation à votre place et ne sommes rémunérés
         qu&apos;en cas de succès.
       </p>

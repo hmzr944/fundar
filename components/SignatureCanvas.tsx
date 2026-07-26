@@ -22,9 +22,11 @@ const SignatureCanvas = forwardRef<SignatureCanvasHandle>((_props, ref) => {
   }));
 
   return (
-    <div style={{ border: "1px solid var(--couleur-bordure)", borderRadius: 8 }}>
+    <div className="overflow-hidden rounded-[var(--radius-champ)] border-[1.5px] border-[var(--bordure)]">
       <SignaturePad
         ref={padRef}
+        penColor="#18181b"
+        backgroundColor="#ffffff"
         canvasProps={{ width: 320, height: 150, style: { width: "100%", height: 150 } }}
       />
     </div>

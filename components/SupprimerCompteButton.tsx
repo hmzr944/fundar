@@ -10,7 +10,11 @@ export default function SupprimerCompteButton() {
 
   if (!confirmation) {
     return (
-      <button type="button" onClick={() => setConfirmation(true)}>
+      <button
+        type="button"
+        className="bouton bouton-fantome text-sm !px-0"
+        onClick={() => setConfirmation(true)}
+      >
         Supprimer mon compte
       </button>
     );
@@ -26,17 +30,29 @@ export default function SupprimerCompteButton() {
   }
 
   return (
-    <div>
-      <p>
+    <div className="flex flex-col gap-3 text-sm">
+      <p className="text-[var(--texte-attenue)]">
         Cette action supprime définitivement votre compte et tous vos
         dossiers. Confirmer ?
       </p>
-      <button type="button" onClick={supprimer} disabled={envoi}>
-        {envoi ? "Suppression..." : "Confirmer la suppression"}
-      </button>
-      <button type="button" onClick={() => setConfirmation(false)}>
-        Annuler
-      </button>
+      <div className="flex gap-3">
+        <button
+          type="button"
+          className="bouton bouton-secondaire text-sm"
+          onClick={() => setConfirmation(false)}
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          className="bouton text-sm"
+          style={{ background: "var(--color-attente-600)", color: "white" }}
+          onClick={supprimer}
+          disabled={envoi}
+        >
+          {envoi ? "Suppression..." : "Confirmer la suppression"}
+        </button>
+      </div>
     </div>
   );
 }

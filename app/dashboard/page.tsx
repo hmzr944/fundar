@@ -1,14 +1,20 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import {
+  PaperPlaneTilt,
+  HourglassMedium,
+  CheckCircle,
+  Prohibit,
+} from "@phosphor-icons/react/dist/ssr";
 import EnvoyerLettreButton from "@/components/EnvoyerLettreButton";
 import SupprimerCompteButton from "@/components/SupprimerCompteButton";
 
-const LIBELLE_STATUT: Record<string, string> = {
-  SOUMIS: "Soumis",
-  EN_COURS: "En cours",
-  PAYE: "Payé",
-  REFUSE: "Refusé",
-};
+const STATUT_DOSSIER = {
+  SOUMIS: { libelle: "Soumis", pilule: "pilule-revue", icone: PaperPlaneTilt },
+  EN_COURS: { libelle: "En cours", pilule: "pilule-attente", icone: HourglassMedium },
+  PAYE: { libelle: "Payé", pilule: "pilule-eligible", icone: CheckCircle },
+  REFUSE: { libelle: "Refusé", pilule: "pilule-ineligible", icone: Prohibit },
+} as const;
 
 export default async function DashboardPage() {
   const supabase = createClient();
@@ -28,39 +34,61 @@ export default async function DashboardPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <main className="page">
-      <h1>Mes dossiers</h1>
+    <main className="conteneur-etroit py-14 sm:py-20">
+      <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Mes dossiers</h1>
 
       {(!dossiers || dossiers.length === 0) && (
-        <p>
-          Aucun dossier pour l&apos;instant. <a href="/check">Vérifiez un vol</a>{" "}
-          pour commencer.
-        </p>
+        <div className="carte mt-8 p-8 text-center">
+          <p className="text-[15px] text-[var(--texte-attenue)]">
+            Aucun dossier pour l&apos;instant.
+          </p>
+          <a href="/check" className="bouton bouton-primaire mt-4 inline-flex">
+            Vérifier un vol
+          </a>
+        </div>
       )}
 
-      {dossiers?.map((dossier) => (
-        <div key={dossier.id} className="verdict">
-          <p>
-            <strong>
-              Vol {dossier.numero_vol} — {dossier.aeroport_depart} →{" "}
-              {dossier.aeroport_arrivee}
-            </strong>
-          </p>
-          <p>{dossier.date_vol}</p>
-          {dossier.montant_estime !== null && (
-            <p>
-              Estimation : {dossier.montant_estime} {dossier.devise}
-            </p>
-          )}
-          <p>Statut : {LIBELLE_STATUT[dossier.statut_dossier] ?? dossier.statut_dossier}</p>
-          {dossier.statut_dossier === "SOUMIS" && (
-            <EnvoyerLettreButton claimId={dossier.id} />
-          )}
-        </div>
-      ))}
+      <div className="mt-8 flex flex-col gap-4">
+        {dossiers?.map((dossier) => {
+          const statut =
+            STATUT_DOSSIER[dossier.statut_dossier as keyof typeof STATUT_DOSSIER] ??
+            STATUT_DOSSIER.SOUMIS;
+          const Icone = statut.icone;
 
-      <hr />
-      <SupprimerCompteButton />
+          return (
+            <div key={dossier.id} className="carte p-6">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-bold">
+                    Vol {dossier.numero_vol} · {dossier.aeroport_depart} →{" "}
+                    {dossier.aeroport_arrivee}
+                  </p>
+                  <p className="mt-0.5 text-sm text-[var(--texte-attenue)]">{dossier.date_vol}</p>
+                </div>
+                {dossier.montant_estime !== null && (
+                  <p className="text-xl font-extrabold tabular-nums text-[var(--color-accent-500)]">
+                    {dossier.montant_estime} {dossier.devise}
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <span className={`pilule ${statut.pilule}`}>
+                  <Icone size={14} weight="bold" />
+                  {statut.libelle}
+                </span>
+                {dossier.statut_dossier === "SOUMIS" && (
+                  <EnvoyerLettreButton claimId={dossier.id} />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-10 border-t border-[var(--bordure)] pt-6">
+        <SupprimerCompteButton />
+      </div>
     </main>
   );
 }

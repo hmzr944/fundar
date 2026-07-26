@@ -15,8 +15,8 @@ export default function EnvoyerLettreButton({ claimId }: { claimId: string }) {
   }
 
   return (
-    <button type="button" onClick={envoyer} disabled={envoi}>
-      {envoi ? "Envoi..." : "Envoyer la lettre de réclamation"}
+    <button type="button" className="bouton bouton-secondaire text-sm" onClick={envoyer} disabled={envoi}>
+      {envoi ? "Envoi..." : "Envoyer la lettre"}
     </button>
   );
 }
