@@ -1,0 +1,102 @@
+:root {
+  color-scheme: light;
+  --couleur-texte: #1a1a1a;
+  --couleur-fond: #ffffff;
+  --couleur-accent: #0b5fff;
+  --couleur-danger: #b3261e;
+  --couleur-bordure: #d9d9d9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--couleur-texte);
+  background: var(--couleur-fond);
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+input, select, textarea {
+  font-size: 1rem;
+  padding: 12px;
+  border: 1px solid var(--couleur-bordure);
+  border-radius: 8px;
+  width: 100%;
+}
+
+button {
+  font-size: 1rem;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--couleur-accent);
+  color: white;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.verdict {
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--couleur-bordure);
+}
+
+.verdict.eligible {
+  border-color: #1e8e3e;
+  background: #eaf6ec;
+}
+
+.verdict.ineligible {
+  border-color: var(--couleur-danger);
+  background: #fbecea;
+}
+
+.verdict.attente,
+.verdict.revue {
+  border-color: #b26a00;
+  background: #fff4e5;
+}
+
+.montant {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+nav.principale {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  border-bottom: 1px solid var(--couleur-bordure);
+}
+
+nav.principale a {
+  color: var(--couleur-texte);
+  text-decoration: none;
+  font-weight: 500;
+}
