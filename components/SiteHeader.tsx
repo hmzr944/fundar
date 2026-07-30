@@ -7,9 +7,9 @@ export default function SiteHeader() {
       <div className="conteneur flex h-16 items-center justify-between">
         <Link
           href="/"
-          className="flex items-center gap-2 text-[15px] font-bold tracking-tight text-[var(--texte)]"
+          className="flex items-center gap-2.5 text-[17px] font-bold tracking-tight text-[var(--texte)]"
         >
-          <BrandMark size={24} />
+          <BrandMark size={34} />
           Refund Radar
         </Link>
 

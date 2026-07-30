@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   AirplaneTilt,
   PenNib,
@@ -8,8 +9,13 @@ import {
   EnvelopeSimple,
 } from "@phosphor-icons/react/dist/ssr";
 import BrandMark from "@/components/BrandMark";
-import Radar from "@/components/Radar";
 import MontantSplitFlap from "@/components/MontantSplitFlap";
+
+/**
+ * Photos sous licence Unsplash (gratuite, usage commercial autorisé) :
+ * - hero-wing-sunset.jpg : unsplash.com/photos/a-view-of-the-wing-of-an-airplane-at-sunset-KmGJCEGNeuE (Janis Ringli)
+ * - twa-departure-board.jpg : unsplash.com/photos/a-retro-airport-flight-information-display-board-7UgQsOUptPU (TWA Hotel, JFK)
+ */
 
 const ETAPES = [
   {
@@ -35,8 +41,8 @@ const ETAPES = [
 export default function HomePage() {
   return (
     <main>
-      {/* Hero : asymétrique, radar en arrière-plan, carte d'embarquement au premier plan */}
-      <section className="conteneur grid items-center gap-12 pt-14 pb-20 sm:pt-20 sm:pb-28 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
+      {/* Hero : asymétrique, photo réelle + carte d'embarquement en incrustation */}
+      <section className="conteneur grid items-center gap-12 pt-14 pb-24 sm:pt-20 sm:pb-32 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
         <div className="entree-fade max-w-[34rem]">
           <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl">
             Vol retardé, annulé ?{" "}
@@ -57,12 +63,20 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="entree-fade relative flex h-[24rem] items-center justify-center sm:h-[28rem]">
-          <div className="absolute inset-0 flex items-center justify-center opacity-80">
-            <Radar size={320} />
+        <div className="entree-fade relative h-[22rem] sm:h-[26rem]">
+          <div className="absolute inset-0 overflow-hidden rounded-[var(--radius-carte)]">
+            <Image
+              src="/images/hero-wing-sunset.jpg"
+              alt="Vue du hublot d'un avion au coucher du soleil"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 560px"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0d0b09] via-[#0d0b09]/5 to-transparent" />
           </div>
 
-          <div className="carte-embarquement relative w-[19rem] p-6 sm:w-[21rem]">
+          <div className="carte-embarquement absolute -bottom-8 left-4 right-4 p-6 sm:left-6 sm:right-auto sm:w-[21rem]">
             <div className="flex items-center justify-between">
               <p className="etiquette">Vol AF1380</p>
               <span className="pilule pilule-eligible">Éligible</span>
@@ -162,13 +176,23 @@ export default function HomePage() {
         </ul>
       </section>
 
-      {/* Bandeau CTA final */}
-      <section className="bg-[var(--color-accent-500)]">
-        <div className="conteneur flex flex-col items-center gap-6 py-16 text-center">
-          <h2 className="max-w-[24ch] text-2xl font-semibold tracking-tight text-[#1a1103] sm:text-3xl">
+      {/* Bandeau CTA final : photo réelle (panneau split-flap du TWA Hotel, JFK) */}
+      <section className="relative isolate overflow-hidden py-24">
+        <Image
+          src="/images/twa-departure-board.jpg"
+          alt="Panneau d'affichage des départs façon split-flap"
+          fill
+          sizes="100vw"
+          className="-z-10 object-cover"
+        />
+        <div className="absolute inset-0 -z-10 bg-[#0d0b09]/78" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[var(--color-accent-500)]/90 via-[#0d0b09]/50 to-[#0d0b09]/85" />
+
+        <div className="conteneur relative flex flex-col items-center gap-6 text-center">
+          <h2 className="max-w-[24ch] text-2xl font-semibold tracking-tight text-[var(--texte)] sm:text-3xl">
             Votre vol a peut-être une valeur que vous ignorez.
           </h2>
-          <Link href="/check" className="bouton bg-[#1a1103] text-[var(--color-accent-400)]">
+          <Link href="/check" className="bouton bg-[var(--texte)] text-[#0d0b09]">
             Vérifier mon vol
           </Link>
         </div>
@@ -177,7 +201,7 @@ export default function HomePage() {
       <footer className="border-t border-[var(--bordure)]">
         <div className="conteneur flex flex-col items-center gap-4 py-10 text-sm text-[var(--texte-attenue)] sm:flex-row sm:justify-between">
           <span className="flex items-center gap-2 font-semibold text-[var(--texte)]">
-            <BrandMark size={18} />
+            <BrandMark size={20} />
             Refund Radar
           </span>
           <nav className="flex gap-6">

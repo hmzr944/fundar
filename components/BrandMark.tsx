@@ -1,5 +1,9 @@
-/** Marque géométrique simple : arcs radar + trajectoire, un seul accent. */
-export default function BrandMark({ size = 28 }: { size?: number }) {
+/**
+ * Badge de marque : fond rempli, arcs de signal balayant vers un point
+ * ("blip" détecté) — vocabulaire universel du radar/signal, lisible même
+ * en petite taille. Fonctionne aussi seul comme icône d'app.
+ */
+export default function BrandMark({ size = 32 }: { size?: number }) {
   return (
     <svg
       width={size}
@@ -8,15 +12,22 @@ export default function BrandMark({ size = 28 }: { size?: number }) {
       fill="none"
       aria-hidden="true"
     >
-      <circle cx="16" cy="16" r="15" stroke="currentColor" strokeOpacity="0.15" strokeWidth="1.5" />
-      <circle cx="16" cy="16" r="10" stroke="currentColor" strokeOpacity="0.28" strokeWidth="1.5" />
+      <rect width="32" height="32" rx="9" fill="#0d0b09" />
       <path
-        d="M16 16 L16 4"
+        d="M7 22a13.2 13.2 0 0 1 13.2-13.2"
         stroke="var(--color-accent-500)"
-        strokeWidth="2"
+        strokeOpacity="0.32"
+        strokeWidth="2.3"
         strokeLinecap="round"
       />
-      <circle cx="16" cy="16" r="2.5" fill="var(--color-accent-500)" />
+      <path
+        d="M11.2 22a9 9 0 0 1 9-9"
+        stroke="var(--color-accent-500)"
+        strokeOpacity="0.62"
+        strokeWidth="2.3"
+        strokeLinecap="round"
+      />
+      <circle cx="20.2" cy="9.8" r="2.6" fill="var(--color-accent-500)" />
     </svg>
   );
 }
