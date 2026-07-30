@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { genererMandatPdf } from "@/lib/pdf/mandat";
 import { sha256Hex } from "@/lib/crypto/hash";
 import { envoyerConfirmationMandat } from "@/lib/email/resend";
+import { VERSION_CGV } from "@/config/legal";
 
 interface CorpsRequete {
   nom: string;
@@ -107,9 +108,23 @@ export async function POST(
     ip_address: ip,
   });
 
+  // La version du texte accepté est enregistrée : un consentement qui ne
+  // renvoie à aucun document daté n'a quasiment aucune valeur probante.
   await supabase.from("consentements").insert([
-    { user_id: user.id, claim_id: dossier.id, type: "CGV", ip_address: ip },
-    { user_id: user.id, claim_id: dossier.id, type: "MANDAT", ip_address: ip },
+    {
+      user_id: user.id,
+      claim_id: dossier.id,
+      type: "CGV",
+      ip_address: ip,
+      version_document: VERSION_CGV,
+    },
+    {
+      user_id: user.id,
+      claim_id: dossier.id,
+      type: "MANDAT",
+      ip_address: ip,
+      version_document: VERSION_CGV,
+    },
   ]);
 
   try {

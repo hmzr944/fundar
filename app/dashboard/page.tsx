@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
+  FileText,
   PaperPlaneTilt,
   HourglassMedium,
   CheckCircle,
@@ -9,12 +10,46 @@ import {
 import EnvoyerLettreButton from "@/components/EnvoyerLettreButton";
 import SupprimerCompteButton from "@/components/SupprimerCompteButton";
 
+/**
+ * Le statut affiché distingue explicitement "dossier reçu" et "réclamation
+ * réellement transmise à la compagnie". Sans cette distinction, un client
+ * pouvait lire "En cours" alors que rien n'était parti.
+ */
 const STATUT_DOSSIER = {
-  SOUMIS: { libelle: "Soumis", pilule: "pilule-revue", icone: PaperPlaneTilt },
-  EN_COURS: { libelle: "En cours", pilule: "pilule-attente", icone: HourglassMedium },
-  PAYE: { libelle: "Payé", pilule: "pilule-eligible", icone: CheckCircle },
-  REFUSE: { libelle: "Refusé", pilule: "pilule-ineligible", icone: Prohibit },
+  SOUMIS: {
+    libelle: "Dossier reçu",
+    detail: "Votre mandat est enregistré. Nous préparons la réclamation.",
+    pilule: "pilule-revue",
+    icone: FileText,
+  },
+  EN_COURS: {
+    libelle: "Réclamation transmise",
+    detail: "La compagnie a reçu votre réclamation. Les délais de réponse varient.",
+    pilule: "pilule-attente",
+    icone: HourglassMedium,
+  },
+  PAYE: {
+    libelle: "Indemnisation reçue",
+    detail: "La compagnie a payé.",
+    pilule: "pilule-eligible",
+    icone: CheckCircle,
+  },
+  REFUSE: {
+    libelle: "Refusé",
+    detail: "La compagnie a rejeté la réclamation. Vous ne devez rien.",
+    pilule: "pilule-ineligible",
+    icone: Prohibit,
+  },
 } as const;
+
+function formaterDate(valeur: string | null) {
+  if (!valeur) return null;
+  return new Date(valeur).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 export default async function DashboardPage() {
   const supabase = createClient();
@@ -29,7 +64,7 @@ export default async function DashboardPage() {
   const { data: dossiers } = await supabase
     .from("claims")
     .select(
-      "id, numero_vol, date_vol, aeroport_depart, aeroport_arrivee, compagnie, montant_estime, devise, statut_dossier, created_at"
+      "id, numero_vol, date_vol, aeroport_depart, aeroport_arrivee, compagnie, montant_estime, devise, statut_dossier, created_at, reclamation_envoyee_le, montant_recupere, commission_due, commission_encaissee_le"
     )
     .order("created_at", { ascending: false });
 
@@ -54,33 +89,72 @@ export default async function DashboardPage() {
             STATUT_DOSSIER[dossier.statut_dossier as keyof typeof STATUT_DOSSIER] ??
             STATUT_DOSSIER.SOUMIS;
           const Icone = statut.icone;
+          const envoyeeLe = formaterDate(dossier.reclamation_envoyee_le);
 
           return (
             <div key={dossier.id} className="carte p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-bold">
+                  <p className="font-semibold">
                     Vol {dossier.numero_vol} · {dossier.aeroport_depart} →{" "}
                     {dossier.aeroport_arrivee}
                   </p>
-                  <p className="mt-0.5 text-sm text-[var(--texte-attenue)]">{dossier.date_vol}</p>
-                </div>
-                {dossier.montant_estime !== null && (
-                  <p className="text-xl font-bold tabular-nums text-[var(--color-accent-500)]">
-                    {dossier.montant_estime} {dossier.devise}
+                  <p className="mt-0.5 text-sm text-[var(--texte-attenue)]">
+                    {dossier.date_vol}
                   </p>
+                </div>
+                {dossier.montant_recupere !== null ? (
+                  <div className="text-right">
+                    <p className="chiffres text-xl font-bold text-[var(--color-succes-600)]">
+                      {dossier.montant_recupere} {dossier.devise}
+                    </p>
+                    <p className="text-xs text-[var(--texte-attenue)]">reçus</p>
+                  </div>
+                ) : (
+                  dossier.montant_estime !== null && (
+                    <div className="text-right">
+                      <p className="chiffres text-xl font-bold">
+                        {dossier.montant_estime} {dossier.devise}
+                      </p>
+                      <p className="text-xs text-[var(--texte-attenue)]">estimés</p>
+                    </div>
+                  )
                 )}
               </div>
 
-              <div className="mt-4 flex items-center justify-between gap-3">
+              <div className="mt-4 flex flex-wrap items-center gap-3">
                 <span className={`pilule ${statut.pilule}`}>
-                  <Icone size={14} weight="bold" />
+                  <Icone size={15} weight="bold" />
                   {statut.libelle}
                 </span>
-                {dossier.statut_dossier === "SOUMIS" && (
-                  <EnvoyerLettreButton claimId={dossier.id} />
+                {envoyeeLe && (
+                  <span className="text-sm text-[var(--texte-attenue)]">
+                    Transmise le {envoyeeLe}
+                  </span>
                 )}
               </div>
+
+              <p className="mt-3 text-sm leading-relaxed text-[var(--texte-attenue)]">
+                {statut.detail}
+              </p>
+
+              {dossier.commission_due !== null && (
+                <p className="mt-3 border-t border-[var(--bordure)] pt-3 text-sm text-[var(--texte-attenue)]">
+                  Commission de service :{" "}
+                  <span className="chiffres font-semibold text-[var(--texte)]">
+                    {dossier.commission_due} {dossier.devise}
+                  </span>
+                  {dossier.commission_encaissee_le
+                    ? " · réglée, dossier clos."
+                    : " · à régler après réception de votre virement."}
+                </p>
+              )}
+
+              {!dossier.reclamation_envoyee_le && (
+                <div className="mt-4 flex justify-end">
+                  <EnvoyerLettreButton claimId={dossier.id} />
+                </div>
+              )}
             </div>
           );
         })}

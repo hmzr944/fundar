@@ -407,8 +407,19 @@ function ClaimPageInterieur() {
               checked={cguAcceptees}
               onChange={(e) => setCguAcceptees(e.target.checked)}
             />
-            J&apos;ai lu et j&apos;accepte les conditions générales, et je comprends
-            qu&apos;une commission de 22 % sera due en cas de succès.
+            <span>
+              J&apos;ai lu et j&apos;accepte les{" "}
+              <a
+                href="/cgv"
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-[var(--color-accent-600)] underline"
+              >
+                conditions générales
+              </a>
+              , et je comprends qu&apos;une commission de 22 % sera due
+              uniquement si je récupère effectivement une indemnisation.
+            </span>
           </label>
 
           {erreur && <p className="text-[15px] text-[var(--color-accent-600)]">{erreur}</p>}

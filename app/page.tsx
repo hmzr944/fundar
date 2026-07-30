@@ -227,9 +227,10 @@ export default function HomePage() {
               Données hébergées en Union européenne
             </p>
           </div>
-          <nav className="flex gap-6 text-sm text-[var(--texte-attenue)]">
+          <nav className="flex flex-wrap gap-6 text-sm text-[var(--texte-attenue)]">
             <Link href="/check">Vérifier un vol</Link>
             <Link href="/dashboard">Mes dossiers</Link>
+            <Link href="/cgv">Conditions générales</Link>
           </nav>
         </div>
       </footer>
