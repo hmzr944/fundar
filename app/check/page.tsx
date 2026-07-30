@@ -162,28 +162,30 @@ function CheckPageInterieur() {
       </form>
 
       {chargement && (
-        <div className="carte mt-6 flex flex-col items-center gap-3 p-10">
+        <div className="carte entree-fade mt-6 flex flex-col items-center gap-3 p-10">
           <Radar size={96} />
           <p className="text-sm text-[var(--texte-attenue)]">Scan de votre dossier en cours...</p>
         </div>
       )}
 
       {erreur && (
-        <div className="carte mt-6 border-[var(--color-attente-500)]/30 p-5 text-[15px]">
+        <div className="carte entree-fade mt-6 border-[var(--color-attente-500)]/30 p-5 text-[15px]">
           {erreur}
         </div>
       )}
 
       {reponse?.resultat && Icone && (
         <div className="carte-embarquement mt-6 p-6" key={reponse.resultat.motif + numeroVol}>
-          <span className={`pilule ${PILULE_PAR_STATUT[reponse.resultat.statut]}`}>
+          <span
+            className={`pilule entree-fade ${PILULE_PAR_STATUT[reponse.resultat.statut]}`}
+          >
             <Icone size={14} weight="bold" />
             {LIBELLE_PAR_STATUT[reponse.resultat.statut]}
           </span>
 
           {reponse.resultat.statut === "ELIGIBLE" && reponse.vol && reponse.resultat.montantEstime !== null && (
             <>
-              <div className="souche mt-4 pt-4">
+              <div className="souche entree-fade mt-4 pt-4" style={{ animationDelay: "60ms" }}>
                 <p className="text-4xl font-bold">
                   <MontantSplitFlap
                     montant={reponse.resultat.montantEstime}
@@ -191,10 +193,14 @@ function CheckPageInterieur() {
                   />
                 </p>
               </div>
-              <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+              <p
+                className="entree-fade mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
+                style={{ animationDelay: "260ms" }}
+              >
                 {reponse.resultat.explication}
               </p>
               <Link
+                style={{ animationDelay: "320ms" }}
                 href={{
                   pathname: "/claim",
                   query: {
@@ -209,7 +215,7 @@ function CheckPageInterieur() {
                     explication: reponse.resultat.explication,
                   },
                 }}
-                className="bouton bouton-primaire mt-5"
+                className="bouton bouton-primaire entree-fade mt-5"
               >
                 Lancer ma réclamation
                 <ArrowRight size={16} weight="bold" />
@@ -218,14 +224,20 @@ function CheckPageInterieur() {
           )}
 
           {reponse.resultat.statut === "INELIGIBLE" && (
-            <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+            <p
+              className="entree-fade mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
+              style={{ animationDelay: "120ms" }}
+            >
               {reponse.resultat.explication}
             </p>
           )}
 
           {reponse.resultat.statut === "WAITLIST" && !emailEnvoye && (
             <>
-              <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+              <p
+                className="entree-fade mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
+                style={{ animationDelay: "120ms" }}
+              >
                 {reponse.resultat.explication}
               </p>
               <form onSubmit={enregistrerWaitlist} className="mt-4 flex flex-col gap-3 sm:flex-row">
@@ -250,14 +262,20 @@ function CheckPageInterieur() {
           )}
 
           {reponse.resultat.statut === "REVIEW_MANUEL" && !demandePreavis && (
-            <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+            <p
+              className="entree-fade mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
+              style={{ animationDelay: "120ms" }}
+            >
               {reponse.resultat.explication}
             </p>
           )}
 
           {demandePreavis && (
             <>
-              <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+              <p
+                className="entree-fade mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
+                style={{ animationDelay: "120ms" }}
+              >
                 Il nous manque une information : combien de jours avant le
                 vol l&apos;annulation vous a-t-elle été annoncée ?
               </p>

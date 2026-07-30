@@ -18,14 +18,14 @@ export default function MontantSplitFlap({
         <span
           key={i}
           className="split-flap__tuile"
-          style={{ animationDelay: `${i * 70}ms` }}
+          style={{ animationDelay: `${i * 50}ms` }}
         >
           {c}
         </span>
       ))}
       <span
         className="split-flap__tuile"
-        style={{ animationDelay: `${caracteres.length * 70}ms` }}
+        style={{ animationDelay: `${caracteres.length * 50}ms` }}
       >
         &nbsp;{devise}
       </span>

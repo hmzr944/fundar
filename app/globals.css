@@ -48,6 +48,11 @@
   --texte: #f2ede2;
   --texte-attenue: #8b8f9b;
   --bordure: #262b34;
+
+  /* Courbes custom (skill Emil Kowalski) : les easings CSS natifs sont
+     trop faibles pour donner un sentiment de réponse immédiate. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 * {
@@ -96,7 +101,7 @@ body {
 }
 
 .entree-fade {
-  animation: entree-fade 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: entree-fade 0.4s var(--ease-out) both;
 }
 
 /* --- Composants partagés --- */
@@ -128,7 +133,7 @@ body {
   border: 1.5px solid var(--bordure);
   background: var(--bg-eleve-2);
   color: var(--texte);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s var(--ease-out), box-shadow 0.15s var(--ease-out);
 }
 
 .champ::placeholder {
@@ -161,11 +166,16 @@ body {
   border: none;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform 0.12s ease, opacity 0.15s ease, background-color 0.15s ease;
+  transition:
+    transform 0.12s var(--ease-out),
+    opacity 0.15s var(--ease-out),
+    background-color 0.15s var(--ease-out),
+    color 0.15s var(--ease-out),
+    border-color 0.15s var(--ease-out);
 }
 
 .bouton:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .bouton:disabled {
@@ -179,18 +189,10 @@ body {
   color: #1a1103;
 }
 
-.bouton-primaire:hover:not(:disabled) {
-  background: var(--color-accent-400);
-}
-
 .bouton-secondaire {
   background: transparent;
   color: var(--texte);
   border: 1.5px solid var(--bordure);
-}
-
-.bouton-secondaire:hover:not(:disabled) {
-  border-color: var(--texte-attenue);
 }
 
 .bouton-fantome {
@@ -199,8 +201,20 @@ body {
   padding: 0.6rem 0.9rem;
 }
 
-.bouton-fantome:hover:not(:disabled) {
-  color: var(--texte);
+/* Hover uniquement sur pointeur fin (souris) : sur tactile, le hover se
+   déclenche au tap et reste "collé" après le doigt retiré (règle Kowalski). */
+@media (hover: hover) and (pointer: fine) {
+  .bouton-primaire:hover:not(:disabled) {
+    background: var(--color-accent-400);
+  }
+
+  .bouton-secondaire:hover:not(:disabled) {
+    border-color: var(--texte-attenue);
+  }
+
+  .bouton-fantome:hover:not(:disabled) {
+    color: var(--texte);
+  }
 }
 
 .pilule {
@@ -343,7 +357,7 @@ body {
 
 .split-flap__tuile {
   display: inline-block;
-  animation: split-flap-pose 0.5s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  animation: split-flap-pose 0.4s var(--ease-in-out) both;
   transform-origin: 50% 100%;
 }
 
