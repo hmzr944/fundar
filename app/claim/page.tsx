@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { CheckCircle, EnvelopeSimple, LockKey } from "@phosphor-icons/react/dist/ssr";
 import SignatureCanvas, { SignatureCanvasHandle } from "@/components/SignatureCanvas";
 import ProgressionEtapes from "@/components/ProgressionEtapes";
+import { validerIban } from "@/lib/validation/iban";
 
 type Etape = "identite" | "signature" | "justificatif" | "attente_email" | "termine";
 
@@ -146,6 +147,17 @@ function ClaimPageInterieur() {
   function validerIdentite(e: React.FormEvent) {
     e.preventDefault();
     setErreur(null);
+
+    // L'IBAN est vérifié ici plutôt qu'à la fin : une erreur détectée
+    // maintenant coûte dix secondes, la même erreur découverte au moment du
+    // virement coûte plusieurs mois d'attente au client.
+    const iban = validerIban(identite.iban);
+    if (!iban.valide) {
+      setErreur(iban.message ?? "IBAN invalide.");
+      return;
+    }
+    setIdentite({ ...identite, iban: iban.normalise });
+
     setEtape("signature");
   }
 
@@ -365,12 +377,19 @@ function ClaimPageInterieur() {
               <input
                 id="iban"
                 className="champ"
+                placeholder="FR76 3000 6000 0112 3456 7890 189"
                 required
                 value={identite.iban}
                 onChange={(e) => setIdentite({ ...identite, iban: e.target.value })}
               />
             </div>
           </div>
+
+          {erreur && (
+            <p role="alert" className="text-[15px] text-[var(--color-accent-600)]">
+              {erreur}
+            </p>
+          )}
 
           <button type="submit" className="bouton bouton-primaire">
             Continuer

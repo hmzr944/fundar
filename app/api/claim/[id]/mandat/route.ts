@@ -4,6 +4,7 @@ import { genererMandatPdf } from "@/lib/pdf/mandat";
 import { sha256Hex } from "@/lib/crypto/hash";
 import { envoyerConfirmationMandat } from "@/lib/email/resend";
 import { VERSION_CGV } from "@/config/legal";
+import { validerIban } from "@/lib/validation/iban";
 
 interface CorpsRequete {
   nom: string;
@@ -36,6 +37,16 @@ export async function POST(
     return NextResponse.json({ erreur: "Signature manquante." }, { status: 400 });
   }
 
+  // Revalidation côté serveur : le contrôle du formulaire est contournable,
+  // et un IBAN erroné ne se découvrirait qu'au moment du virement.
+  const iban = validerIban(body.iban);
+  if (!iban.valide) {
+    return NextResponse.json(
+      { erreur: iban.message ?? "IBAN invalide." },
+      { status: 400 }
+    );
+  }
+
   const { data: dossier, error: erreurDossier } = await supabase
     .from("claims")
     .select(
@@ -53,7 +64,7 @@ export async function POST(
     nom: body.nom,
     prenom: body.prenom,
     adresse: body.adresse,
-    iban: body.iban,
+    iban: iban.normalise,
   });
 
   const signeLe = new Date();
@@ -62,7 +73,7 @@ export async function POST(
     prenom: body.prenom,
     adresse: body.adresse,
     email: body.email,
-    iban: body.iban,
+    iban: iban.normalise,
     numeroVol: dossier.numero_vol,
     dateVol: dossier.date_vol,
     aeroportDepart: dossier.aeroport_depart,
