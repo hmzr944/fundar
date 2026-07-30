@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   LockKey,
   EnvelopeSimple,
+  CaretDown,
 } from "@phosphor-icons/react/dist/ssr";
 import BrandMark from "@/components/BrandMark";
 import MontantSplitFlap from "@/components/MontantSplitFlap";
@@ -16,6 +17,34 @@ import MontantSplitFlap from "@/components/MontantSplitFlap";
  * - hero-wing-sunset.jpg : unsplash.com/photos/a-view-of-the-wing-of-an-airplane-at-sunset-KmGJCEGNeuE (Janis Ringli)
  * - twa-departure-board.jpg : unsplash.com/photos/a-retro-airport-flight-information-display-board-7UgQsOUptPU (TWA Hotel, JFK)
  */
+
+const QUESTIONS = [
+  {
+    question: "Dois-je créer un compte ?",
+    reponse:
+      "Non, pas pour vérifier votre éligibilité : le verdict s'affiche sans inscription. Un compte n'est demandé qu'à la toute fin, au moment de signer le mandat.",
+  },
+  {
+    question: "Combien de temps ça prend ?",
+    reponse:
+      "La lettre de réclamation part sous 48h après votre signature. Le délai de réponse dépend ensuite de la compagnie : de quelques jours à plusieurs mois selon son historique de paiement.",
+  },
+  {
+    question: "Et si mon dossier est refusé ?",
+    reponse:
+      "Vous ne payez rien. Le modèle est au succès uniquement : aucun frais si nous ne récupérons rien.",
+  },
+  {
+    question: "Pourquoi 22 % de commission ?",
+    reponse:
+      "C'est moins qu'AirHelp (35 %, jusqu'à 50 % en cas de contentieux) et dans le bas de la fourchette de Flightright (20 à 30 % + TVA), sans surcoût si l'affaire se complique.",
+  },
+  {
+    question: "Mes données sont-elles en sécurité ?",
+    reponse:
+      "Hébergées en Union européenne, jamais d'accès à votre messagerie, et suppression de compte possible à tout moment.",
+  },
+];
 
 const ETAPES = [
   {
@@ -174,6 +203,29 @@ export default function HomePage() {
             </p>
           </li>
         </ul>
+      </section>
+
+      {/* FAQ : lève les objections courantes avant le CTA final */}
+      <section className="border-t border-[var(--bordure)] bg-[var(--bg-eleve)]">
+        <div className="conteneur-etroit py-20">
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Questions fréquentes</h2>
+          <div className="mt-8 flex flex-col divide-y divide-[var(--bordure)]">
+            {QUESTIONS.map((q) => (
+              <details key={q.question} className="group py-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-semibold">
+                  {q.question}
+                  <CaretDown
+                    size={16}
+                    className="shrink-0 text-[var(--texte-attenue)] transition-transform duration-200 group-open:rotate-180"
+                  />
+                </summary>
+                <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+                  {q.reponse}
+                </p>
+              </details>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Bandeau CTA final : photo réelle (panneau split-flap du TWA Hotel, JFK) */}
