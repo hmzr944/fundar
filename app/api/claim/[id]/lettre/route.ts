@@ -199,7 +199,7 @@ export async function POST(
   const envoyeLe = new Date().toISOString();
   const admin = createAdminClient();
 
-  await admin.from("envois_reclamation").insert({
+  const { error: erreurTrace } = await admin.from("envois_reclamation").insert({
     claim_id: dossier.id,
     mode: "EMAIL",
     destinataire: contact.contact!.email!,
@@ -208,7 +208,7 @@ export async function POST(
     reference_externe: idEnvoi,
   });
 
-  await admin
+  const { error: erreurStatut } = await admin
     .from("claims")
     .update({
       statut_dossier: "EN_COURS",
@@ -216,6 +216,28 @@ export async function POST(
       updated_at: envoyeLe,
     })
     .eq("id", dossier.id);
+
+  // La réclamation EST partie : on ne peut pas la rattraper. Si la base n'a
+  // pas enregistré cet état, le dossier repasserait "non envoyé" et le
+  // bouton pourrait être réactionné, envoyant une seconde réclamation à la
+  // compagnie. On le signale explicitement plutôt que de renvoyer un succès.
+  if (erreurStatut || erreurTrace) {
+    console.error(
+      `[claim ${dossier.id}] RECLAMATION ENVOYEE A ${contact.contact!.email} MAIS NON ENREGISTREE.`,
+      { erreurStatut, erreurTrace }
+    );
+    return NextResponse.json(
+      {
+        statut: "ENVOYEE_MAIS_NON_ENREGISTREE",
+        explication:
+          "La réclamation a bien été transmise à la compagnie, mais son enregistrement en base a échoué. Ne relancez pas l'envoi : la compagnie recevrait le dossier deux fois. Corrigez le statut à la main.",
+        destinataire: contact.contact!.email!,
+        envoyeeLe: envoyeLe,
+        detail: (erreurStatut ?? erreurTrace)?.message ?? null,
+      },
+      { status: 500 }
+    );
+  }
 
   try {
     await envoyerCopieReclamationClient({

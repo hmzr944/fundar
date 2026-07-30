@@ -5,11 +5,15 @@
 --   * sans DELETE, impossible de purger les fichiers d'un compte supprimé,
 --     donc les cartes d'embarquement survivaient indéfiniment au compte.
 
+-- `create policy if not exists` n'existe pas en Postgres : on droppe d'abord
+-- pour que la migration puisse être rejouée sans erreur.
+drop policy if exists "documents_storage_update_own" on storage.objects;
 create policy "documents_storage_update_own" on storage.objects
   for update using (
     bucket_id = 'documents' and (storage.foldername(name))[1] = auth.uid()::text
   );
 
+drop policy if exists "documents_storage_delete_own" on storage.objects;
 create policy "documents_storage_delete_own" on storage.objects
   for delete using (
     bucket_id = 'documents' and (storage.foldername(name))[1] = auth.uid()::text
@@ -33,9 +37,34 @@ create or replace function protege_champs_sensibles_claims()
 returns trigger
 language plpgsql
 as $$
+declare
+  role_appelant text;
 begin
-  -- current_setting('role') vaut 'service_role' pour les écritures serveur.
-  if current_setting('request.jwt.claim.role', true) = 'service_role' then
+  -- Détection du serveur, volontairement redondante.
+  --
+  -- Un trigger s'exécute AUSSI pour service_role (contrairement à RLS, qui
+  -- est contourné). Si la détection échoue, le trigger bloque les écritures
+  -- légitimes du serveur : le passage en EN_COURS après un envoi réussi
+  -- échouerait, et le dossier resterait marqué "non envoyé" alors que la
+  -- compagnie a bien reçu la réclamation.
+  --
+  -- PostgREST fait `SET LOCAL ROLE service_role`, donc current_user suffit
+  -- dans la quasi-totalité des cas. On garde le second test en secours pour
+  -- les accès directs (psql, migrations, tâches d'administration).
+  if current_user in ('service_role', 'supabase_admin', 'postgres') then
+    return new;
+  end if;
+
+  begin
+    role_appelant :=
+      nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role';
+  exception when others then
+    -- Réglage absent ou non-JSON : on considère simplement que ce n'est
+    -- pas le serveur, plutôt que de faire échouer la transaction.
+    role_appelant := null;
+  end;
+
+  if role_appelant = 'service_role' then
     return new;
   end if;
 
