@@ -13,7 +13,7 @@ export default function MontantSplitFlap({
   const caracteres = String(montant).split("");
 
   return (
-    <span className="split-flap mono" aria-label={`${montant} ${devise}`}>
+    <span className="split-flap chiffres" aria-label={`${montant} ${devise}`}>
       {caracteres.map((c, i) => (
         <span
           key={i}

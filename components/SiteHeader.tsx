@@ -3,7 +3,7 @@ import BrandMark from "./BrandMark";
 
 export default function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--bordure)] bg-[var(--bg-eleve)]/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-[var(--bordure)] bg-[var(--bg)]/85 backdrop-blur-md">
       <div className="conteneur flex h-16 items-center justify-between">
         <Link
           href="/"

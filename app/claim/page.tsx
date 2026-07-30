@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { CheckCircle, EnvelopeSimple } from "@phosphor-icons/react/dist/ssr";
+import { CheckCircle, EnvelopeSimple, LockKey } from "@phosphor-icons/react/dist/ssr";
 import SignatureCanvas, { SignatureCanvasHandle } from "@/components/SignatureCanvas";
 import ProgressionEtapes from "@/components/ProgressionEtapes";
 
@@ -276,15 +276,15 @@ function ClaimPageInterieur() {
         Finaliser ma réclamation
       </h1>
 
-      <div className="carte mt-6 flex items-center justify-between p-5">
+      <div className="carte mt-6 flex items-center justify-between gap-4 p-5">
         <div>
-          <p className="text-sm font-bold">
+          <p className="font-semibold">
             Vol {vol.numeroVol} · {vol.aeroportDepart} → {vol.aeroportArrivee}
           </p>
           <p className="text-sm text-[var(--texte-attenue)]">{vol.dateVol}</p>
         </div>
         {vol.montantEstime && (
-          <p className="text-2xl font-bold tabular-nums text-[var(--color-accent-500)]">
+          <p className="chiffres text-2xl font-bold text-[var(--color-succes-600)]">
             {vol.montantEstime} {vol.devise}
           </p>
         )}
@@ -295,7 +295,15 @@ function ClaimPageInterieur() {
       </div>
 
       {etape === "identite" && (
-        <form onSubmit={validerIdentite} className="carte flex flex-col gap-5 p-6">
+        <form onSubmit={validerIdentite} className="carte flex flex-col gap-6 p-6 sm:p-7">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">Vos coordonnées</h2>
+            <p className="mt-1.5 text-[15px] text-[var(--texte-attenue)]">
+              L&apos;IBAN sert uniquement à recevoir votre indemnisation. Aucun
+              prélèvement n&apos;est possible avec ces informations.
+            </p>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="nom" className="etiquette">
@@ -371,9 +379,17 @@ function ClaimPageInterieur() {
       )}
 
       {etape === "signature" && (
-        <form onSubmit={validerSignature} className="carte flex flex-col gap-5 p-6">
-          <div className="flex flex-col gap-1.5">
-            <span className="etiquette">Signez ici pour mandater Refund Radar</span>
+        <form onSubmit={validerSignature} className="carte flex flex-col gap-6 p-6 sm:p-7">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">Signez le mandat</h2>
+            <p className="mt-1.5 text-[15px] text-[var(--texte-attenue)]">
+              Cette signature nous autorise à réclamer en votre nom. Elle ne
+              transfère pas votre créance : la compagnie vous paie directement.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <span className="etiquette">Signez dans le cadre ci-dessous</span>
             <SignatureCanvas ref={signatureRef} />
             <button
               type="button"
@@ -384,10 +400,10 @@ function ClaimPageInterieur() {
             </button>
           </div>
 
-          <label className="flex items-start gap-2.5 text-sm leading-relaxed text-[var(--texte-attenue)]">
+          <label className="flex items-start gap-3 rounded-[var(--radius-champ)] bg-[var(--bg-eleve-2)] p-4 text-[15px] leading-relaxed">
             <input
               type="checkbox"
-              className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-accent-500)]"
+              className="mt-0.5 h-4.5 w-4.5 shrink-0 accent-[var(--color-accent-500)]"
               checked={cguAcceptees}
               onChange={(e) => setCguAcceptees(e.target.checked)}
             />
@@ -395,7 +411,7 @@ function ClaimPageInterieur() {
             qu&apos;une commission de 22 % sera due en cas de succès.
           </label>
 
-          {erreur && <p className="text-sm text-[var(--color-attente-600)]">{erreur}</p>}
+          {erreur && <p className="text-[15px] text-[var(--color-accent-600)]">{erreur}</p>}
 
           <div className="flex gap-3">
             <button
@@ -413,8 +429,18 @@ function ClaimPageInterieur() {
       )}
 
       {etape === "justificatif" && (
-        <form onSubmit={soumettreFinal} className="carte flex flex-col gap-5 p-6">
-          <div className="flex flex-col gap-1.5">
+        <form onSubmit={soumettreFinal} className="carte flex flex-col gap-6 p-6 sm:p-7">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">
+              Une preuve que vous étiez à bord
+            </h2>
+            <p className="mt-1.5 text-[15px] text-[var(--texte-attenue)]">
+              Une photo de votre carte d&apos;embarquement suffit. À défaut, la
+              confirmation de réservation reçue par email fait l&apos;affaire.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2">
             <label htmlFor="fichier" className="etiquette">
               Carte d&apos;embarquement ou confirmation de réservation
             </label>
@@ -428,13 +454,23 @@ function ClaimPageInterieur() {
             />
           </div>
 
-          {erreur && <p className="text-sm text-[var(--color-attente-600)]">{erreur}</p>}
+          {erreur && <p className="text-[15px] text-[var(--color-accent-600)]">{erreur}</p>}
 
-          <button type="submit" className="bouton bouton-primaire" disabled={envoi}>
-            {envoi ? "Envoi..." : "Commander avec obligation de paiement"}
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              className="bouton bouton-secondaire"
+              onClick={() => setEtape("signature")}
+            >
+              Retour
+            </button>
+            <button type="submit" className="bouton bouton-primaire flex-1" disabled={envoi}>
+              {envoi ? "Envoi..." : "Commander avec obligation de paiement"}
+            </button>
+          </div>
 
-          <p className="text-center text-xs text-[var(--texte-attenue)]">
+          <p className="flex items-center justify-center gap-1.5 text-center text-sm text-[var(--texte-attenue)]">
+            <LockKey size={14} />
             Nous vérifierons votre email à cette étape si ce n&apos;est pas déjà fait.
           </p>
         </form>

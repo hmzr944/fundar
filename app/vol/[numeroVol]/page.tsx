@@ -25,16 +25,20 @@ export default function PageVol({
 
   return (
     <main className="conteneur-etroit py-14 sm:py-20">
-      <CheckWidget />
-      <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
         Vol {numeroVol} : retardé, annulé ou surbooké ?
       </h1>
-      <p className="mt-4 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
-        Indiquez la date de votre vol {numeroVol} ci-dessus pour vérifier
-        immédiatement si vous avez droit à une indemnisation de 250 € à 600 €
-        au titre du règlement EU261 ou UK261.
+      <p className="mt-4 text-[17px] leading-relaxed text-[var(--texte-attenue)]">
+        Indiquez la date de votre vol {numeroVol} pour vérifier immédiatement
+        si vous avez droit à une indemnisation de 250 € à 600 € au titre du
+        règlement EU261 ou UK261.
       </p>
-      <p className="mt-4 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+
+      <div className="mt-8">
+        <CheckWidget numeroVolInitial={numeroVol} />
+      </div>
+
+      <p className="mt-6 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
         Aucune inscription n&apos;est requise pour obtenir votre verdict.
         Si vous êtes éligible, nous gérons la réclamation à votre place et ne
         sommes rémunérés qu&apos;en cas de succès.

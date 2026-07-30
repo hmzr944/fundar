@@ -36,8 +36,7 @@ export default function PageAeroport({
 
   return (
     <main className="conteneur-etroit py-14 sm:py-20">
-      <CheckWidget />
-      <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
         Grève à {aeroport.nom} : votre indemnisation
       </h1>
       <p className="mt-4 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
@@ -54,17 +53,21 @@ export default function PageAeroport({
         d&apos;indemnisation.
       </p>
 
+      <div className="mt-8">
+        <CheckWidget />
+      </div>
+
       <div className="carte mt-8 grid grid-cols-3 divide-x divide-[var(--bordure)] p-6 text-center">
         <div>
-          <p className="text-2xl font-extrabold tabular-nums">{BAREME.EUR.COURT} €</p>
+          <p className="text-2xl font-bold tabular-nums">{BAREME.EUR.COURT} €</p>
           <p className="mt-1 text-xs text-[var(--texte-attenue)]">Jusqu&apos;à 1 500 km</p>
         </div>
         <div>
-          <p className="text-2xl font-extrabold tabular-nums">{BAREME.EUR.MOYEN} €</p>
+          <p className="text-2xl font-bold tabular-nums">{BAREME.EUR.MOYEN} €</p>
           <p className="mt-1 text-xs text-[var(--texte-attenue)]">De 1 500 à 3 500 km</p>
         </div>
         <div>
-          <p className="text-2xl font-extrabold tabular-nums">{BAREME.EUR.LONG} €</p>
+          <p className="text-2xl font-bold tabular-nums">{BAREME.EUR.LONG} €</p>
           <p className="mt-1 text-xs text-[var(--texte-attenue)]">Au-delà de 3 500 km</p>
         </div>
       </div>

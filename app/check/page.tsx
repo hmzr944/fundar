@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -10,7 +10,6 @@ import {
   MagnifyingGlass,
   ArrowRight,
 } from "@phosphor-icons/react/dist/ssr";
-import Radar from "@/components/Radar";
 import MontantSplitFlap from "@/components/MontantSplitFlap";
 
 interface Resultat {
@@ -53,7 +52,7 @@ export default function CheckPage() {
     <Suspense
       fallback={
         <main className="conteneur-etroit py-16">
-          <div className="carte h-64 animate-pulse" />
+          <div className="carte h-64" />
         </main>
       }
     >
@@ -73,35 +72,54 @@ function CheckPageInterieur() {
   const [email, setEmail] = useState("");
   const [emailEnvoye, setEmailEnvoye] = useState(false);
 
-  async function verifier(e: React.FormEvent) {
-    e.preventDefault();
-    setChargement(true);
-    setErreur(null);
-    setReponse(null);
+  const lancerVerification = useCallback(
+    async (params: { numeroVol: string; dateVol: string; preavis?: string }) => {
+      setChargement(true);
+      setErreur(null);
+      setReponse(null);
 
-    try {
-      const res = await fetch("/api/check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          numeroVol,
-          dateVol,
-          preavisAnnulationJours: preavisAnnulationJours
-            ? Number(preavisAnnulationJours)
-            : undefined,
-        }),
-      });
-      const data: ReponseCheck = await res.json();
-      if (!res.ok) {
-        setErreur(data.erreur ?? "Une erreur est survenue.");
-      } else {
-        setReponse(data);
+      try {
+        const res = await fetch("/api/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            numeroVol: params.numeroVol,
+            dateVol: params.dateVol,
+            preavisAnnulationJours: params.preavis ? Number(params.preavis) : undefined,
+          }),
+        });
+        const data: ReponseCheck = await res.json();
+        if (!res.ok) {
+          setErreur(data.erreur ?? "Une erreur est survenue.");
+        } else {
+          setReponse(data);
+        }
+      } catch {
+        setErreur("Connexion impossible. Réessayez.");
+      } finally {
+        setChargement(false);
       }
-    } catch {
-      setErreur("Connexion impossible. Réessayez.");
-    } finally {
-      setChargement(false);
+    },
+    []
+  );
+
+  // Arrivée depuis le widget de la page d'accueil : on enchaîne directement
+  // sur le verdict, sans forcer un second envoi du formulaire.
+  const autoLance = useRef(false);
+  useEffect(() => {
+    if (autoLance.current) return;
+    const auto = searchParams.get("auto");
+    const vol = searchParams.get("numeroVol");
+    const date = searchParams.get("dateVol");
+    if (auto === "1" && vol && date) {
+      autoLance.current = true;
+      lancerVerification({ numeroVol: vol, dateVol: date });
     }
+  }, [searchParams, lancerVerification]);
+
+  function verifier(e: React.FormEvent) {
+    e.preventDefault();
+    lancerVerification({ numeroVol, dateVol, preavis: preavisAnnulationJours });
   }
 
   async function enregistrerWaitlist(e: React.FormEvent) {
@@ -120,10 +138,10 @@ function CheckPageInterieur() {
 
   return (
     <main className="conteneur-etroit py-14 sm:py-20">
-      <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
+      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
         Vérifiez votre indemnisation
       </h1>
-      <p className="mt-2 text-[15px] text-[var(--texte-attenue)]">
+      <p className="mt-3 text-[17px] leading-relaxed text-[var(--texte-attenue)]">
         Numéro de vol et date suffisent. Aucune inscription requise.
       </p>
 
@@ -162,70 +180,77 @@ function CheckPageInterieur() {
       </form>
 
       {chargement && (
-        <div className="carte entree-fade mt-6 flex flex-col items-center gap-3 p-10">
-          <Radar size={96} />
-          <p className="text-sm text-[var(--texte-attenue)]">Scan de votre dossier en cours...</p>
+        <div className="carte entree-fade mt-6 flex flex-col items-center gap-4 p-10">
+          <span className="pulsation h-10 w-10">
+            <MagnifyingGlass size={20} className="text-[var(--color-accent-500)]" weight="bold" />
+          </span>
+          <p className="text-[15px] text-[var(--texte-attenue)]">
+            Nous analysons votre vol...
+          </p>
         </div>
       )}
 
       {erreur && (
-        <div className="carte entree-fade mt-6 border-[var(--color-attente-500)]/30 p-5 text-[15px]">
-          {erreur}
-        </div>
+        <div className="carte entree-fade mt-6 p-6 text-[15px]">{erreur}</div>
       )}
 
       {reponse?.resultat && Icone && (
-        <div className="carte-embarquement mt-6 p-6" key={reponse.resultat.motif + numeroVol}>
+        <div
+          className="carte-embarquement mt-6 p-6 sm:p-7"
+          key={reponse.resultat.motif + numeroVol}
+        >
           <span
             className={`pilule entree-fade ${PILULE_PAR_STATUT[reponse.resultat.statut]}`}
           >
-            <Icone size={14} weight="bold" />
+            <Icone size={15} weight="bold" />
             {LIBELLE_PAR_STATUT[reponse.resultat.statut]}
           </span>
 
-          {reponse.resultat.statut === "ELIGIBLE" && reponse.vol && reponse.resultat.montantEstime !== null && (
-            <>
-              <div className="souche entree-fade mt-4 pt-4" style={{ animationDelay: "60ms" }}>
-                <p className="text-4xl font-bold">
-                  <MontantSplitFlap
-                    montant={reponse.resultat.montantEstime}
-                    devise={reponse.resultat.devise}
-                  />
+          {reponse.resultat.statut === "ELIGIBLE" &&
+            reponse.vol &&
+            reponse.resultat.montantEstime !== null && (
+              <>
+                <div className="souche entree-fade mt-5 pt-5" style={{ animationDelay: "60ms" }}>
+                  <p className="text-5xl font-bold">
+                    <MontantSplitFlap
+                      montant={reponse.resultat.montantEstime}
+                      devise={reponse.resultat.devise}
+                    />
+                  </p>
+                </div>
+                <p
+                  className="entree-fade mt-4 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
+                  style={{ animationDelay: "260ms" }}
+                >
+                  {reponse.resultat.explication}
                 </p>
-              </div>
-              <p
-                className="entree-fade mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
-                style={{ animationDelay: "260ms" }}
-              >
-                {reponse.resultat.explication}
-              </p>
-              <Link
-                style={{ animationDelay: "320ms" }}
-                href={{
-                  pathname: "/claim",
-                  query: {
-                    numeroVol,
-                    dateVol,
-                    aeroportDepart: reponse.vol.aeroportDepart,
-                    aeroportArrivee: reponse.vol.aeroportArrivee,
-                    compagnie: reponse.vol.compagnie,
-                    montantEstime: reponse.resultat.montantEstime ?? "",
-                    devise: reponse.resultat.devise,
-                    motif: reponse.resultat.motif,
-                    explication: reponse.resultat.explication,
-                  },
-                }}
-                className="bouton bouton-primaire entree-fade mt-5"
-              >
-                Lancer ma réclamation
-                <ArrowRight size={16} weight="bold" />
-              </Link>
-            </>
-          )}
+                <Link
+                  style={{ animationDelay: "320ms" }}
+                  href={{
+                    pathname: "/claim",
+                    query: {
+                      numeroVol,
+                      dateVol,
+                      aeroportDepart: reponse.vol.aeroportDepart,
+                      aeroportArrivee: reponse.vol.aeroportArrivee,
+                      compagnie: reponse.vol.compagnie,
+                      montantEstime: reponse.resultat.montantEstime ?? "",
+                      devise: reponse.resultat.devise,
+                      motif: reponse.resultat.motif,
+                      explication: reponse.resultat.explication,
+                    },
+                  }}
+                  className="bouton bouton-primaire entree-fade mt-6 w-full"
+                >
+                  Lancer ma réclamation
+                  <ArrowRight size={18} weight="bold" />
+                </Link>
+              </>
+            )}
 
           {reponse.resultat.statut === "INELIGIBLE" && (
             <p
-              className="entree-fade mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
+              className="entree-fade mt-4 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
               style={{ animationDelay: "120ms" }}
             >
               {reponse.resultat.explication}
@@ -235,12 +260,12 @@ function CheckPageInterieur() {
           {reponse.resultat.statut === "WAITLIST" && !emailEnvoye && (
             <>
               <p
-                className="entree-fade mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
+                className="entree-fade mt-4 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
                 style={{ animationDelay: "120ms" }}
               >
                 {reponse.resultat.explication}
               </p>
-              <form onSubmit={enregistrerWaitlist} className="mt-4 flex flex-col gap-3 sm:flex-row">
+              <form onSubmit={enregistrerWaitlist} className="mt-5 flex flex-col gap-3 sm:flex-row">
                 <input
                   type="email"
                   required
@@ -256,14 +281,14 @@ function CheckPageInterieur() {
             </>
           )}
           {reponse.resultat.statut === "WAITLIST" && emailEnvoye && (
-            <p className="mt-3 text-[15px] text-[var(--texte-attenue)]">
+            <p className="mt-4 text-[15px] text-[var(--texte-attenue)]">
               Merci, nous vous préviendrons dès que ce dossier sera traité.
             </p>
           )}
 
           {reponse.resultat.statut === "REVIEW_MANUEL" && !demandePreavis && (
             <p
-              className="entree-fade mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
+              className="entree-fade mt-4 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
               style={{ animationDelay: "120ms" }}
             >
               {reponse.resultat.explication}
@@ -273,13 +298,13 @@ function CheckPageInterieur() {
           {demandePreavis && (
             <>
               <p
-                className="entree-fade mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
+                className="entree-fade mt-4 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
                 style={{ animationDelay: "120ms" }}
               >
-                Il nous manque une information : combien de jours avant le
-                vol l&apos;annulation vous a-t-elle été annoncée ?
+                Il nous manque une information : combien de jours avant le vol
+                l&apos;annulation vous a-t-elle été annoncée ?
               </p>
-              <form onSubmit={verifier} className="mt-4 flex flex-col gap-3 sm:flex-row">
+              <form onSubmit={verifier} className="mt-5 flex flex-col gap-3 sm:flex-row">
                 <input
                   type="number"
                   min={0}

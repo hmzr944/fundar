@@ -35,7 +35,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="conteneur-etroit py-14 sm:py-20">
-      <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Mes dossiers</h1>
+      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Mes dossiers</h1>
 
       {(!dossiers || dossiers.length === 0) && (
         <div className="carte mt-8 p-8 text-center">
@@ -66,7 +66,7 @@ export default async function DashboardPage() {
                   <p className="mt-0.5 text-sm text-[var(--texte-attenue)]">{dossier.date_vol}</p>
                 </div>
                 {dossier.montant_estime !== null && (
-                  <p className="text-xl font-extrabold tabular-nums text-[var(--color-accent-500)]">
+                  <p className="text-xl font-bold tabular-nums text-[var(--color-accent-500)]">
                     {dossier.montant_estime} {dossier.devise}
                   </p>
                 )}

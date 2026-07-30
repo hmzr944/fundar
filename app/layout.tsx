@@ -1,19 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Onest, Space_Mono } from "next/font/google";
+import { Figtree } from "next/font/google";
 import SiteHeader from "@/components/SiteHeader";
 import "./globals.css";
 
-const onest = Onest({
+const figtree = Figtree({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-affichage",
-  display: "swap",
-});
-
-const spaceMono = Space_Mono({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-mono",
   display: "swap",
 });
 
@@ -26,7 +19,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0d0b09",
+  themeColor: "#fdf9f5",
 };
 
 export default function RootLayout({
@@ -35,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${onest.variable} ${spaceMono.variable}`}>
+    <html lang="fr" className={figtree.variable}>
       <body>
         <SiteHeader />
         {children}

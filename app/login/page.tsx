@@ -53,7 +53,7 @@ function LoginPageInterieur() {
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-accent-50)] text-[var(--color-accent-600)]">
             <PaperPlaneTilt size={22} weight="bold" />
           </span>
-          <h1 className="text-xl font-extrabold tracking-tight">Vérifiez vos emails</h1>
+          <h1 className="text-xl font-bold tracking-tight">Vérifiez vos emails</h1>
           <p className="max-w-[36ch] text-[15px] leading-relaxed text-[var(--texte-attenue)]">
             Un lien de connexion a été envoyé à <strong className="text-[var(--texte)]">{email}</strong>.
             Cliquez dessus pour continuer votre dossier.
@@ -69,7 +69,7 @@ function LoginPageInterieur() {
         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-accent-50)] text-[var(--color-accent-600)]">
           <EnvelopeSimple size={22} weight="bold" />
         </span>
-        <h1 className="mt-4 text-2xl font-extrabold tracking-tight">Connexion</h1>
+        <h1 className="mt-4 text-2xl font-bold tracking-tight">Connexion</h1>
         <p className="mt-2 text-[15px] text-[var(--texte-attenue)]">
           Pas de mot de passe : recevez un lien de connexion par email.
         </p>
