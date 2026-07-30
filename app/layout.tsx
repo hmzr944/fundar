@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk, Space_Mono } from "next/font/google";
+import { Onest, Space_Mono } from "next/font/google";
 import SiteHeader from "@/components/SiteHeader";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
+const onest = Onest({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
   variable: "--font-affichage",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0a0c10",
+  themeColor: "#0d0b09",
 };
 
 export default function RootLayout({
@@ -35,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${spaceGrotesk.variable} ${spaceMono.variable}`}>
+    <html lang="fr" className={`${onest.variable} ${spaceMono.variable}`}>
       <body>
         <SiteHeader />
         {children}

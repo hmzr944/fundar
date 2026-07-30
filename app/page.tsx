@@ -104,7 +104,7 @@ export default function HomePage() {
               return (
                 <li key={etape.titre} className="relative flex gap-5">
                   <div className="flex flex-col items-center">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent-50)] text-[var(--color-accent-500)]">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--bordure)] bg-[var(--bg-eleve-2)] text-[var(--texte-attenue)]">
                       <Icone size={20} weight="bold" />
                     </span>
                     {index < ETAPES.length - 1 && (
@@ -138,7 +138,7 @@ export default function HomePage() {
 
         <ul className="flex flex-col gap-6">
           <li className="flex gap-4">
-            <ShieldCheck size={22} className="mt-0.5 shrink-0 text-[var(--color-accent-500)]" />
+            <ShieldCheck size={22} className="mt-0.5 shrink-0 text-[var(--texte-attenue)]" />
             <p className="text-[15px] leading-relaxed">
               Un dossier peut être refusé, et nous vous le disons
               honnêtement : le verdict n&apos;est jamais caché derrière un
@@ -146,14 +146,14 @@ export default function HomePage() {
             </p>
           </li>
           <li className="flex gap-4">
-            <EnvelopeSimple size={22} className="mt-0.5 shrink-0 text-[var(--color-accent-500)]" />
+            <EnvelopeSimple size={22} className="mt-0.5 shrink-0 text-[var(--texte-attenue)]" />
             <p className="text-[15px] leading-relaxed">
               Nous n&apos;accédons jamais à votre messagerie. Seules les
               informations utiles à votre dossier sont demandées.
             </p>
           </li>
           <li className="flex gap-4">
-            <LockKey size={22} className="mt-0.5 shrink-0 text-[var(--color-accent-500)]" />
+            <LockKey size={22} className="mt-0.5 shrink-0 text-[var(--texte-attenue)]" />
             <p className="text-[15px] leading-relaxed">
               Données hébergées en Union européenne, suppression de compte
               possible à tout moment.

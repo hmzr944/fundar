@@ -11,27 +11,36 @@
   mécanique du montant façon split-flap.
   Rayon mixte documenté : boutons/badges = pilule, cartes = 18px, champs = 10px.
 */
+/*
+  Palette "harmonie chaude" (révision) : le noir bleuté d'origine entrait
+  en conflit de température avec l'ambre (chaud). Toute la base neutre est
+  désormais chaude, l'ambre est adouci (moins "surligneur"), le vert de
+  succès est mat plutôt que néon, et le bleu de "révision" a été retiré au
+  profit d'un gris chaud — deux teintes seulement (ambre + vert), le reste
+  en neutres. Restraint : l'ambre n'est posé que sur les moments d'action
+  (CTA, mot-clé du titre, montant), pas en décoration systématique.
+*/
 @theme {
   --font-sans: var(--font-affichage), ui-sans-serif, system-ui, sans-serif;
   --font-mono-affichage: var(--font-mono), ui-monospace, monospace;
 
-  --color-accent-50: #3a2c0f;
-  --color-accent-400: #ffc04d;
-  --color-accent-500: #ffb020;
-  --color-accent-600: #d99110;
-  --color-accent-700: #a86f0a;
+  --color-accent-50: #2e2210;
+  --color-accent-400: #efb662;
+  --color-accent-500: #e6a03c;
+  --color-accent-600: #c07f24;
+  --color-accent-700: #96631d;
 
-  --color-succes-50: #113328;
-  --color-succes-500: #34e6a0;
-  --color-succes-600: #22c988;
+  --color-succes-50: #16281f;
+  --color-succes-500: #4fbe8b;
+  --color-succes-600: #3da377;
 
-  --color-attente-50: #3a2c0f;
-  --color-attente-500: #ffb020;
-  --color-attente-600: #d99110;
+  --color-attente-50: #2e2210;
+  --color-attente-500: #e6a03c;
+  --color-attente-600: #c07f24;
 
-  --color-revue-50: #172336;
-  --color-revue-500: #6fa8ff;
-  --color-revue-600: #4d8bef;
+  --color-revue-50: #221e18;
+  --color-revue-500: #b8afa0;
+  --color-revue-600: #968c7c;
 
   --radius-champ: 0.625rem;
   --radius-carte: 1.125rem;
@@ -42,12 +51,12 @@
 
 :root {
   color-scheme: dark;
-  --bg: #0a0c10;
-  --bg-eleve: #14171d;
-  --bg-eleve-2: #1c2029;
-  --texte: #f2ede2;
-  --texte-attenue: #8b8f9b;
-  --bordure: #262b34;
+  --bg: #0d0b09;
+  --bg-eleve: #18140f;
+  --bg-eleve-2: #201a13;
+  --texte: #f5efe4;
+  --texte-attenue: #a39a8c;
+  --bordure: #2c2419;
 
   /* Courbes custom (skill Emil Kowalski) : les easings CSS natifs sont
      trop faibles pour donner un sentiment de réponse immédiate. */
@@ -70,7 +79,7 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  background-image: radial-gradient(circle at 15% 0%, rgb(255 176 32 / 0.06), transparent 40%);
+  background-image: radial-gradient(circle at 15% 0%, rgb(230 160 60 / 0.05), transparent 40%);
   background-attachment: fixed;
 }
 
@@ -128,7 +137,7 @@ body {
 .champ {
   width: 100%;
   font-size: 0.9375rem;
-  padding: 0.75rem 0.9rem;
+  padding: 0.75rem 1rem;
   border-radius: var(--radius-champ);
   border: 1.5px solid var(--bordure);
   background: var(--bg-eleve-2);
@@ -161,7 +170,7 @@ body {
   gap: 0.5rem;
   font-size: 0.9375rem;
   font-weight: 700;
-  padding: 0.8rem 1.4rem;
+  padding: 0.75rem 1.5rem;
   border-radius: var(--radius-pilule);
   border: none;
   cursor: pointer;
@@ -198,7 +207,7 @@ body {
 .bouton-fantome {
   background: transparent;
   color: var(--texte-attenue);
-  padding: 0.6rem 0.9rem;
+  padding: 0.5rem 1rem;
 }
 
 /* Hover uniquement sur pointeur fin (souris) : sur tactile, le hover se
@@ -224,7 +233,7 @@ body {
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.01em;
-  padding: 0.3rem 0.7rem;
+  padding: 0.25rem 0.75rem;
   border-radius: var(--radius-pilule);
 }
 
