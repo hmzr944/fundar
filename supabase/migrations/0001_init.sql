@@ -1,4 +1,4 @@
--- Refund Radar V1 — schéma initial.
+-- Volia V1 — schéma initial.
 -- Une seule base, un seul repo (§C5). Région Supabase attendue: eu-central-1 (RGPD).
 
 create extension if not exists "pgcrypto";

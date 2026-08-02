@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-const EXPEDITEUR = process.env.RESEND_FROM_EMAIL ?? "dossiers@refundradar.example";
+const EXPEDITEUR = process.env.RESEND_FROM_EMAIL ?? "dossiers@volia.example";
 
 function client() {
   return new Resend(process.env.RESEND_API_KEY ?? "");
@@ -75,7 +75,7 @@ export async function envoyerReclamationCompagnie(params: {
       `(or its UK equivalent) concerning flight ${params.numeroVol} on ${params.dateVol}, ` +
       `together with the passenger's signed letter of authority appointing us to act on their behalf.\n\n` +
       `We would be grateful for your acknowledgement of receipt, and for settlement within 14 days.\n\n` +
-      `Kind regards,\nRefund Radar, on behalf of the passenger`,
+      `Kind regards,\nVolia, on behalf of the passenger`,
     attachments,
   });
 

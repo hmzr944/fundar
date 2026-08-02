@@ -21,7 +21,7 @@ export function generateMetadata({
   const aeroport = trouverAeroportParSlug(params.slug);
   if (!aeroport) return {};
   return {
-    title: `Grève à ${aeroport.nom} : indemnisation vol retardé ou annulé | Refund Radar`,
+    title: `Grève à ${aeroport.nom} : indemnisation vol retardé ou annulé | Volia`,
     description: `Vol au départ ou à l'arrivée de ${aeroport.nom} perturbé par une grève ? Vérifiez votre droit à indemnisation EU261/UK261 en 60 secondes.`,
   };
 }

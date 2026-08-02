@@ -220,7 +220,7 @@ export default function HomePage() {
           <div>
             <span className="flex items-center gap-2.5 font-semibold">
               <BrandMark size={30} />
-              Refund Radar
+              Volia
             </span>
             <p className="mt-2 flex items-center gap-1.5 text-sm text-[var(--texte-attenue)]">
               <LockKey size={14} />

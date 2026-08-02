@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-const EXPEDITEUR = process.env.RESEND_FROM_EMAIL ?? "dossiers@refundradar.example";
+const EXPEDITEUR = process.env.RESEND_FROM_EMAIL ?? "dossiers@volia.example";
 
 function client() {
   return new Resend(process.env.RESEND_API_KEY ?? "");

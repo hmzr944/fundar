@@ -11,7 +11,7 @@ import { validerIban } from "@/lib/validation/iban";
 type Etape = "identite" | "signature" | "justificatif" | "attente_email" | "termine";
 
 const LABELS_ETAPES = ["Coordonnées", "Signature", "Justificatif"];
-const CLE_SESSION = "refund-radar:dossier-en-attente";
+const CLE_SESSION = "volia:dossier-en-attente";
 
 interface Identite {
   nom: string;

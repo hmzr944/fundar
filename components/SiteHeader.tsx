@@ -10,7 +10,7 @@ export default function SiteHeader() {
           className="flex items-center gap-2.5 text-[17px] font-bold tracking-tight text-[var(--texte)]"
         >
           <BrandMark size={38} />
-          Refund Radar
+          Volia
         </Link>
 
         <nav className="hidden items-center gap-1 sm:flex">

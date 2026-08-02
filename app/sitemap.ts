@@ -3,7 +3,7 @@ import { COMPAGNIES } from "@/lib/eligibility/airlines";
 import { AEROPORTS } from "@/lib/eligibility/airports";
 import { slugify } from "@/lib/seo/slugs";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://refundradar.example";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://volia.example";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const pagesStatiques: MetadataRoute.Sitemap = [

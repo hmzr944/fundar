@@ -21,7 +21,7 @@ export function generateMetadata({
   const compagnie = trouverCompagnieParSlug(params.slug);
   if (!compagnie) return {};
   return {
-    title: `Vol ${compagnie.nom} retardé ou annulé : indemnisation jusqu'à 600 € | Refund Radar`,
+    title: `Vol ${compagnie.nom} retardé ou annulé : indemnisation jusqu'à 600 € | Volia`,
     description: `Vol ${compagnie.nom} retardé de plus de 3h, annulé ou surbooké ? Vérifiez gratuitement votre éligibilité à une indemnisation EU261/UK261 en 60 secondes.`,
   };
 }

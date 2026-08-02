@@ -11,7 +11,7 @@ const figtree = Figtree({
 });
 
 export const metadata: Metadata = {
-  title: "Refund Radar : indemnisation vol retardé ou annulé",
+  title: "Volia : indemnisation vol retardé ou annulé",
   description:
     "Vérifiez en 60 secondes si vous avez droit à une indemnisation EU261/UK261 pour votre vol. Aucun frais si nous ne récupérons rien.",
 };
