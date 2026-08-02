@@ -219,7 +219,7 @@ export default function HomePage() {
         <div className="conteneur flex flex-col gap-6 py-10 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <span className="flex items-center gap-2.5 font-semibold">
-              <BrandMark size={26} />
+              <BrandMark size={30} />
               Refund Radar
             </span>
             <p className="mt-2 flex items-center gap-1.5 text-sm text-[var(--texte-attenue)]">

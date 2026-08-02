@@ -9,7 +9,7 @@ export default function SiteHeader() {
           href="/"
           className="flex items-center gap-2.5 text-[17px] font-bold tracking-tight text-[var(--texte)]"
         >
-          <BrandMark size={34} />
+          <BrandMark size={38} />
           Refund Radar
         </Link>
 
