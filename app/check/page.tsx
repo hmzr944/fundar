@@ -11,6 +11,7 @@ import {
   ArrowRight,
 } from "@phosphor-icons/react/dist/ssr";
 import MontantSplitFlap from "@/components/MontantSplitFlap";
+import RepartitionMontant from "@/components/RepartitionMontant";
 
 interface Resultat {
   statut: "ELIGIBLE" | "INELIGIBLE" | "REVIEW_MANUEL" | "WAITLIST";
@@ -224,6 +225,12 @@ function CheckPageInterieur() {
                 >
                   {reponse.resultat.explication}
                 </p>
+                <div className="entree-fade" style={{ animationDelay: "290ms" }}>
+                  <RepartitionMontant
+                    montant={reponse.resultat.montantEstime}
+                    devise={reponse.resultat.devise}
+                  />
+                </div>
                 <Link
                   style={{ animationDelay: "320ms" }}
                   href={{
