@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFlightStatusProvider } from "@/lib/flight-status";
 import { verifierEligibilite } from "@/lib/eligibility/engine";
+import {
+  ajusterSelonSource,
+  codeCompagnieDepuisNumeroVol,
+  type SourceVerification,
+} from "@/lib/eligibility/verification";
 import { DemandeVerification, TypePerturbation } from "@/lib/eligibility/types";
+
+interface Declaration {
+  aeroportDepart: string;
+  aeroportArrivee: string;
+  typePerturbation: TypePerturbation;
+  retardArriveeMinutes?: number;
+}
 
 interface CorpsRequete {
   numeroVol?: string;
@@ -12,6 +24,8 @@ interface CorpsRequete {
     departAvantHeuresPrevues: number;
     arriveeApresHeuresPrevues: number;
   };
+  /** Renseignée par le passager quand l'API ne connaît pas le vol. */
+  declaration?: Declaration;
 }
 
 export async function POST(request: NextRequest) {
@@ -22,7 +36,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ erreur: "Requête invalide." }, { status: 400 });
   }
 
-  const { numeroVol, dateVol, preavisAnnulationJours, motifDeclare, reacheminement } = body;
+  const {
+    numeroVol,
+    dateVol,
+    preavisAnnulationJours,
+    motifDeclare,
+    reacheminement,
+    declaration,
+  } = body;
 
   if (!numeroVol || !dateVol) {
     return NextResponse.json(
@@ -36,48 +57,104 @@ export async function POST(request: NextRequest) {
   try {
     vol = await provider.recupererStatut({ numeroVol, dateVol });
   } catch {
-    return NextResponse.json(
-      { erreur: "Le statut de ce vol est momentanément indisponible. Réessayez." },
-      { status: 502 }
-    );
+    vol = null;
   }
 
-  if (!vol.trouve || !vol.compagnie || !vol.aeroportDepart || !vol.aeroportArrivee) {
-    return NextResponse.json(
-      { erreur: "Vol introuvable. Vérifiez le numéro de vol et la date." },
-      { status: 404 }
-    );
+  // Reconstruit avec des champs non nullables : le reste de la route peut
+  // alors s'appuyer sur le typage plutôt que sur des assertions.
+  const volResolu =
+    vol && vol.trouve && vol.compagnie && vol.aeroportDepart && vol.aeroportArrivee
+      ? {
+          compagnie: vol.compagnie,
+          aeroportDepart: vol.aeroportDepart,
+          aeroportArrivee: vol.aeroportArrivee,
+          statut: vol.statut,
+          retardArriveeMinutes: vol.retardArriveeMinutes,
+        }
+      : null;
+
+  // Le fournisseur ne connaît pas ce vol. Ce n'est presque jamais une faute
+  // de frappe : les bases publiques ne remontent que quelques mois, alors
+  // qu'une réclamation se prescrit en un à six ans. On bascule donc sur ce
+  // que le passager peut affirmer, plutôt que de le renvoyer corriger un
+  // numéro qui est probablement juste.
+  if (!volResolu && !declaration) {
+    return NextResponse.json({
+      code: "VOL_NON_VERIFIABLE",
+      message:
+        "Nous n'avons pas pu retrouver ce vol automatiquement. Les bases " +
+        "publiques ne conservent les vols que quelques mois — si le vôtre est " +
+        "plus ancien, c'est normal. Décrivez ce qui s'est passé : nous " +
+        "vérifierons sur vos justificatifs.",
+    });
   }
 
-  let typePerturbation: TypePerturbation = "AUCUNE";
-  if (vol.statut === "ANNULE") {
-    typePerturbation = "ANNULATION";
-  } else if (vol.retardArriveeMinutes !== null && vol.retardArriveeMinutes >= 180) {
-    typePerturbation = "RETARD";
+  const source: SourceVerification = volResolu ? "AUTOMATIQUE" : "DECLARATIF";
+
+  let compagnie: string;
+  let aeroportDepart: string;
+  let aeroportArrivee: string;
+  let typePerturbation: TypePerturbation;
+  let retardArriveeMinutes: number | undefined;
+
+  if (volResolu) {
+    compagnie = volResolu.compagnie;
+    aeroportDepart = volResolu.aeroportDepart;
+    aeroportArrivee = volResolu.aeroportArrivee;
+    retardArriveeMinutes = volResolu.retardArriveeMinutes ?? undefined;
+
+    typePerturbation = "AUCUNE";
+    if (volResolu.statut === "ANNULE") {
+      typePerturbation = "ANNULATION";
+    } else if (retardArriveeMinutes !== undefined && retardArriveeMinutes >= 180) {
+      typePerturbation = "RETARD";
+    }
+  } else {
+    const decl = declaration!;
+    const codeCompagnie = codeCompagnieDepuisNumeroVol(numeroVol);
+    const depart = decl.aeroportDepart?.trim().toUpperCase();
+    const arrivee = decl.aeroportArrivee?.trim().toUpperCase();
+
+    if (!codeCompagnie || !depart || !arrivee) {
+      return NextResponse.json(
+        {
+          erreur:
+            "Il nous manque la compagnie ou les aéroports pour estimer votre dossier.",
+        },
+        { status: 400 }
+      );
+    }
+
+    compagnie = codeCompagnie;
+    aeroportDepart = depart;
+    aeroportArrivee = arrivee;
+    typePerturbation = decl.typePerturbation;
+    retardArriveeMinutes = decl.retardArriveeMinutes;
   }
 
   const demande: DemandeVerification = {
     numeroVol,
     dateVol,
-    aeroportDepart: vol.aeroportDepart,
-    aeroportArrivee: vol.aeroportArrivee,
-    compagnie: vol.compagnie,
+    aeroportDepart,
+    aeroportArrivee,
+    compagnie,
     typePerturbation,
-    retardArriveeMinutes: vol.retardArriveeMinutes ?? undefined,
+    retardArriveeMinutes,
     preavisAnnulationJours,
     reacheminement,
     motifDeclare,
   };
 
-  const resultat = verifierEligibilite(demande);
+  const resultat = ajusterSelonSource(verifierEligibilite(demande), source);
 
   return NextResponse.json({
     vol: {
-      compagnie: vol.compagnie,
-      aeroportDepart: vol.aeroportDepart,
-      aeroportArrivee: vol.aeroportArrivee,
-      statut: vol.statut,
+      compagnie,
+      aeroportDepart,
+      aeroportArrivee,
+      statut: volResolu?.statut ?? "INCONNU",
     },
+    source,
     resultat,
   });
 }

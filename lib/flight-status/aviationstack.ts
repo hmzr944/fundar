@@ -5,7 +5,22 @@ import {
   StatutVol,
 } from "./provider";
 
-const BASE_URL = "http://api.aviationstack.com/v1/flights";
+/**
+ * HTTPS imposé, jamais HTTP.
+ *
+ * Le tier gratuit d'AviationStack ne sert qu'en HTTP : la clé d'API et
+ * l'itinéraire du passager transiteraient alors en clair. Plutôt que de
+ * dégrader silencieusement, on garde le HTTPS et on laisse l'appel échouer
+ * si le plan ne le permet pas — un fournisseur indisponible bascule sur le
+ * parcours déclaratif, ce qui est préférable à une fuite de données.
+ *
+ * À noter avant de souscrire : l'historique d'AviationStack est une fenêtre
+ * glissante de trois mois, alors qu'une réclamation EU261 se prescrit en un
+ * à six ans. Ce fournisseur ne couvre donc qu'une minorité des dossiers ;
+ * le parcours déclaratif n'est pas un repli exceptionnel mais le chemin
+ * principal (voir lib/eligibility/verification.ts).
+ */
+const BASE_URL = "https://api.aviationstack.com/v1/flights";
 
 function mapStatut(statutBrut: string | undefined): StatutVol {
   switch (statutBrut) {

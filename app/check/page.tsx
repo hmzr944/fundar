@@ -12,6 +12,9 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import MontantSplitFlap from "@/components/MontantSplitFlap";
 import RepartitionMontant from "@/components/RepartitionMontant";
+import DeclarationVol, {
+  type DonneesDeclaration,
+} from "@/components/DeclarationVol";
 
 interface Resultat {
   statut: "ELIGIBLE" | "INELIGIBLE" | "REVIEW_MANUEL" | "WAITLIST";
@@ -24,6 +27,10 @@ interface Resultat {
 interface ReponseCheck {
   vol?: { compagnie: string; aeroportDepart: string; aeroportArrivee: string };
   resultat?: Resultat;
+  source?: "AUTOMATIQUE" | "DECLARATIF";
+  /** "VOL_NON_VERIFIABLE" : le vol est trop ancien pour les bases publiques. */
+  code?: string;
+  message?: string;
   erreur?: string;
 }
 
@@ -74,10 +81,15 @@ function CheckPageInterieur() {
   const [emailEnvoye, setEmailEnvoye] = useState(false);
 
   const lancerVerification = useCallback(
-    async (params: { numeroVol: string; dateVol: string; preavis?: string }) => {
+    async (params: {
+      numeroVol: string;
+      dateVol: string;
+      preavis?: string;
+      declaration?: DonneesDeclaration;
+    }) => {
       setChargement(true);
       setErreur(null);
-      setReponse(null);
+      if (!params.declaration) setReponse(null);
 
       try {
         const res = await fetch("/api/check", {
@@ -87,6 +99,7 @@ function CheckPageInterieur() {
             numeroVol: params.numeroVol,
             dateVol: params.dateVol,
             preavisAnnulationJours: params.preavis ? Number(params.preavis) : undefined,
+            declaration: params.declaration,
           }),
         });
         const data: ReponseCheck = await res.json();
@@ -136,6 +149,14 @@ function CheckPageInterieur() {
 
   const demandePreavis = reponse?.resultat?.motif === "REVIEW_PREAVIS_INCONNU";
   const Icone = reponse?.resultat ? ICONE_PAR_STATUT[reponse.resultat.statut] : null;
+
+  // Un dossier déclaratif est volontairement classé "à vérifier" plutôt
+  // qu'éligible, mais il doit pouvoir aller jusqu'au mandat : c'est
+  // précisément le cas des vols anciens, majoritaires en réclamation.
+  const declaratifNonVerifie =
+    reponse?.resultat?.motif === "REVIEW_DECLARATIF_NON_VERIFIE";
+  const peutReclamer =
+    reponse?.resultat?.statut === "ELIGIBLE" || declaratifNonVerifie;
 
   return (
     <main className="conteneur-etroit py-14 sm:py-20">
@@ -195,6 +216,16 @@ function CheckPageInterieur() {
         <div className="carte entree-fade mt-6 p-6 text-[15px]">{erreur}</div>
       )}
 
+      {reponse?.code === "VOL_NON_VERIFIABLE" && !reponse.resultat && (
+        <DeclarationVol
+          message={reponse.message ?? ""}
+          enCours={chargement}
+          onSoumettre={(declaration) =>
+            lancerVerification({ numeroVol, dateVol, declaration })
+          }
+        />
+      )}
+
       {reponse?.resultat && Icone && (
         <div
           className="carte-embarquement mt-6 p-6 sm:p-7"
@@ -207,7 +238,7 @@ function CheckPageInterieur() {
             {LIBELLE_PAR_STATUT[reponse.resultat.statut]}
           </span>
 
-          {reponse.resultat.statut === "ELIGIBLE" &&
+          {peutReclamer &&
             reponse.vol &&
             reponse.resultat.montantEstime !== null && (
               <>
@@ -293,7 +324,9 @@ function CheckPageInterieur() {
             </p>
           )}
 
-          {reponse.resultat.statut === "REVIEW_MANUEL" && !demandePreavis && (
+          {reponse.resultat.statut === "REVIEW_MANUEL" &&
+            !demandePreavis &&
+            !declaratifNonVerifie && (
             <p
               className="entree-fade mt-4 text-[15px] leading-relaxed text-[var(--texte-attenue)]"
               style={{ animationDelay: "120ms" }}
