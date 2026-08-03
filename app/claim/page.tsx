@@ -7,6 +7,7 @@ import { CheckCircle, EnvelopeSimple, LockKey } from "@phosphor-icons/react/dist
 import SignatureCanvas, { SignatureCanvasHandle } from "@/components/SignatureCanvas";
 import ProgressionEtapes from "@/components/ProgressionEtapes";
 import { validerIban } from "@/lib/validation/iban";
+import { nomFichierSur, validerFichier } from "@/lib/validation/fichier";
 
 type Etape = "identite" | "signature" | "justificatif" | "attente_email" | "termine";
 
@@ -71,6 +72,11 @@ function ClaimPageInterieur() {
     devise: searchParams.get("devise") ?? "EUR",
     motif: searchParams.get("motif") ?? "",
     explication: searchParams.get("explication") ?? "",
+    // Faits transmis au serveur, qui recalcule le verdict lui-même.
+    source: searchParams.get("source") ?? "DECLARATIF",
+    typePerturbation: searchParams.get("typePerturbation") ?? "",
+    retardArriveeMinutes: searchParams.get("retardArriveeMinutes") ?? "",
+    preavisAnnulationJours: searchParams.get("preavisAnnulationJours") ?? "",
   };
 
   // Retour après vérification email : on restaure ce qui a déjà été saisi
@@ -187,11 +193,14 @@ function ClaimPageInterieur() {
         aeroportDepart: vol.aeroportDepart,
         aeroportArrivee: vol.aeroportArrivee,
         compagnie: vol.compagnie,
-        statutEligibilite: "ELIGIBLE",
-        montantEstime: vol.montantEstime ? Number(vol.montantEstime) : null,
-        devise: vol.devise,
-        motif: vol.motif,
-        explication: vol.explication,
+        source: vol.source,
+        typePerturbation: vol.typePerturbation,
+        retardArriveeMinutes: vol.retardArriveeMinutes
+          ? Number(vol.retardArriveeMinutes)
+          : undefined,
+        preavisAnnulationJours: vol.preavisAnnulationJours
+          ? Number(vol.preavisAnnulationJours)
+          : undefined,
       }),
     });
 
@@ -201,7 +210,9 @@ function ClaimPageInterieur() {
       return false;
     }
 
-    const cheminStorage = `${userId}/${id}/carte-embarquement-${fichier!.name}`;
+    const cheminStorage = `${userId}/${id}/carte-embarquement-${nomFichierSur(
+      fichier!.name
+    )}`;
     const { error: erreurUpload } = await supabase.storage
       .from("documents")
       .upload(cheminStorage, fichier!, { upsert: true });
@@ -238,6 +249,15 @@ function ClaimPageInterieur() {
 
     if (!fichier) {
       setErreur("Merci de joindre votre carte d'embarquement ou votre confirmation de réservation.");
+      return;
+    }
+
+    // Le bucket applique les mêmes bornes et rejetterait le fichier de
+    // toute façon, mais avec une erreur incompréhensible. On préfère le
+    // dire ici, dans les mots du passager.
+    const validation = validerFichier(fichier);
+    if (!validation.valide) {
+      setErreur(validation.message ?? "Ce fichier ne peut pas être accepté.");
       return;
     }
 

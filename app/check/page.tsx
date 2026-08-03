@@ -24,10 +24,17 @@ interface Resultat {
   explication: string;
 }
 
+interface Faits {
+  typePerturbation: string;
+  retardArriveeMinutes?: number;
+  preavisAnnulationJours?: number;
+}
+
 interface ReponseCheck {
   vol?: { compagnie: string; aeroportDepart: string; aeroportArrivee: string };
   resultat?: Resultat;
   source?: "AUTOMATIQUE" | "DECLARATIF";
+  faits?: Faits;
   /** "VOL_NON_VERIFIABLE" : le vol est trop ancien pour les bases publiques. */
   code?: string;
   message?: string;
@@ -276,6 +283,14 @@ function CheckPageInterieur() {
                       devise: reponse.resultat.devise,
                       motif: reponse.resultat.motif,
                       explication: reponse.resultat.explication,
+                      // Les faits, pas le verdict : c'est le serveur qui
+                      // recalculera l'éligibilité au moment de créer le dossier.
+                      source: reponse.source ?? "DECLARATIF",
+                      typePerturbation: reponse.faits?.typePerturbation ?? "",
+                      retardArriveeMinutes:
+                        reponse.faits?.retardArriveeMinutes ?? "",
+                      preavisAnnulationJours:
+                        reponse.faits?.preavisAnnulationJours ?? "",
                     },
                   }}
                   className="bouton bouton-primaire entree-fade mt-6 w-full"

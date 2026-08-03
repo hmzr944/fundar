@@ -155,6 +155,9 @@ export async function POST(request: NextRequest) {
       statut: volResolu?.statut ?? "INCONNU",
     },
     source,
+    // Les faits sont renvoyés pour que /claim puisse les transmettre et que
+    // le serveur recalcule le verdict au lieu de faire confiance à la page.
+    faits: { typePerturbation, retardArriveeMinutes, preavisAnnulationJours },
     resultat,
   });
 }

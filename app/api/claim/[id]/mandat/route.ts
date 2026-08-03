@@ -59,6 +59,28 @@ export async function POST(
     return NextResponse.json({ erreur: "Dossier introuvable." }, { status: 404 });
   }
 
+  // Un mandat déjà signé ne se resigne pas. Sans ce contrôle, rejouer cet
+  // appel écrasait le PDF et ajoutait une signature de plus : on pouvait
+  // ainsi changer l'IBAN ou l'identité d'un dossier déjà transmis à la
+  // compagnie, et plusieurs empreintes contradictoires coexistaient pour
+  // un même dossier — ce qui vide la preuve de signature de sa valeur.
+  const { data: signatureExistante } = await supabase
+    .from("signatures")
+    .select("id")
+    .eq("claim_id", params.id)
+    .maybeSingle();
+
+  if (signatureExistante) {
+    return NextResponse.json(
+      {
+        erreur:
+          "Ce dossier a déjà été signé. Pour modifier vos informations, contactez-nous : le mandat en vigueur doit d'abord être révoqué.",
+        code: "DEJA_SIGNE",
+      },
+      { status: 409 }
+    );
+  }
+
   await supabase.from("profiles").upsert({
     id: user.id,
     nom: body.nom,
