@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { exigerAdmin } from "@/lib/admin/garde";
+import { emettreFacture } from "@/lib/facturation/emettre";
 
 interface CorpsRequete {
   claimId: string;
@@ -54,6 +55,20 @@ export async function PATCH(request: NextRequest) {
 
   if (error) {
     return NextResponse.json({ erreur: error.message }, { status: 400 });
+  }
+
+  // Marquer payé sans facturer laisserait la commission à réclamer plus
+  // tard, à la main, au moment où le client est le moins disposé à régler.
+  // On facture donc immédiatement, pendant qu'il vient de recevoir l'argent.
+  if (body.statut === "PAYE") {
+    const facturation = await emettreFacture(admin, body.claimId, {
+      urlSite: process.env.NEXT_PUBLIC_SITE_URL ?? "https://volia.example",
+    });
+
+    // Le dossier EST à jour : un échec de facturation ne doit pas faire
+    // croire que la mise à jour a échoué. On le remonte tel quel pour que
+    // l'écran d'exploitation le montre.
+    return NextResponse.json({ ok: true, facturation });
   }
 
   return NextResponse.json({ ok: true });

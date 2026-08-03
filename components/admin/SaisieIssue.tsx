@@ -39,6 +39,20 @@ export default function SaisieIssue({
       setErreur(data.erreur ?? "Mise à jour refusée.");
       return;
     }
+
+    // Le dossier est à jour même si la facturation a échoué : on le dit
+    // plutôt que de fermer le formulaire sur un faux succès, sans quoi une
+    // commission resterait non facturée sans que personne ne le sache.
+    if (data.facturation && !data.facturation.emise) {
+      setErreur(
+        `Dossier mis à jour, mais facture NON émise — ${
+          data.facturation.detail ?? data.facturation.raison
+        }`
+      );
+      router.refresh();
+      return;
+    }
+
     setOuvert(false);
     router.refresh();
   }

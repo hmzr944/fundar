@@ -37,6 +37,8 @@ interface LigneClaim {
   premiere_reponse_nature: NatureReponse | null;
   montant_recupere: number | null;
   recupere_le: string | null;
+  paiement_declare_le: string | null;
+  montant_declare: number | null;
 }
 
 function pourcentage(valeur: number | null) {
@@ -63,7 +65,7 @@ export default async function AdminPage() {
   const { data } = await admin
     .from("claims")
     .select(
-      "id, numero_vol, date_vol, compagnie, devise, montant_estime, statut_dossier, reclamation_envoyee_le, premiere_reponse_le, premiere_reponse_nature, montant_recupere, recupere_le"
+      "id, numero_vol, date_vol, compagnie, devise, montant_estime, statut_dossier, reclamation_envoyee_le, premiere_reponse_le, premiere_reponse_nature, montant_recupere, recupere_le, paiement_declare_le, montant_declare"
     )
     .order("created_at", { ascending: false });
 
@@ -83,6 +85,12 @@ export default async function AdminPage() {
 
   const aRelancer = dossiers.filter(
     (d) => d.reclamation_envoyee_le && !d.premiere_reponse_le
+  );
+
+  // File la plus rentable du tableau de bord : chaque ligne est une
+  // commission qui n'est pas encore facturée.
+  const aFacturer = dossiers.filter(
+    (d) => d.paiement_declare_le && d.statut_dossier !== "PAYE"
   );
 
   return (
@@ -175,6 +183,33 @@ export default async function AdminPage() {
           </table>
         </div>
       )}
+
+      <h2 className="mt-12 text-xl font-semibold tracking-tight">
+        Paiements déclarés, à vérifier et facturer ({aFacturer.length})
+      </h2>
+      <p className="mt-2 text-[15px] text-[var(--texte-attenue)]">
+        Le client dit avoir été payé. Vérifiez le montant, puis clôturez :
+        la facture part automatiquement. Chaque ligne ici est une commission
+        non encaissée.
+      </p>
+      <div className="mt-4 flex flex-col gap-3">
+        {aFacturer.map((dossier) => (
+          <div key={dossier.id} className="carte p-5">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="font-semibold">
+                {dossier.compagnie} · vol {dossier.numero_vol} du {dossier.date_vol}
+              </p>
+              <p className="chiffres text-sm font-semibold text-[var(--color-succes-600)]">
+                {dossier.montant_declare} {dossier.devise} déclarés le{" "}
+                {dossier.paiement_declare_le}
+              </p>
+            </div>
+            <div className="mt-3">
+              <SaisieIssue claimId={dossier.id} devise={dossier.devise ?? "EUR"} />
+            </div>
+          </div>
+        ))}
+      </div>
 
       <h2 className="mt-12 text-xl font-semibold tracking-tight">
         En attente de réponse ({aRelancer.length})

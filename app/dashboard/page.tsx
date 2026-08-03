@@ -9,6 +9,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import EnvoyerLettreButton from "@/components/EnvoyerLettreButton";
 import SupprimerCompteButton from "@/components/SupprimerCompteButton";
+import DeclarerPaiementButton from "@/components/DeclarerPaiementButton";
 
 /**
  * Le statut affiché distingue explicitement "dossier reçu" et "réclamation
@@ -64,7 +65,7 @@ export default async function DashboardPage() {
   const { data: dossiers } = await supabase
     .from("claims")
     .select(
-      "id, numero_vol, date_vol, aeroport_depart, aeroport_arrivee, compagnie, montant_estime, devise, statut_dossier, created_at, reclamation_envoyee_le, montant_recupere, commission_due, commission_encaissee_le"
+      "id, numero_vol, date_vol, aeroport_depart, aeroport_arrivee, compagnie, montant_estime, devise, statut_dossier, created_at, reclamation_envoyee_le, montant_recupere, commission_due, commission_encaissee_le, paiement_declare_le, montant_declare"
     )
     .order("created_at", { ascending: false });
 
@@ -154,6 +155,30 @@ export default async function DashboardPage() {
                 <div className="mt-4 flex justify-end">
                   <EnvoyerLettreButton claimId={dossier.id} />
                 </div>
+              )}
+
+              {/* Transmise mais pas encore réglée : c'est le seul moment où
+                  le client peut nous apprendre qu'il a été payé. */}
+              {dossier.reclamation_envoyee_le &&
+                dossier.statut_dossier === "EN_COURS" &&
+                !dossier.paiement_declare_le && (
+                  <div className="mt-4 flex justify-end">
+                    <DeclarerPaiementButton
+                      claimId={dossier.id}
+                      devise={dossier.devise ?? "EUR"}
+                    />
+                  </div>
+                )}
+
+              {dossier.paiement_declare_le && dossier.statut_dossier !== "PAYE" && (
+                <p className="mt-3 border-t border-[var(--bordure)] pt-3 text-sm text-[var(--texte-attenue)]">
+                  Vous avez déclaré avoir reçu{" "}
+                  <span className="chiffres font-semibold text-[var(--texte)]">
+                    {dossier.montant_declare} {dossier.devise}
+                  </span>{" "}
+                  le {formaterDate(dossier.paiement_declare_le)}. Nous vérifions
+                  et vous envoyons la facture correspondante.
+                </p>
               )}
             </div>
           );
