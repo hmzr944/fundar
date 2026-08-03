@@ -16,6 +16,7 @@ import DeclarationVol, {
   type DonneesDeclaration,
 } from "@/components/DeclarationVol";
 import DelaiRestant from "@/components/DelaiRestant";
+import PartagerVol from "@/components/PartagerVol";
 
 interface Resultat {
   statut: "ELIGIBLE" | "INELIGIBLE" | "REVIEW_MANUEL" | "WAITLIST";
@@ -276,6 +277,12 @@ function CheckPageInterieur() {
                     devise={reponse.resultat.devise}
                   />
                 </div>
+                <PartagerVol
+                  numeroVol={numeroVol}
+                  dateVol={dateVol}
+                  montant={reponse.resultat.montantEstime}
+                  devise={reponse.resultat.devise}
+                />
                 <Link
                   style={{ animationDelay: "320ms" }}
                   href={{
