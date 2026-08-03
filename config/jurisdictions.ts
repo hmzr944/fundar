@@ -57,6 +57,33 @@ export function resoudreJuridiction(
 }
 
 /**
+ * Dernier jour pour agir, ou null si la juridiction n'est pas connue.
+ *
+ * Exposée séparément parce qu'elle n'intéresse pas que le refus : entre
+ * « réclamable » et « prescrit » il y a une information que le passager n'a
+ * nulle part ailleurs, et qui est souvent la vraie raison d'agir maintenant
+ * plutôt que dans six mois.
+ */
+export function dateLimiteReclamation(
+  juridiction: CodeJuridiction | undefined,
+  dateVol: Date
+): Date | null {
+  if (!juridiction) return null;
+  const regle = PRESCRIPTION[juridiction];
+
+  // L'Allemagne fait courir le délai depuis la fin de l'année civile du
+  // vol : un vol de janvier y gagne presque douze mois de plus qu'un vol
+  // de décembre de la même année.
+  const pointDepart = regle.decompteFinAnneeCivile
+    ? new Date(Date.UTC(dateVol.getUTCFullYear(), 11, 31, 23, 59, 59))
+    : dateVol;
+
+  const limite = new Date(pointDepart);
+  limite.setUTCFullYear(limite.getUTCFullYear() + regle.delaiAns);
+  return limite;
+}
+
+/**
  * Indique si la date de vérification tombe hors du délai de prescription
  * applicable. Une juridiction inconnue ne bloque pas le dossier : on ne
  * peut pas affirmer une prescription qu'on ne sait pas calculer.
@@ -66,15 +93,23 @@ export function estPrescrit(
   dateVol: Date,
   dateVerification: Date
 ): boolean {
-  if (!juridiction) return false;
-  const regle = PRESCRIPTION[juridiction];
-
-  const pointDepart = regle.decompteFinAnneeCivile
-    ? new Date(Date.UTC(dateVol.getUTCFullYear(), 11, 31, 23, 59, 59))
-    : dateVol;
-
-  const limite = new Date(pointDepart);
-  limite.setUTCFullYear(limite.getUTCFullYear() + regle.delaiAns);
-
+  const limite = dateLimiteReclamation(juridiction, dateVol);
+  if (!limite) return false;
   return dateVerification.getTime() > limite.getTime();
+}
+
+/**
+ * Jours restants avant prescription. Négatif si le délai est dépassé,
+ * null si la juridiction est inconnue.
+ */
+export function joursAvantPrescription(
+  juridiction: CodeJuridiction | undefined,
+  dateVol: Date,
+  dateVerification: Date
+): number | null {
+  const limite = dateLimiteReclamation(juridiction, dateVol);
+  if (!limite) return null;
+  return Math.floor(
+    (limite.getTime() - dateVerification.getTime()) / 86_400_000
+  );
 }

@@ -14,11 +14,44 @@ import { ResultatVerification } from "./types";
  */
 export type SourceVerification = "AUTOMATIQUE" | "DECLARATIF";
 
-const EXPLICATION_NON_VERIFIE =
-  "Cette estimation repose sur ce que vous nous avez indiqué : nous n'avons " +
-  "pas pu confirmer ce vol auprès des bases publiques, qui ne remontent que " +
-  "quelques mois. Un humain vérifiera vos justificatifs avant tout envoi à " +
-  "la compagnie, et nous vous dirons franchement si le dossier ne tient pas.";
+/**
+ * Formule le repli déclaratif du point de vue du passager, pas du nôtre.
+ *
+ * La première version annonçait « nous n'avons pas pu confirmer ce vol
+ * auprès des bases publiques ». C'était vrai et c'était une faute : ça
+ * plaçait notre limite technique au centre, ça n'intéresse personne, et
+ * surtout ça semait le doute sur l'éligibilité au moment précis où le
+ * passager décide. Or l'ancienneté du vol ne change rien à son droit —
+ * seulement à notre capacité à le vérifier d'un clic, ce qui n'a aucune
+ * portée juridique : c'est la compagnie qui consulte ses propres registres,
+ * et c'est à elle de prouver une circonstance extraordinaire.
+ *
+ * On confirme donc le droit, on donne la date limite réelle, et on dit
+ * quelles pièces feront foi.
+ */
+function explicationNonVerifie(dateLimite?: string): string {
+  const echeance = dateLimite
+    ? `Votre droit court jusqu'au ${formaterDate(dateLimite)}. `
+    : "";
+
+  return (
+    `${echeance}Un vol ancien se réclame exactement comme un vol récent : ` +
+    "ce sont vos justificatifs et les registres de la compagnie qui font foi, " +
+    "pas une base de données. À ce stade, l'estimation repose sur ce que vous " +
+    "nous avez indiqué ; nous la vérifions à la main sur vos documents avant " +
+    "tout envoi, et nous vous disons franchement si le dossier ne tient pas."
+  );
+}
+
+function formaterDate(iso: string): string {
+  const date = new Date(`${iso}T00:00:00Z`);
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
 
 /**
  * Empêche un verdict déclaratif de s'afficher comme une certitude.
@@ -44,7 +77,9 @@ export function ajusterSelonSource(
     ...resultat,
     statut: "REVIEW_MANUEL",
     motif: "REVIEW_DECLARATIF_NON_VERIFIE",
-    explication: `${resultat.explication} ${EXPLICATION_NON_VERIFIE}`,
+    explication: `${resultat.explication} ${explicationNonVerifie(
+      resultat.dateLimiteReclamation
+    )}`,
   };
 }
 

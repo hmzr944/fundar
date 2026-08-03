@@ -36,7 +36,31 @@ describe("ajusterSelonSource", () => {
   it("dit d'où vient l'estimation, sans effacer l'explication d'origine", () => {
     const ajuste = ajusterSelonSource(resultat(), "DECLARATIF");
     expect(ajuste.explication).toContain("estimée à 400 EUR");
-    expect(ajuste.explication).toContain("vérifiera vos justificatifs");
+    expect(ajuste.explication).toContain("registres de la compagnie");
+  });
+
+  it("confirme le droit au lieu de mettre en avant notre limite technique", () => {
+    // La première version parlait de « bases publiques qui ne remontent que
+    // quelques mois » : notre problème d'outillage, présenté au passager au
+    // moment précis où il décide, et lu comme un doute sur son éligibilité.
+    const ajuste = ajusterSelonSource(resultat(), "DECLARATIF");
+    expect(ajuste.explication).not.toContain("bases publiques");
+    expect(ajuste.explication).not.toContain("quelques mois");
+    expect(ajuste.explication).toContain("Un vol ancien se réclame");
+  });
+
+  it("annonce l'échéance réelle quand elle est connue", () => {
+    const ajuste = ajusterSelonSource(
+      resultat({ dateLimiteReclamation: "2031-03-11" }),
+      "DECLARATIF"
+    );
+    expect(ajuste.explication).toContain("11 mars 2031");
+  });
+
+  it("reste lisible quand la juridiction ne permet pas de calculer l'échéance", () => {
+    const ajuste = ajusterSelonSource(resultat(), "DECLARATIF");
+    expect(ajuste.explication).not.toContain("undefined");
+    expect(ajuste.explication).not.toContain("jusqu'au ,");
   });
 
   it("laisse un refus être un refus", () => {

@@ -1,5 +1,10 @@
 import { AIRLINE_POLICY_DEFAUT, estCirconstanceExtraordinaireDeclaree, getAirlineTier } from "@/config/airline-policy";
-import { estPrescrit, resoudreJuridiction } from "@/config/jurisdictions";
+import {
+  dateLimiteReclamation,
+  estPrescrit,
+  joursAvantPrescription,
+  resoudreJuridiction,
+} from "@/config/jurisdictions";
 import { getAeroport } from "./airports";
 import { getCompagnie } from "./airlines";
 import { BAREME, distanceKm, palierDistance } from "./distance";
@@ -194,12 +199,24 @@ export function verifierEligibilite(
   }
 
   const montantArrondi = Math.round(montant);
+  const limite = dateLimiteReclamation(juridiction, dateVol);
+
   return {
     statut: "ELIGIBLE",
     montantEstime: montantArrondi,
     devise,
     motif: "ELIGIBLE",
     explication: `Vous êtes éligible à une indemnisation estimée à ${montantArrondi} ${devise}.`,
+    ...(limite
+      ? {
+          dateLimiteReclamation: limite.toISOString().slice(0, 10),
+          joursAvantPrescription: joursAvantPrescription(
+            juridiction,
+            dateVol,
+            dateVerification
+          )!,
+        }
+      : {}),
   };
 }
 

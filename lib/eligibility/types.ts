@@ -50,4 +50,12 @@ export interface ResultatVerification {
   motif: string;
   /** Une phrase, langage clair, destinée à l'utilisateur. */
   explication: string;
+  /**
+   * Dernier jour pour réclamer (ISO), quand le dossier est encore vivant et
+   * que la juridiction est identifiée. C'est une information que le passager
+   * ne trouve nulle part ailleurs, et la seule urgence honnête du produit.
+   */
+  dateLimiteReclamation?: string;
+  /** Jours restants avant cette date limite. */
+  joursAvantPrescription?: number;
 }

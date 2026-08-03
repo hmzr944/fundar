@@ -15,6 +15,7 @@ import RepartitionMontant from "@/components/RepartitionMontant";
 import DeclarationVol, {
   type DonneesDeclaration,
 } from "@/components/DeclarationVol";
+import DelaiRestant from "@/components/DelaiRestant";
 
 interface Resultat {
   statut: "ELIGIBLE" | "INELIGIBLE" | "REVIEW_MANUEL" | "WAITLIST";
@@ -22,6 +23,8 @@ interface Resultat {
   devise: "EUR" | "GBP";
   motif: string;
   explication: string;
+  dateLimiteReclamation?: string;
+  joursAvantPrescription?: number;
 }
 
 interface Faits {
@@ -264,6 +267,10 @@ function CheckPageInterieur() {
                   {reponse.resultat.explication}
                 </p>
                 <div className="entree-fade" style={{ animationDelay: "290ms" }}>
+                  <DelaiRestant
+                    dateLimite={reponse.resultat.dateLimiteReclamation}
+                    joursRestants={reponse.resultat.joursAvantPrescription}
+                  />
                   <RepartitionMontant
                     montant={reponse.resultat.montantEstime}
                     devise={reponse.resultat.devise}
