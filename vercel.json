@@ -3,6 +3,10 @@
     {
       "path": "/api/notifications/traiter",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/relances/traiter",
+      "schedule": "0 9 * * *"
     }
   ]
 }

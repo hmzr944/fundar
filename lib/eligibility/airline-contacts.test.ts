@@ -11,10 +11,13 @@ import {
  * "En cours" et le client attend un virement qui ne viendra jamais.
  */
 describe("resoudreContactCompagnie", () => {
-  it("refuse l'envoi pour une compagnie non configurée", () => {
+  it("refuse l'envoi automatique pour une compagnie à formulaire web", () => {
+    // Air France n'accepte les réclamations que par son propre formulaire :
+    // l'URL est connue, l'envoi reste manuel, et le produit le dit.
     const r = resoudreContactCompagnie("AF");
     expect(r.envoyable).toBe(false);
-    expect(r.raison).toBe("CONTACT_NON_CONFIGURE");
+    expect(r.raison).toBe("ENVOI_MANUEL_REQUIS");
+    expect(r.contact?.urlFormulaire).toBeTruthy();
   });
 
   it("refuse l'envoi pour une compagnie totalement inconnue", () => {
@@ -91,7 +94,28 @@ describe("resoudreContactCompagnie", () => {
     delete CONTACTS_COMPAGNIES.XX;
   });
 
-  it("le registre est livré vide : aucun envoi possible avant configuration", () => {
-    expect(Object.keys(CONTACTS_COMPAGNIES)).toHaveLength(0);
+  it("aucune compagnie du registre n'est envoyable automatiquement", () => {
+    // Invariant de sécurité, pas d'implémentation : tant qu'aucune adresse
+    // email n'a été vérifiée à la main, rien ne doit pouvoir partir tout
+    // seul. Ce test échouera au premier contact EMAIL ajouté — ce sera le
+    // moment de vérifier que l'adresse est bien celle du service
+    // réclamations, et non une boîte de contact générique.
+    for (const code of Object.keys(CONTACTS_COMPAGNIES)) {
+      expect(resoudreContactCompagnie(code).envoyable).toBe(false);
+    }
+  });
+
+  it("chaque entrée porte l'information nécessaire à son mode", () => {
+    for (const [code, contact] of Object.entries(CONTACTS_COMPAGNIES)) {
+      if (contact.mode === "FORMULAIRE_WEB") {
+        expect(contact.urlFormulaire, code).toMatch(/^https:\/\//);
+      }
+      if (contact.mode === "COURRIER") {
+        expect(contact.adressePostale, code).toBeTruthy();
+      }
+      if (contact.mode === "EMAIL") {
+        expect(contact.email, code).toContain("@");
+      }
+    }
   });
 });

@@ -40,19 +40,41 @@ export interface ContactCompagnie {
 }
 
 /**
- * Vide volontairement. Ajoutez une entrée par compagnie au fur et à mesure,
- * en commençant par celles en tier ACCEPT dans config/airline-policy.ts.
+ * Entrées en mode FORMULAIRE_WEB uniquement, pour l'instant.
  *
- * Exemple de format attendu (à remplacer par une adresse RÉELLE vérifiée) :
+ * Ces URL ont été relevées sur les domaines officiels des compagnies. Elles
+ * ne déclenchent AUCUN envoi automatique — un formulaire web ne peut pas
+ * être rempli par email — mais elles évitent de rechercher l'adresse à
+ * chaque dossier, et le tableau de bord les affiche directement.
  *
- *   AF: {
- *     mode: "EMAIL",
- *     email: "<adresse réelle du service réclamations>",
- *     langue: "fr",
- *     note: "Exige la référence du dossier dans l'objet.",
- *   },
+ * Aucune adresse EMAIL n'est renseignée, et c'est délibéré : une URL fausse
+ * se voit immédiatement (404), tandis qu'un email faux envoie l'identité,
+ * l'itinéraire et la carte d'embarquement d'un client à un inconnu, sans
+ * que personne ne s'en aperçoive. Le risque n'est pas du même ordre.
+ *
+ * À vérifier une fois avant le premier dossier : les compagnies déplacent
+ * ces pages régulièrement.
  */
-export const CONTACTS_COMPAGNIES: Record<string, ContactCompagnie> = {};
+export const CONTACTS_COMPAGNIES: Record<string, ContactCompagnie> = {
+  AF: {
+    mode: "FORMULAIRE_WEB",
+    urlFormulaire: "https://wwws.airfrance.fr/claim",
+    langue: "fr",
+    note: "Espace « Réclamations et avis ». Suivi de dossier sur /claim/track-a-claim.",
+  },
+  KL: {
+    mode: "FORMULAIRE_WEB",
+    urlFormulaire: "https://www.klm.com/information/refund-compensation/compensation",
+    langue: "en",
+    note: "KLM propose d'abord un bon (EMD voucher) : exiger explicitement le versement en espèces, seul dû au titre du règlement.",
+  },
+  BA: {
+    mode: "FORMULAIRE_WEB",
+    urlFormulaire: "https://www.britishairways.com/travel/feedbackclaims/public/en_gb",
+    langue: "en",
+    note: "Portail « Feedback and Claims ». Voie postale existante : British Airways Customer Relations, EU Compensation Claims, PO Box 1126, Uxbridge UB8 9XS, Royaume-Uni.",
+  },
+};
 
 export interface ResultatContact {
   /** true seulement si un envoi automatique est réellement possible. */

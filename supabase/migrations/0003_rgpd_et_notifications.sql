@@ -27,6 +27,7 @@ create policy "documents_storage_delete_own" on storage.objects
 
 drop policy if exists "claims_update_own" on claims;
 
+drop policy if exists "claims_update_own_champs_libres" on claims;
 create policy "claims_update_own_champs_libres" on claims
   for update using (auth.uid() = user_id)
   with check (auth.uid() = user_id);

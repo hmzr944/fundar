@@ -15,12 +15,15 @@ create table if not exists profiles (
 
 alter table profiles enable row level security;
 
+drop policy if exists "profiles_select_own" on profiles;
 create policy "profiles_select_own" on profiles
   for select using (auth.uid() = id);
 
+drop policy if exists "profiles_upsert_own" on profiles;
 create policy "profiles_upsert_own" on profiles
   for insert with check (auth.uid() = id);
 
+drop policy if exists "profiles_update_own" on profiles;
 create policy "profiles_update_own" on profiles
   for update using (auth.uid() = id);
 
@@ -53,12 +56,15 @@ create table if not exists claims (
 
 alter table claims enable row level security;
 
+drop policy if exists "claims_select_own" on claims;
 create policy "claims_select_own" on claims
   for select using (auth.uid() = user_id);
 
+drop policy if exists "claims_insert_own" on claims;
 create policy "claims_insert_own" on claims
   for insert with check (auth.uid() = user_id);
 
+drop policy if exists "claims_update_own" on claims;
 create policy "claims_update_own" on claims
   for update using (auth.uid() = user_id);
 
@@ -78,11 +84,13 @@ create table if not exists documents (
 
 alter table documents enable row level security;
 
+drop policy if exists "documents_select_own" on documents;
 create policy "documents_select_own" on documents
   for select using (
     exists (select 1 from claims where claims.id = documents.claim_id and claims.user_id = auth.uid())
   );
 
+drop policy if exists "documents_insert_own" on documents;
 create policy "documents_insert_own" on documents
   for insert with check (
     exists (select 1 from claims where claims.id = documents.claim_id and claims.user_id = auth.uid())
@@ -99,11 +107,13 @@ create table if not exists signatures (
 
 alter table signatures enable row level security;
 
+drop policy if exists "signatures_select_own" on signatures;
 create policy "signatures_select_own" on signatures
   for select using (
     exists (select 1 from claims where claims.id = signatures.claim_id and claims.user_id = auth.uid())
   );
 
+drop policy if exists "signatures_insert_own" on signatures;
 create policy "signatures_insert_own" on signatures
   for insert with check (
     exists (select 1 from claims where claims.id = signatures.claim_id and claims.user_id = auth.uid())
@@ -121,9 +131,11 @@ create table if not exists consentements (
 
 alter table consentements enable row level security;
 
+drop policy if exists "consentements_select_own" on consentements;
 create policy "consentements_select_own" on consentements
   for select using (auth.uid() = user_id);
 
+drop policy if exists "consentements_insert_own" on consentements;
 create policy "consentements_insert_own" on consentements
   for insert with check (auth.uid() = user_id);
 
@@ -139,6 +151,7 @@ create table if not exists waitlist (
 
 alter table waitlist enable row level security;
 
+drop policy if exists "waitlist_insert_anyone" on waitlist;
 create policy "waitlist_insert_anyone" on waitlist
   for insert with check (true);
 
@@ -151,11 +164,13 @@ on conflict (id) do nothing;
 
 -- Chemin attendu : "<user_id>/<claim_id>/<fichier>" — le premier segment
 -- du chemin doit correspondre à l'utilisateur authentifié.
+drop policy if exists "documents_storage_select_own" on storage.objects;
 create policy "documents_storage_select_own" on storage.objects
   for select using (
     bucket_id = 'documents' and (storage.foldername(name))[1] = auth.uid()::text
   );
 
+drop policy if exists "documents_storage_insert_own" on storage.objects;
 create policy "documents_storage_insert_own" on storage.objects
   for insert with check (
     bucket_id = 'documents' and (storage.foldername(name))[1] = auth.uid()::text

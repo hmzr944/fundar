@@ -111,3 +111,8 @@ export async function POST(request: NextRequest) {
     echecs,
   });
 }
+
+/** Vercel Cron n'émet que des GET (voir /api/notifications/traiter). */
+export async function GET(request: NextRequest) {
+  return POST(request);
+}

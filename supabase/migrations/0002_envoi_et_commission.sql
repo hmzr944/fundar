@@ -21,6 +21,7 @@ create table if not exists envois_reclamation (
 
 alter table envois_reclamation enable row level security;
 
+drop policy if exists "envois_select_own" on envois_reclamation;
 create policy "envois_select_own" on envois_reclamation
   for select using (
     exists (
@@ -55,6 +56,10 @@ alter table claims
 alter table claims
   add column if not exists taux_commission numeric not null default 0.22;
 
+-- Postgres n'a pas de "add constraint if not exists" : on retire d'abord,
+-- sinon rejouer cette migration échoue et laisse les suivantes non appliquées.
+alter table claims
+  drop constraint if exists claims_taux_commission_plausible;
 alter table claims
   add constraint claims_taux_commission_plausible
     check (taux_commission > 0 and taux_commission <= 0.5);
@@ -74,6 +79,8 @@ comment on column claims.commission_due is
 
 -- Un dossier payé doit avoir un montant récupéré : évite un PAYE vide qui
 -- ferait croire à tort que l'affaire est bouclée.
+alter table claims
+  drop constraint if exists claims_paye_implique_montant;
 alter table claims
   add constraint claims_paye_implique_montant
     check (statut_dossier <> 'PAYE' or montant_recupere is not null);

@@ -144,3 +144,12 @@ export async function POST(request: NextRequest) {
     echecs,
   });
 }
+
+/**
+ * Vercel Cron n'émet que des GET. On délègue au même traitement plutôt que
+ * de dupliquer la logique — et la garde par CRON_SECRET reste la seule
+ * protection, quel que soit le verbe.
+ */
+export async function GET(request: NextRequest) {
+  return POST(request);
+}
