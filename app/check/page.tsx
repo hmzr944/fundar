@@ -45,6 +45,10 @@ interface ReponseCheck {
   erreur?: string;
 }
 
+/** Un vol futur ne peut pas avoir été retardé : le sélecteur ne doit pas
+ * le proposer, plutôt que de laisser le serveur refuser après coup. */
+const AUJOURDHUI = new Date().toISOString().slice(0, 10);
+
 const PILULE_PAR_STATUT: Record<Resultat["statut"], string> = {
   ELIGIBLE: "pilule-eligible",
   INELIGIBLE: "pilule-ineligible",
@@ -200,6 +204,7 @@ function CheckPageInterieur() {
             <input
               id="dateVol"
               type="date"
+              max={AUJOURDHUI}
               className="champ"
               required
               value={dateVol}

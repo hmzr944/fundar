@@ -7,6 +7,11 @@ import {
   type SourceVerification,
 } from "@/lib/eligibility/verification";
 import { DemandeVerification, TypePerturbation } from "@/lib/eligibility/types";
+import {
+  normaliserNumeroVol,
+  validerDateVol,
+  validerNumeroVol,
+} from "@/lib/validation/vol";
 
 interface Declaration {
   aeroportDepart: string;
@@ -36,8 +41,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ erreur: "Requête invalide." }, { status: 400 });
   }
 
+  let numeroVol = body.numeroVol;
   const {
-    numeroVol,
     dateVol,
     preavisAnnulationJours,
     motifDeclare,
@@ -51,6 +56,23 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
+
+  // Ces deux champs finissent recopiés dans le mandat signé puis dans la
+  // lettre envoyée à la compagnie : une saisie absurde acceptée ici ressort
+  // en document juridique. Sans ce contrôle, un vol daté de 1990 renvoyait
+  // « éligible, 600 € », et un numéro de vol contenant du balisage HTML
+  // produisait un verdict chiffré.
+  const formeVol = validerNumeroVol(numeroVol);
+  if (!formeVol.valide) {
+    return NextResponse.json({ erreur: formeVol.message }, { status: 400 });
+  }
+
+  const formeDate = validerDateVol(dateVol);
+  if (!formeDate.valide) {
+    return NextResponse.json({ erreur: formeDate.message }, { status: 400 });
+  }
+
+  numeroVol = normaliserNumeroVol(numeroVol);
 
   const provider = getFlightStatusProvider();
   let vol;

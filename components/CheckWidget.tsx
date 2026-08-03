@@ -4,6 +4,11 @@ import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
 
+/** Un vol futur ne peut pas avoir été retardé : le sélecteur ne doit pas
+ * le proposer, plutôt que de laisser le serveur refuser après coup. */
+const AUJOURDHUI = new Date().toISOString().slice(0, 10);
+
+
 /**
  * Widget de vérification. Placé directement dans le hero (référence Wise /
  * Airbnb) : l'utilisateur peut agir dans la seconde, sans clic intermédiaire
@@ -67,6 +72,7 @@ export default function CheckWidget({
           id={idDate}
           name="dateVol"
           type="date"
+          max={AUJOURDHUI}
           className="champ"
           required
           value={dateVol}

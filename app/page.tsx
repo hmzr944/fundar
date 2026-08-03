@@ -231,6 +231,7 @@ export default function HomePage() {
             <Link href="/check">Vérifier un vol</Link>
             <Link href="/dashboard">Mes dossiers</Link>
             <Link href="/cgv">Conditions générales</Link>
+            <Link href="/mentions-legales">Mentions légales</Link>
           </nav>
         </div>
       </footer>
