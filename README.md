@@ -51,7 +51,9 @@ protection de trésorerie par compagnie.
 ```
 lib/eligibility/    moteur d'éligibilité, distance, aéroports, compagnies (fonctions pures)
 config/              airline-policy.ts (ACCEPT/WAITLIST/REJECT), jurisdictions.ts (prescription)
+                     admin.ts (accès à /admin, fermé par défaut)
 lib/flight-status/   FlightStatusProvider + implémentation AviationStack
+lib/stats/           statistiques de comportement des compagnies (fonctions pures)
 lib/pdf/             génération du mandat et de la lettre de réclamation
 lib/email/           envoi transactionnel (Resend)
 lib/supabase/        clients navigateur / serveur / admin
@@ -59,6 +61,8 @@ supabase/migrations/ schéma SQL (claims, documents, signatures, consentements, 
 app/check/           F1 — vérificateur d'éligibilité, sans inscription
 app/claim/           F2 — capture d'identité, upload, signature du mandat
 app/dashboard/       F3 — suivi des dossiers (statut mis à jour manuellement via Supabase)
+app/admin/           tableau de bord d'exploitation : saisie des réponses des
+                     compagnies, clôture des dossiers, statistiques par compagnie
 app/[compagnie]/…    SEO programmatique
 app/[aeroport]/…
 app/vol/[numeroVol]/
