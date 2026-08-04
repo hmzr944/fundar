@@ -6,3 +6,6 @@ node_modules
 .DS_Store
 next-env.d.ts
 *.tsbuildinfo
+
+# Fichier généré à la demande (scripts de migration concaténés)
+supabase/migrations-a-coller.sql
