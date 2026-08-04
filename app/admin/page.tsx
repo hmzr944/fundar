@@ -95,7 +95,7 @@ export default async function AdminPage() {
 
   return (
     <main className="conteneur py-14 sm:py-20">
-      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+      <h1 className="titre text-[2.25rem] sm:text-[3rem]">
         Exploitation
       </h1>
       <p className="mt-3 max-w-[60ch] text-[15px] leading-relaxed text-[var(--texte-attenue)]">
@@ -133,7 +133,7 @@ export default async function AdminPage() {
         </p>
       </div>
 
-      <h2 className="mt-12 text-xl font-semibold tracking-tight">
+      <h2 className="mt-12 titre text-[1.5rem]">
         Comportement par compagnie
       </h2>
       {parCompagnie.length === 0 ? (
@@ -184,7 +184,7 @@ export default async function AdminPage() {
         </div>
       )}
 
-      <h2 className="mt-12 text-xl font-semibold tracking-tight">
+      <h2 className="mt-12 titre text-[1.5rem]">
         Paiements déclarés, à vérifier et facturer ({aFacturer.length})
       </h2>
       <p className="mt-2 text-[15px] text-[var(--texte-attenue)]">
@@ -211,7 +211,7 @@ export default async function AdminPage() {
         ))}
       </div>
 
-      <h2 className="mt-12 text-xl font-semibold tracking-tight">
+      <h2 className="mt-12 titre text-[1.5rem]">
         En attente de réponse ({aRelancer.length})
       </h2>
       <p className="mt-2 text-[15px] text-[var(--texte-attenue)]">
@@ -235,7 +235,7 @@ export default async function AdminPage() {
         ))}
       </div>
 
-      <h2 className="mt-12 text-xl font-semibold tracking-tight">
+      <h2 className="mt-12 titre text-[1.5rem]">
         Tous les dossiers ({dossiers.length})
       </h2>
       <div className="mt-4 flex flex-col gap-3">

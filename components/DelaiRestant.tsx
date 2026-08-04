@@ -1,4 +1,4 @@
-import { Clock } from "@phosphor-icons/react/dist/ssr";
+import Icone from "./Icone";
 
 /** Un an : au-delà, rappeler l'échéance relève de la pression inutile. */
 const SEUIL_URGENCE_JOURS = 365;
@@ -13,11 +13,11 @@ function formater(iso: string): string {
 }
 
 /**
- * Échéance de prescription du dossier.
+ * �?chéance de prescription du dossier.
  *
  * La seule urgence honnête du produit : elle n'est pas fabriquée, elle est
  * dans la loi, et le passager ne la trouve nulle part ailleurs. Elle n'est
- * affichée qu'en deçà d'un an — au-delà, agiter une échéance à quatre ans
+ * affichée qu'en deçà d'un an �?" au-delà, agiter une échéance à quatre ans
  * serait de la pression sans objet, et abîmerait la confiance qu'on essaie
  * précisément de construire.
  */
@@ -41,7 +41,7 @@ export default function DelaiRestant({
         urgent ? "text-[var(--color-accent-600)]" : "text-[var(--texte-attenue)]"
       }`}
     >
-      <Clock size={15} weight="bold" className="mt-0.5 shrink-0" />
+      <Icone nom="horloge" taille={15} className="mt-0.5 shrink-0" />
       <span>
         {urgent ? (
           <>
@@ -59,3 +59,4 @@ export default function DelaiRestant({
     </p>
   );
 }
+

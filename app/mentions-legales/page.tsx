@@ -24,7 +24,7 @@ export default function MentionsLegalesPage() {
 
   return (
     <main className="conteneur-etroit py-14 sm:py-20">
-      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+      <h1 className="titre text-[2.25rem] sm:text-[3rem]">
         Mentions légales
       </h1>
 
@@ -42,7 +42,7 @@ export default function MentionsLegalesPage() {
       )}
 
       <section className="mt-10">
-        <h2 className="text-xl font-semibold tracking-tight">Éditeur du site</h2>
+        <h2 className="titre text-[1.5rem]">Éditeur du site</h2>
         <div className="mt-3 flex flex-col gap-1 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
           <p>
             {ENTREPRISE.raisonSociale} — {ENTREPRISE.formeJuridique}
@@ -54,7 +54,7 @@ export default function MentionsLegalesPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-xl font-semibold tracking-tight">Nous écrire</h2>
+        <h2 className="titre text-[1.5rem]">Nous écrire</h2>
         <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
           Une question sur un dossier, une réclamation, ou l&apos;exercice de
           vos droits sur vos données :{" "}
@@ -67,7 +67,7 @@ export default function MentionsLegalesPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-xl font-semibold tracking-tight">Hébergement</h2>
+        <h2 className="titre text-[1.5rem]">Hébergement</h2>
         <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
           Site hébergé par Vercel Inc. Données applicatives et documents
           hébergés par Supabase, au sein de l&apos;Union européenne.
@@ -75,7 +75,7 @@ export default function MentionsLegalesPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-xl font-semibold tracking-tight">
+        <h2 className="titre text-[1.5rem]">
           Nature de l&apos;activité
         </h2>
         <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">

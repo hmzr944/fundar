@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { CheckCircle, EnvelopeSimple, LockKey } from "@phosphor-icons/react/dist/ssr";
+import Icone from "@/components/Icone";
 import SignatureCanvas, { SignatureCanvasHandle } from "@/components/SignatureCanvas";
 import ProgressionEtapes from "@/components/ProgressionEtapes";
 import { validerIban } from "@/lib/validation/iban";
@@ -115,9 +115,9 @@ function ClaimPageInterieur() {
       <main className="conteneur-etroit py-16 sm:py-24">
         <div className="carte flex flex-col items-center gap-3 p-8 text-center">
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-accent-50)] text-[var(--color-accent-600)]">
-            <EnvelopeSimple size={22} weight="bold" />
+            <Icone nom="enveloppe" taille={22} />
           </span>
-          <h1 className="text-xl font-semibold tracking-tight">Plus qu'une étape</h1>
+          <h1 className="titre text-[1.5rem]">Plus qu'une étape</h1>
           <p className="max-w-[40ch] text-[15px] leading-relaxed text-[var(--texte-attenue)]">
             Vos informations et votre signature sont déjà enregistrées.
             Cliquez sur le lien envoyé à{" "}
@@ -134,9 +134,9 @@ function ClaimPageInterieur() {
       <main className="conteneur-etroit py-16 sm:py-24">
         <div className="carte flex flex-col items-center gap-3 p-8 text-center">
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-succes-50)] text-[var(--color-succes-500)]">
-            <CheckCircle size={24} weight="bold" />
+            <Icone nom="coche-cercle" taille={24} />
           </span>
-          <h1 className="text-xl font-semibold tracking-tight">Dossier envoyé</h1>
+          <h1 className="titre text-[1.5rem]">Dossier envoyé</h1>
           <p className="max-w-[40ch] text-[15px] leading-relaxed text-[var(--texte-attenue)]">
             Votre mandat signé a été enregistré. Vous recevrez un email de
             confirmation, et pouvez suivre l&apos;avancement depuis votre{" "}
@@ -329,7 +329,7 @@ function ClaimPageInterieur() {
       {etape === "identite" && (
         <form onSubmit={validerIdentite} className="carte flex flex-col gap-6 p-6 sm:p-7">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight">Vos coordonnées</h2>
+            <h2 className="titre text-[1.5rem]">Vos coordonnées</h2>
             <p className="mt-1.5 text-[15px] text-[var(--texte-attenue)]">
               L&apos;IBAN sert uniquement à recevoir votre indemnisation. Aucun
               prélèvement n&apos;est possible avec ces informations.
@@ -420,7 +420,7 @@ function ClaimPageInterieur() {
       {etape === "signature" && (
         <form onSubmit={validerSignature} className="carte flex flex-col gap-6 p-6 sm:p-7">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight">Signez le mandat</h2>
+            <h2 className="titre text-[1.5rem]">Signez le mandat</h2>
             <p className="mt-1.5 text-[15px] text-[var(--texte-attenue)]">
               Cette signature nous autorise à réclamer en votre nom. Elle ne
               transfère pas votre créance : la compagnie vous paie directement.
@@ -481,7 +481,7 @@ function ClaimPageInterieur() {
       {etape === "justificatif" && (
         <form onSubmit={soumettreFinal} className="carte flex flex-col gap-6 p-6 sm:p-7">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight">
+            <h2 className="titre text-[1.5rem]">
               Une preuve que vous étiez à bord
             </h2>
             <p className="mt-1.5 text-[15px] text-[var(--texte-attenue)]">
@@ -520,7 +520,7 @@ function ClaimPageInterieur() {
           </div>
 
           <p className="flex items-center justify-center gap-1.5 text-center text-sm text-[var(--texte-attenue)]">
-            <LockKey size={14} />
+            <Icone nom="cadenas" taille={14} />
             Nous vérifierons votre email à cette étape si ce n&apos;est pas déjà fait.
           </p>
         </form>

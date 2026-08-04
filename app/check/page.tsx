@@ -3,13 +3,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  CheckCircle,
-  Prohibit,
-  Clock,
-  MagnifyingGlass,
-  ArrowRight,
-} from "@phosphor-icons/react/dist/ssr";
+import Icone, { type NomIcone } from "@/components/Icone";
 import MontantSplitFlap from "@/components/MontantSplitFlap";
 import RepartitionMontant from "@/components/RepartitionMontant";
 import DeclarationVol, {
@@ -63,11 +57,11 @@ const LIBELLE_PAR_STATUT: Record<Resultat["statut"], string> = {
   WAITLIST: "Liste d'attente",
 };
 
-const ICONE_PAR_STATUT: Record<Resultat["statut"], React.ElementType> = {
-  ELIGIBLE: CheckCircle,
-  INELIGIBLE: Prohibit,
-  REVIEW_MANUEL: MagnifyingGlass,
-  WAITLIST: Clock,
+const ICONE_PAR_STATUT: Record<Resultat["statut"], NomIcone> = {
+  ELIGIBLE: "coche-cercle",
+  INELIGIBLE: "interdit",
+  REVIEW_MANUEL: "recherche",
+  WAITLIST: "horloge",
 };
 
 export default function CheckPage() {
@@ -163,7 +157,7 @@ function CheckPageInterieur() {
   }
 
   const demandePreavis = reponse?.resultat?.motif === "REVIEW_PREAVIS_INCONNU";
-  const Icone = reponse?.resultat ? ICONE_PAR_STATUT[reponse.resultat.statut] : null;
+  const nomIcone = reponse?.resultat ? ICONE_PAR_STATUT[reponse.resultat.statut] : null;
 
   // Un dossier déclaratif est volontairement classé "à vérifier" plutôt
   // qu'éligible, mais il doit pouvoir aller jusqu'au mandat : c'est
@@ -175,7 +169,7 @@ function CheckPageInterieur() {
 
   return (
     <main className="conteneur-etroit py-14 sm:py-20">
-      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+      <h1 className="titre text-[2.25rem] sm:text-[3rem]">
         Vérifiez votre indemnisation
       </h1>
       <p className="mt-3 text-[17px] leading-relaxed text-[var(--texte-attenue)]">
@@ -220,7 +214,7 @@ function CheckPageInterieur() {
       {chargement && (
         <div className="carte entree-fade mt-6 flex flex-col items-center gap-4 p-10">
           <span className="pulsation h-10 w-10">
-            <MagnifyingGlass size={20} className="text-[var(--color-accent-500)]" weight="bold" />
+            <Icone nom="recherche" taille={20} className="text-[var(--color-accent-500)]" />
           </span>
           <p className="text-[15px] text-[var(--texte-attenue)]">
             Nous analysons votre vol...
@@ -242,7 +236,7 @@ function CheckPageInterieur() {
         />
       )}
 
-      {reponse?.resultat && Icone && (
+      {reponse?.resultat && nomIcone && (
         <div
           className="carte-embarquement mt-6 p-6 sm:p-7"
           key={reponse.resultat.motif + numeroVol}
@@ -250,7 +244,7 @@ function CheckPageInterieur() {
           <span
             className={`pilule entree-fade ${PILULE_PAR_STATUT[reponse.resultat.statut]}`}
           >
-            <Icone size={15} weight="bold" />
+            <Icone nom={nomIcone} taille={15} />
             {LIBELLE_PAR_STATUT[reponse.resultat.statut]}
           </span>
 
@@ -315,7 +309,7 @@ function CheckPageInterieur() {
                   className="bouton bouton-primaire entree-fade mt-6 w-full"
                 >
                   Lancer ma réclamation
-                  <ArrowRight size={18} weight="bold" />
+                  <Icone nom="fleche" taille={18} />
                 </Link>
               </>
             )}

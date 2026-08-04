@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ShareNetwork, Check } from "@phosphor-icons/react/dist/ssr";
+import Icone from "./Icone";
 
 /**
  * Partage vers les autres passagers du même vol.
@@ -12,7 +12,7 @@ import { ShareNetwork, Check } from "@phosphor-icons/react/dist/ssr";
  * annulé, ce sont 180 personnes qui croient toutes, à tort, n'avoir droit
  * à rien.
  *
- * La formulation est délibérément altruiste — « prévenez les autres », pas
+ * La formulation est délibérément altruiste �?" « prévenez les autres », pas
  * « parrainez un ami ». Il n'y a aucune prime : une récompense
  * transformerait un geste utile en démarchage, et abîmerait la seule chose
  * qui nous distingue.
@@ -35,7 +35,7 @@ export default function PartagerVol({
       ? `${window.location.origin}/vol/${encodeURIComponent(numeroVol)}`
       : `/vol/${numeroVol}`;
 
-  const montantTexte = montant ? `${montant} ${devise}` : "jusqu'à 600 €";
+  const montantTexte = montant ? `${montant} ${devise}` : "jusqu'à 600 �,�";
   const message =
     `Vous étiez sur le vol ${numeroVol} du ${dateVol} ? ` +
     `Il ouvre droit à ${montantTexte} d'indemnisation par passager, ` +
@@ -79,12 +79,12 @@ export default function PartagerVol({
         >
           {copie ? (
             <>
-              <Check size={16} weight="bold" />
+              <Icone nom="coche" taille={16} />
               Message copié
             </>
           ) : (
             <>
-              <ShareNetwork size={16} weight="bold" />
+              <Icone nom="partage" taille={16} />
               Prévenir les autres passagers
             </>
           )}
@@ -101,3 +101,4 @@ export default function PartagerVol({
     </div>
   );
 }
+

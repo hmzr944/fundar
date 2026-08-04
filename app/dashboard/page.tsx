@@ -1,12 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import {
-  FileText,
-  PaperPlaneTilt,
-  HourglassMedium,
-  CheckCircle,
-  Prohibit,
-} from "@phosphor-icons/react/dist/ssr";
+import Icone, { type NomIcone } from "@/components/Icone";
 import EnvoyerLettreButton from "@/components/EnvoyerLettreButton";
 import SupprimerCompteButton from "@/components/SupprimerCompteButton";
 import DeclarerPaiementButton from "@/components/DeclarerPaiementButton";
@@ -21,25 +15,25 @@ const STATUT_DOSSIER = {
     libelle: "Dossier reçu",
     detail: "Votre mandat est enregistré. Nous préparons la réclamation.",
     pilule: "pilule-revue",
-    icone: FileText,
+    icone: "document",
   },
   EN_COURS: {
     libelle: "Réclamation transmise",
     detail: "La compagnie a reçu votre réclamation. Les délais de réponse varient.",
     pilule: "pilule-attente",
-    icone: HourglassMedium,
+    icone: "sablier",
   },
   PAYE: {
     libelle: "Indemnisation reçue",
     detail: "La compagnie a payé.",
     pilule: "pilule-eligible",
-    icone: CheckCircle,
+    icone: "coche-cercle",
   },
   REFUSE: {
     libelle: "Refusé",
     detail: "La compagnie a rejeté la réclamation. Vous ne devez rien.",
     pilule: "pilule-ineligible",
-    icone: Prohibit,
+    icone: "interdit",
   },
 } as const;
 
@@ -71,7 +65,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="conteneur-etroit py-14 sm:py-20">
-      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Mes dossiers</h1>
+      <h1 className="titre text-[2.25rem] sm:text-[3rem]">Mes dossiers</h1>
 
       {(!dossiers || dossiers.length === 0) && (
         <div className="carte mt-8 p-8 text-center">
@@ -89,7 +83,7 @@ export default async function DashboardPage() {
           const statut =
             STATUT_DOSSIER[dossier.statut_dossier as keyof typeof STATUT_DOSSIER] ??
             STATUT_DOSSIER.SOUMIS;
-          const Icone = statut.icone;
+          const nomIcone = statut.icone as NomIcone;
           const envoyeeLe = formaterDate(dossier.reclamation_envoyee_le);
 
           return (
@@ -125,7 +119,7 @@ export default async function DashboardPage() {
 
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <span className={`pilule ${statut.pilule}`}>
-                  <Icone size={15} weight="bold" />
+                  <Icone nom={nomIcone} taille={15} />
                   {statut.libelle}
                 </span>
                 {envoyeeLe && (

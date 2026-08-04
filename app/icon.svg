@@ -1,5 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="7 11.5 82 82" width="82" height="82">
-  <path d="M28 80 C13 71 17 49 34 48 C48 47 51 62 39 65 L81 25 L61 75"
-        fill="none" stroke="#c93f26" stroke-width="10"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" width="44" height="44">
+  <!--
+    Le v du logotype, isolé.
+
+    Un favicon doit tenir dans un carré de 16px : le mot entier y serait
+    illisible. On prend donc la première lettre, tracée avec la même
+    géométrie et la même épaisseur relative que dans « volia », pour que
+    l'onglet et l'en-tête se lisent comme la même main.
+  -->
+  <path d="M11 13 L22 33 L33 13"
+        fill="none" stroke="#c93f26" stroke-width="8"
         stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

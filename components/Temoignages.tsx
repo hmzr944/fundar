@@ -1,9 +1,9 @@
-import { Scales, HandCoins, ShieldCheck } from "@phosphor-icons/react/dist/ssr";
+import Icone, { type NomIcone } from "./Icone";
 
 /**
  * Preuve sociale (référence Alan).
  *
- * IMPORTANT — à remplir dès les 3 premiers dossiers réels payés :
+ * IMPORTANT �?" à remplir dès les 3 premiers dossiers réels payés :
  * ajoutez les témoignages ci-dessous et la section basculera
  * automatiquement de "nos engagements" vers les vrais avis clients.
  *
@@ -23,26 +23,26 @@ const TEMOIGNAGES: Temoignage[] = [
   // {
   //   citation: "Dossier déposé un mardi, virement reçu six semaines plus tard.",
   //   prenom: "Prénom réel",
-  //   contexte: "Vol CDG → FCO, retard de 4h",
-  //   montant: "250 €",
+  //   contexte: "Vol CDG �?' FCO, retard de 4h",
+  //   montant: "250 �,�",
   // },
 ];
 
 const ENGAGEMENTS = [
   {
-    icone: Scales,
+    icone: "coche" as NomIcone,
     titre: "Un droit, pas une faveur",
     texte:
       "L'indemnisation est prévue par le règlement européen EU261 depuis 2004. Nous ne négocions pas une remise commerciale, nous faisons appliquer un texte.",
   },
   {
-    icone: HandCoins,
+    icone: "retour" as NomIcone,
     titre: "Rien à avancer",
     texte:
       "Aucun frais au dépôt, aucun frais si le dossier échoue. Nous ne sommes payés que sur ce qui arrive réellement sur votre compte.",
   },
   {
-    icone: ShieldCheck,
+    icone: "cadenas" as NomIcone,
     titre: "Un refus reste un refus",
     texte:
       "Si votre dossier n'est pas défendable, nous vous le disons tout de suite et nous ne le prenons pas. Le verdict n'est jamais caché derrière un formulaire.",
@@ -53,7 +53,7 @@ export default function Temoignages() {
   if (TEMOIGNAGES.length > 0) {
     return (
       <section className="conteneur py-20 sm:py-24">
-        <h2 className="max-w-[20ch] text-2xl font-semibold tracking-tight sm:text-3xl">
+        <h2 className="titre max-w-[20ch] text-[2rem] sm:text-[2.5rem]">
           Ils ont récupéré leur argent
         </h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -81,7 +81,7 @@ export default function Temoignages() {
 
   return (
     <section className="conteneur py-20 sm:py-24">
-      <h2 className="max-w-[24ch] text-2xl font-semibold tracking-tight sm:text-3xl">
+      <h2 className="titre max-w-[24ch] text-[2rem] sm:text-[2.5rem]">
         Pourquoi nous faire confiance avant d&apos;avoir des avis
       </h2>
       <p className="mt-3 max-w-[52ch] text-[17px] leading-relaxed text-[var(--texte-attenue)]">
@@ -92,11 +92,10 @@ export default function Temoignages() {
 
       <div className="mt-10 grid gap-5 sm:grid-cols-3">
         {ENGAGEMENTS.map((e) => {
-          const Icone = e.icone;
-          return (
-            <div key={e.titre} className="carte p-6">
+                    return (
+            <div key={e.titre} className="carte carte-interactive reveler p-6">
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-accent-50)] text-[var(--color-accent-600)]">
-                <Icone size={20} weight="bold" />
+                <Icone nom={e.icone} taille={21} />
               </span>
               <h3 className="mt-4 text-[17px] font-semibold">{e.titre}</h3>
               <p className="mt-2 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
@@ -109,3 +108,4 @@ export default function Temoignages() {
     </section>
   );
 }
+

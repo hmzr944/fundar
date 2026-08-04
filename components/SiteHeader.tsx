@@ -1,16 +1,17 @@
 import Link from "next/link";
-import BrandMark from "./BrandMark";
+import Logotype from "./Logotype";
 
 export default function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--bordure)] bg-[var(--bg)]/85 backdrop-blur-md">
+    // Verre dépoli plutôt qu'un aplat translucide : le contenu qui défile
+    // dessous reste perceptible sans jamais gêner la lecture du menu.
+    <header className="sticky top-0 z-40 border-b border-[color-mix(in_srgb,#ffffff_50%,var(--bordure))] bg-[color-mix(in_srgb,var(--bg)_72%,transparent)] backdrop-blur-xl backdrop-saturate-150">
       <div className="conteneur flex h-16 items-center justify-between">
         <Link
           href="/"
-          className="flex items-center gap-2.5 text-[17px] font-bold tracking-tight text-[var(--texte)]"
+          className="flex items-center text-[var(--texte)] transition-opacity hover:opacity-70"
         >
-          <BrandMark size={38} />
-          Volia
+          <Logotype hauteur={21} />
         </Link>
 
         <nav className="hidden items-center gap-1 sm:flex">

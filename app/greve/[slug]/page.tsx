@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { CheckCircle, MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
+import Icone from "@/components/Icone";
 import { GREVES, perspectiveIndemnisation, trouverGreve } from "@/config/greves";
 import { AEROPORTS } from "@/lib/eligibility/airports";
 import { COMPAGNIES } from "@/lib/eligibility/airlines";
@@ -60,11 +60,11 @@ export default function PageGreve({ params }: { params: { slug: string } }) {
   return (
     <main className="conteneur-etroit py-14 sm:py-20">
       <span className={`pilule ${due ? "pilule-eligible" : "pilule-revue"}`}>
-        {due ? <CheckCircle size={15} weight="bold" /> : <MagnifyingGlass size={15} weight="bold" />}
+        {due ? <Icone nom="coche-cercle" taille={15} /> : <Icone nom="recherche" taille={15} />}
         {due ? "Indemnisation due" : "À vérifier"}
       </span>
 
-      <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
+      <h1 className="mt-4 titre text-[2.25rem] sm:text-[3rem]">
         {greve.titre}
       </h1>
       <p className="mt-3 text-[17px] leading-relaxed text-[var(--texte-attenue)]">

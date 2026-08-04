@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
+import Icone from "./Icone";
 
 /** Un vol futur ne peut pas avoir été retardé : le sélecteur ne doit pas
  * le proposer, plutôt que de laisser le serveur refuser après coup. */
@@ -80,9 +80,10 @@ export default function CheckWidget({
         />
       </div>
       <button type="submit" className="bouton bouton-primaire sm:shrink-0">
-        <MagnifyingGlass size={18} weight="bold" />
+        <Icone nom="recherche" taille={18} />
         Vérifier
       </button>
     </form>
   );
 }
+

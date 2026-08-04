@@ -14,7 +14,8 @@
   Rayon : boutons/badges = pilule, cartes = 20px, champs = 14px.
 */
 @theme {
-  --font-sans: var(--font-affichage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-texte), ui-sans-serif, system-ui, sans-serif;
+  --font-titre: var(--font-affichage), ui-serif, Georgia, serif;
 
   --color-accent-50: #fbede9;
   --color-accent-100: #f6dad3;
@@ -80,6 +81,62 @@ body {
   letter-spacing: -0.01em;
 }
 
+/*
+  Titres au serif. Instrument Serif n'existe qu'en Regular : on ne demande
+  jamais de graisse, et le poids visuel vient de la taille. Interlignage
+  resserré parce qu'un serif à 56px avec l'interligne par défaut se
+  déchire en lignes qui flottent.
+*/
+.titre {
+  font-family: var(--font-titre);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+}
+
+.titre-italique {
+  font-style: italic;
+}
+
+/*
+  Verre dépoli.
+
+  Le flou n'a d'effet que s'il y a quelque chose derrière : sur un aplat
+  crème uni il ne se voit pas. Ces classes ne servent donc que là où du
+  contenu défile dessous (l'en-tête) ou par-dessus une image (le hero).
+  Ailleurs on garde `.carte`, opaque et franche.
+*/
+.verre {
+  background: color-mix(in srgb, var(--bg-eleve) 62%, transparent);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid color-mix(in srgb, #ffffff 55%, var(--bordure));
+  border-radius: var(--radius-carte);
+  box-shadow: var(--shadow-carte);
+}
+
+/* Sur photo : plus sombre dessous, donc bord clair et fond plus dense. */
+.verre-sur-image {
+  background: color-mix(in srgb, var(--bg-eleve) 78%, transparent);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid color-mix(in srgb, #ffffff 70%, transparent);
+  border-radius: var(--radius-carte);
+  box-shadow: var(--shadow-carte-forte);
+}
+
+/*
+  Repli pour les navigateurs sans backdrop-filter (Firefox l'a longtemps
+  désactivé par défaut) : sans cela, le texte se retrouve sur un fond
+  quasi transparent et devient illisible.
+*/
+@supports not (backdrop-filter: blur(1px)) {
+  .verre,
+  .verre-sur-image {
+    background: var(--bg-eleve);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -104,6 +161,58 @@ body {
 
 .entree-fade {
   animation: entree-fade 0.4s var(--ease-out) both;
+}
+
+/*
+  Apparition au défilement, sans JavaScript.
+
+  Les animations pilotées par le scroll (`animation-timeline: view()`) ne
+  sont pas encore universelles. Le repli est volontairement le bon sens :
+  là où ce n'est pas supporté, le contenu est simplement visible. On ne
+  masque jamais quoi que ce soit en pariant sur une animation — un bloc
+  invisible faute de support, c'est du contenu perdu.
+*/
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveler {
+      animation: entree-fade 0.7s var(--ease-out) both;
+      animation-timeline: view();
+      /* Terminé dès que le bloc a un tiers de sa hauteur à l'écran : plus
+         tard, on lit un bloc encore à moitié transparent, ce qui donne
+         l'impression que la page n'a pas fini de charger. */
+      animation-range: entry 0% entry 90%;
+    }
+  }
+}
+
+/* Décalage en cascade pour une rangée de cartes. */
+.cascade > * {
+  animation: entree-fade 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--rang, 0) * 70ms);
+}
+
+/*
+  Réaction au survol des surfaces cliquables. Le déplacement reste à 2px :
+  au-delà, une grille entière qui bouge donne le tournis plus qu'elle ne
+  guide.
+*/
+.carte-interactive {
+  transition:
+    transform 0.25s var(--ease-out),
+    box-shadow 0.25s var(--ease-out),
+    border-color 0.25s var(--ease-out);
+}
+
+.carte-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-carte-forte);
+  border-color: color-mix(in srgb, var(--color-accent-500) 22%, var(--bordure));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carte-interactive:hover {
+    transform: none;
+  }
 }
 
 /* --- Mise en page --- */

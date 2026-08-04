@@ -101,7 +101,7 @@ const SECTIONS = [
 export default function CgvPage() {
   return (
     <main className="conteneur-etroit py-14 sm:py-20">
-      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+      <h1 className="titre text-[2.25rem] sm:text-[3rem]">
         Conditions générales
       </h1>
       <p className="mt-3 text-[17px] leading-relaxed text-[var(--texte-attenue)]">
@@ -114,7 +114,7 @@ export default function CgvPage() {
       <div className="mt-10 flex flex-col gap-9">
         {SECTIONS.map((section) => (
           <section key={section.titre}>
-            <h2 className="text-xl font-semibold tracking-tight">{section.titre}</h2>
+            <h2 className="titre text-[1.5rem]">{section.titre}</h2>
             <div className="mt-3 flex flex-col gap-3">
               {section.paragraphes.map((p, i) => (
                 <p key={i} className="text-[15px] leading-relaxed text-[var(--texte-attenue)]">
