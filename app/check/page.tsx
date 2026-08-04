@@ -11,6 +11,7 @@ import DeclarationVol, {
 } from "@/components/DeclarationVol";
 import DelaiRestant from "@/components/DelaiRestant";
 import PartagerVol from "@/components/PartagerVol";
+import RechercheEnCours from "@/components/motion/RechercheEnCours";
 
 interface Resultat {
   statut: "ELIGIBLE" | "INELIGIBLE" | "REVIEW_MANUEL" | "WAITLIST";
@@ -212,10 +213,8 @@ function CheckPageInterieur() {
       </form>
 
       {chargement && (
-        <div className="carte entree-fade mt-6 flex flex-col items-center gap-4 p-10">
-          <span className="pulsation h-10 w-10">
-            <Icone nom="recherche" taille={20} className="text-[var(--color-accent-500)]" />
-          </span>
+        <div className="carte entree-fade mt-6 flex flex-col items-center gap-5 p-10">
+          <RechercheEnCours taille={104} />
           <p className="text-[15px] text-[var(--texte-attenue)]">
             Nous analysons votre vol...
           </p>
