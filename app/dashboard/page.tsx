@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Icone, { type NomIcone } from "@/components/Icone";
+import FriseDossier, { etapeDuDossier } from "@/components/motion/FriseDossier";
 import EnvoyerLettreButton from "@/components/EnvoyerLettreButton";
 import SupprimerCompteButton from "@/components/SupprimerCompteButton";
 import DeclarerPaiementButton from "@/components/DeclarerPaiementButton";
@@ -132,6 +133,11 @@ export default async function DashboardPage() {
               <p className="mt-3 text-sm leading-relaxed text-[var(--texte-attenue)]">
                 {statut.detail}
               </p>
+
+              <FriseDossier
+                etapeCourante={etapeDuDossier(dossier)}
+                refuse={dossier.statut_dossier === "REFUSE"}
+              />
 
               {dossier.commission_due !== null && (
                 <p className="mt-3 border-t border-[var(--bordure)] pt-3 text-sm text-[var(--texte-attenue)]">
