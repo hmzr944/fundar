@@ -1,15 +1,20 @@
 /**
  * Logotype « volia », tracé et non composé.
  *
- * Le mot est construit au compas et à la règle : un cercle parfait pour le
- * o et le ventre du a, des segments à épaisseur constante pour le reste,
- * terminaisons arrondies partout. Aucune police n'intervient, donc le mot
- * reste identique sur toutes les machines et se redimensionne sans jamais
- * se recomposer.
+ * Le mot est construit au compas et à la règle : cercles parfaits pour le o
+ * et le ventre du a, segments à épaisseur constante ailleurs, terminaisons
+ * arrondies partout. Aucune police n'intervient, donc le mot est identique
+ * sur toutes les machines et se redimensionne sans se recomposer.
  *
- * Un seul écart à la géométrie pure : la hampe du a final monte au-dessus
- * de la hauteur d'x. C'est le seul détail « dessiné » du mot, et il dit
- * l'envol — le mot décolle sur sa dernière lettre.
+ * La seule lettre dessinée est la première : le bras droit du v ne redescend
+ * pas sur la hauteur d'x, il s'incurve et grimpe. Le mot décolle sur sa
+ * première lettre, et le o vient se glisser sous cette aile — c'est cet
+ * emboîtement qui fait tenir l'ensemble plutôt qu'un simple v surdimensionné.
+ *
+ * Le v reste un v : sa branche gauche et son sommet sont intacts, seule la
+ * sortie change. Une tentative précédente modifiait le a final de la même
+ * manière ; le mot se lisait « volid ». Une lettre qu'on déforme cesse
+ * d'être une lettre, et la première est la seule qui supporte ce geste.
  *
  * Le tracé hérite de currentColor : posé sur un aplat corail il devient
  * blanc sans qu'on ait à prévoir une seconde version.
@@ -25,11 +30,11 @@ export default function Logotype({
   /** Passer null quand le mot est déjà lu par un texte adjacent. */
   titre?: string | null;
 }) {
-  const RATIO = 178 / 66;
+  const RATIO = 186 / 66;
 
   return (
     <svg
-      viewBox="0 0 178 66"
+      viewBox="0 0 186 66"
       height={hauteur}
       width={hauteur * RATIO}
       fill="none"
@@ -44,29 +49,26 @@ export default function Logotype({
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        {/* v — deux segments, sommet posé sur la ligne de base */}
-        <path d="M7 20 L20 60 L33 20" />
+        {/* v — descente franche, puis l'aile s'incurve et monte */}
+        <path d="M7 20 L20 60 C28 44 34 24 49 9" />
 
-        {/* o — cercle parfait */}
-        <circle cx="68" cy="40" r="18" />
+        {/* o — cercle parfait, glissé sous l'aile */}
+        <circle cx="72" cy="40" r="18" />
 
         {/* l — hampe pleine hauteur */}
-        <path d="M100 6 L100 60" />
+        <path d="M104 6 L104 60" />
 
         {/* i — fût sur la hauteur d'x */}
-        <path d="M118 20 L118 60" />
+        <path d="M122 20 L122 60" />
 
-        {/* a — ventre circulaire et fût arrêté net sur la hauteur d'x.
-            Une première version faisait monter ce fût au-dessus, pour
-            évoquer l'envol : le mot se lisait « volid ». Un détail qui
-            change la lettre n'est pas un détail. */}
-        <circle cx="152" cy="40" r="18" />
-        <path d="M170 20 L170 60" />
+        {/* a — ventre circulaire et fût arrêté net sur la hauteur d'x */}
+        <circle cx="156" cy="40" r="18" />
+        <path d="M174 20 L174 60" />
       </g>
 
-      {/* Point du i : un cercle plein plutôt qu'un segment nul, que
-          certains moteurs de rendu escamotent. */}
-      <circle cx="118" cy="8" r="4.5" fill="currentColor" />
+      {/* Point du i : un cercle plein plutôt qu'un segment nul, que certains
+          moteurs de rendu escamotent. */}
+      <circle cx="122" cy="8" r="4.5" fill="currentColor" />
     </svg>
   );
 }

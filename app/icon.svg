@@ -1,13 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" width="44" height="44">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 69" width="56" height="69">
   <!--
-    Le v du logotype, isolé.
+    Le v du logotype, isolé — aile montante comprise.
 
     Un favicon doit tenir dans un carré de 16px : le mot entier y serait
-    illisible. On prend donc la première lettre, tracée avec la même
-    géométrie et la même épaisseur relative que dans « volia », pour que
-    l'onglet et l'en-tête se lisent comme la même main.
+    illisible. On garde donc la première lettre, celle qui porte le geste,
+    avec exactement le même tracé que dans « volia » — même courbe, même
+    épaisseur relative — pour que l'onglet et l'en-tête se lisent comme la
+    même main.
   -->
-  <path d="M11 13 L22 33 L33 13"
-        fill="none" stroke="#c93f26" stroke-width="8"
+  <path d="M7 20 L20 60 C28 44 34 24 49 9"
+        fill="none" stroke="#c93f26" stroke-width="9"
         stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
