@@ -3,7 +3,7 @@ import Icone, { type NomIcone } from "./Icone";
 /**
  * Preuve sociale (référence Alan).
  *
- * IMPORTANT �?" à remplir dès les 3 premiers dossiers réels payés :
+ * IMPORTANT — à remplir dès les 3 premiers dossiers réels payés :
  * ajoutez les témoignages ci-dessous et la section basculera
  * automatiquement de "nos engagements" vers les vrais avis clients.
  *
@@ -23,8 +23,8 @@ const TEMOIGNAGES: Temoignage[] = [
   // {
   //   citation: "Dossier déposé un mardi, virement reçu six semaines plus tard.",
   //   prenom: "Prénom réel",
-  //   contexte: "Vol CDG �?' FCO, retard de 4h",
-  //   montant: "250 �,�",
+  //   contexte: "Vol CDG → FCO, retard de 4h",
+  //   montant: "250 €",
   // },
 ];
 
@@ -105,7 +105,7 @@ export default function Temoignages() {
         {ENGAGEMENTS.map((e, i) => (
           <li
             key={e.titre}
-            className={`reveler grid gap-x-8 gap-y-2 py-7 sm:grid-cols-[auto_0.9fr_1.4fr] sm:items-baseline ${
+            className={`grid gap-x-8 gap-y-2 py-7 sm:grid-cols-[auto_0.9fr_1.4fr] sm:items-baseline ${
               i > 0 ? "border-t-2 border-dashed border-[var(--bordure)]" : ""
             }`}
           >

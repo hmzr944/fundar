@@ -103,7 +103,7 @@ export default function HomePage() {
         {/* Le titre a été redimensionné en passant du serif à Geist : une
             sans en 700 occupe bien plus de largeur à corps égal, et les
             valeurs calées sur l'ancien dessin partaient sur quatre lignes. */}
-        <div className="entree-fade mx-auto max-w-[52rem]">
+        <div className="mx-auto max-w-[52rem]">
           <h1 className="titre text-[2.25rem] sm:text-[3.25rem]">
             Votre vol a été retardé.
             <br />
@@ -117,18 +117,12 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div
-          className="entree-fade mx-auto mt-9 max-w-[42rem] text-left"
-          style={{ animationDelay: "80ms" }}
-        >
+        <div className="mx-auto mt-9 max-w-[42rem] text-left">
           <CheckWidget />
         </div>
 
         {/* Double appel à l'action : l'un agit, l'autre rassure d'abord. */}
-        <div
-          className="entree-fade mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3"
-          style={{ animationDelay: "140ms" }}
-        >
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
           <Link
             href="#comment"
             className="text-[15px] font-semibold text-[var(--texte)] underline decoration-[var(--bordure)] underline-offset-4 transition-colors hover:decoration-[var(--color-accent-500)]"
@@ -175,7 +169,7 @@ export default function HomePage() {
           {ETAPES.map((etape, index) => (
             <div
               key={etape.titre}
-              className="carte carte-interactive reveler flex flex-col p-6"
+              className="carte carte-interactive flex flex-col p-6"
             >
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-accent-50)] text-[var(--color-accent-600)]">
                 <Icone nom={etape.icone} taille={21} />
@@ -195,7 +189,7 @@ export default function HomePage() {
             composition son seul aplat de couleur, sinon tout le bento est
             crème sur crème.
           */}
-          <div className="reveler rounded-[var(--radius-carte)] bg-[var(--color-accent-500)] p-6 text-white">
+          <div className="rounded-[var(--radius-carte)] bg-[var(--color-accent-500)] p-6 text-white">
             <p className="titre text-[2.75rem] leading-none">0 €</p>
             <p className="mt-3 text-[15px] leading-relaxed text-white/85">
               si nous ne récupérons rien. 22 % en cas de succès, sans
@@ -248,7 +242,7 @@ export default function HomePage() {
           className="-bottom-40 -left-40 h-[30rem] w-[44rem]"
           opacite={0.05}
         />
-        <div className="conteneur cascade relative grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="conteneur relative grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-4">
           {REASSURANCE.map((item, i) => (
             <div key={item.libelle} style={{ ["--rang" as string]: i }}>
               <p className="chiffres titre text-[2.5rem] leading-none">
@@ -338,7 +332,7 @@ export default function HomePage() {
             délais, eux, n'apparaissent nulle part ailleurs sur la page, et
             ce sont eux qui donnent son sens au titre.
           */}
-          <ul className="carte cascade divide-y divide-dashed divide-[var(--bordure)] p-2">
+          <ul className="carte divide-y divide-dashed divide-[var(--bordure)] p-2">
             {PRESCRIPTION.map((pays, i) => (
               <li
                 key={pays.pays}

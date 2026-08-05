@@ -12,7 +12,7 @@ import Icone from "./Icone";
  * annulé, ce sont 180 personnes qui croient toutes, à tort, n'avoir droit
  * à rien.
  *
- * La formulation est délibérément altruiste �?" « prévenez les autres », pas
+ * La formulation est délibérément altruiste — « prévenez les autres », pas
  * « parrainez un ami ». Il n'y a aucune prime : une récompense
  * transformerait un geste utile en démarchage, et abîmerait la seule chose
  * qui nous distingue.
@@ -35,7 +35,7 @@ export default function PartagerVol({
       ? `${window.location.origin}/vol/${encodeURIComponent(numeroVol)}`
       : `/vol/${numeroVol}`;
 
-  const montantTexte = montant ? `${montant} ${devise}` : "jusqu'à 600 �,�";
+  const montantTexte = montant ? `${montant} ${devise}` : "jusqu'à 600 €";
   const message =
     `Vous étiez sur le vol ${numeroVol} du ${dateVol} ? ` +
     `Il ouvre droit à ${montantTexte} d'indemnisation par passager, ` +

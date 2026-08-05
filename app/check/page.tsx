@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import Icone, { type NomIcone } from "@/components/Icone";
 import MontantSplitFlap from "@/components/MontantSplitFlap";
@@ -218,18 +219,47 @@ function CheckPageInterieur() {
         </button>
       </form>
 
-      {chargement && (
-        <div className="carte entree-fade mt-6 flex flex-col items-center gap-5 p-10">
-          <RechercheEnCours taille={104} />
-          <p className="text-[15px] text-[var(--texte-attenue)]">
-            Nous analysons votre vol...
-          </p>
-        </div>
-      )}
+      {/*
+        Les changements d'état de ce tunnel se produisaient sans aucune
+        transition : l'attente, l'erreur puis le verdict apparaissaient et
+        disparaissaient d'un coup. C'est le défaut que l'audit place en
+        premier — une interface qui saute se lit comme cassée, pas comme
+        rapide.
 
-      {erreur && (
-        <div className="carte entree-fade mt-6 p-6 text-[15px]">{erreur}</div>
-      )}
+        La sortie est volontairement plus discrète que l'entrée (−6px
+        contre +10px) : ce qui arrive mérite d'être annoncé, ce qui part
+        n'a pas à être commenté.
+      */}
+      <AnimatePresence mode="wait" initial={false}>
+        {chargement && (
+          <motion.div
+            key="attente"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+            className="carte mt-6 flex flex-col items-center gap-5 p-10"
+          >
+            <RechercheEnCours taille={104} />
+            <p className="text-[15px] text-[var(--texte-attenue)]">
+              Nous analysons votre vol...
+            </p>
+          </motion.div>
+        )}
+
+        {erreur && !chargement && (
+          <motion.div
+            key="erreur"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+            className="carte mt-6 p-6 text-[15px]"
+          >
+            {erreur}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {reponse?.code === "VOL_NON_VERIFIABLE" && !reponse.resultat && (
         <DeclarationVol

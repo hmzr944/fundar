@@ -13,11 +13,11 @@ function formater(iso: string): string {
 }
 
 /**
- * �?chéance de prescription du dossier.
+ * Échéance de prescription du dossier.
  *
  * La seule urgence honnête du produit : elle n'est pas fabriquée, elle est
  * dans la loi, et le passager ne la trouve nulle part ailleurs. Elle n'est
- * affichée qu'en deçà d'un an �?" au-delà, agiter une échéance à quatre ans
+ * affichée qu'en deçà d'un an — au-delà, agiter une échéance à quatre ans
  * serait de la pression sans objet, et abîmerait la confiance qu'on essaie
  * précisément de construire.
  */

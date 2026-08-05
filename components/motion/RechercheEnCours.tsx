@@ -27,24 +27,16 @@ export default function RechercheEnCours({ taille = 96 }: { taille?: number }) {
       role="status"
       aria-label="Vérification du vol en cours"
     >
-      {/* Halos concentriques : la respiration, pas un balayage. */}
-      {!reduit &&
-        [0, 1].map((i) => (
-          <motion.span
-            key={i}
-            className="absolute rounded-full border border-[var(--color-accent-500)]"
-            style={{ width: taille, height: taille }}
-            initial={{ scale: 0.55, opacity: 0.5 }}
-            animate={{ scale: 1, opacity: 0 }}
-            transition={{
-              duration: 2.4,
-              repeat: Infinity,
-              delay: i * 1.2,
-              ease: "easeOut",
-            }}
-          />
-        ))}
+      {/*
+        Les halos concentriques ont été retirés.
 
+        C'était deux anneaux en scale + opacity, en boucle infinie autour
+        d'un indicateur d'état — le motif le plus reconnaissable d'une
+        interface générée, et celui que l'audit signale sans seuil de
+        tolérance. Ils n'apportaient aucune information : le tracé qui se
+        dessine dit déjà que quelque chose est en cours, et il le dit en
+        parlant du produit plutôt qu'en clignotant.
+      */}
       <svg
         viewBox="0 0 56 69"
         width={taille * 0.46}

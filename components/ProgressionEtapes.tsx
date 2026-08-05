@@ -43,7 +43,7 @@ export default function ProgressionEtapes({
                 reduit
                   ? { duration: 0 }
                   : {
-                      duration: index === etapeActuelle ? 0.5 : 0,
+                      duration: index === etapeActuelle ? 0.22 : 0,
                       ease: [0.23, 1, 0.32, 1],
                     }
               }
@@ -58,8 +58,8 @@ export default function ProgressionEtapes({
             key={etapeActuelle}
             initial={reduit ? false : { y: 12, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={reduit ? undefined : { y: -12, opacity: 0 }}
-            transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
+            exit={reduit ? undefined : { y: -6, opacity: 0 }}
+            transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
             className="text-xs font-semibold uppercase tracking-wide text-[var(--texte-attenue)]"
           >
             Étape {etapeActuelle + 1} sur {labels.length} · {labels[etapeActuelle]}
