@@ -12,6 +12,7 @@ import DeclarationVol, {
 import DelaiRestant from "@/components/DelaiRestant";
 import PartagerVol from "@/components/PartagerVol";
 import RechercheEnCours from "@/components/motion/RechercheEnCours";
+import Trajectoire from "@/components/motif/Trajectoire";
 
 interface Resultat {
   statut: "ELIGIBLE" | "INELIGIBLE" | "REVIEW_MANUEL" | "WAITLIST";
@@ -169,15 +170,20 @@ function CheckPageInterieur() {
     reponse?.resultat?.statut === "ELIGIBLE" || declaratifNonVerifie;
 
   return (
-    <main className="conteneur-etroit py-14 sm:py-20">
-      <h1 className="titre text-[1.875rem] sm:text-[2.5rem]">
+    // `overflow-hidden` contient la trajectoire de fond, qui déborde
+    // volontairement du cadre pour ne pas se lire comme une illustration
+    // centrée.
+    <main className="conteneur-etroit relative overflow-hidden py-14 sm:py-20">
+      <Trajectoire className="-right-40 -top-32 h-[34rem] w-[46rem]" />
+
+      <h1 className="titre relative text-[1.875rem] sm:text-[2.5rem]">
         Vérifiez votre indemnisation
       </h1>
-      <p className="mt-3 text-[17px] leading-relaxed text-[var(--texte-attenue)]">
+      <p className="relative mt-3 text-[17px] leading-relaxed text-[var(--texte-attenue)]">
         Numéro de vol et date suffisent. Aucune inscription requise.
       </p>
 
-      <form onSubmit={verifier} className="carte mt-8 flex flex-col gap-4 p-6">
+      <form onSubmit={verifier} className="carte relative mt-8 flex flex-col gap-4 p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="numeroVol" className="etiquette">

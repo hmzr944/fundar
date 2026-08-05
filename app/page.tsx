@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Icone from "@/components/Icone";
 import Logotype from "@/components/Logotype";
+import Trajectoire from "@/components/motif/Trajectoire";
 import CheckWidget from "@/components/CheckWidget";
 import Temoignages from "@/components/Temoignages";
 
@@ -219,9 +220,22 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/*
+        Le filet perforé remplace le trait de séparation ordinaire : c'est
+        la découpe d'une souche de billet, seule forme graphique que la
+        marque possède en propre, jusqu'ici cantonnée à la carte de verdict.
+      */}
+      <div className="conteneur">
+        <div className="filet-perfore" />
+      </div>
+
       {/* Réassurance : quatre chiffres, aucun superlatif. */}
-      <section className="border-y border-[var(--bordure)] bg-[var(--bg-eleve)]">
-        <div className="conteneur cascade grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="relative overflow-hidden border-b border-[var(--bordure)] bg-[var(--bg-eleve)]">
+        <Trajectoire
+          className="-bottom-40 -left-40 h-[30rem] w-[44rem]"
+          opacite={0.05}
+        />
+        <div className="conteneur cascade relative grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-4">
           {REASSURANCE.map((item, i) => (
             <div key={item.libelle} style={{ ["--rang" as string]: i }}>
               <p className="chiffres titre text-[2.5rem] leading-none">
@@ -243,16 +257,19 @@ export default function HomePage() {
           <h2 className="titre text-[1.75rem] sm:text-[2.125rem]">
             Questions fréquentes
           </h2>
-          <div className="mt-8 flex flex-col divide-y divide-[var(--bordure)]">
-            {QUESTIONS.map((q) => (
-              <details key={q.question} className="group py-5">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[16px] font-semibold">
+          {/* Chaque question est séparée par un pointillé plutôt qu'un
+              trait plein : même langage que la souche du billet. */}
+          <div className="mt-8 flex flex-col">
+            {QUESTIONS.map((q, i) => (
+              <details
+                key={q.question}
+                className={`group py-5 ${i > 0 ? "border-t-2 border-dashed border-[var(--bordure)]" : ""}`}
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[16px] font-semibold transition-colors hover:text-[var(--color-accent-600)]">
                   {q.question}
-                  <Icone
-                    nom="chevron"
-                    taille={18}
-                    className="shrink-0 text-[var(--texte-attenue)] transition-transform duration-200 group-open:rotate-180"
-                  />
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--bg-eleve-2)] text-[var(--texte-attenue)] transition-all duration-300 group-open:rotate-180 group-open:bg-[var(--color-accent-50)] group-open:text-[var(--color-accent-600)]">
+                    <Icone nom="chevron" taille={16} />
+                  </span>
                 </summary>
                 <p className="mt-3 max-w-[58ch] text-[15px] leading-relaxed text-[var(--texte-attenue)]">
                   {q.reponse}
@@ -264,11 +281,15 @@ export default function HomePage() {
       </section>
 
       {/* Dernier appel : on redonne le widget plutôt qu'un simple bouton */}
-      <section className="conteneur py-20 text-center sm:py-24">
-        <h2 className="titre mx-auto max-w-[22ch] text-[1.75rem] sm:text-[2.25rem]">
+      <section className="conteneur relative overflow-hidden py-20 text-center sm:py-24">
+        <Trajectoire
+          className="-top-24 left-1/2 h-[34rem] w-[56rem] -translate-x-1/2"
+          opacite={0.05}
+        />
+        <h2 className="titre relative mx-auto max-w-[22ch] text-[1.75rem] sm:text-[2.25rem]">
           Votre vol vaut peut-être plus que vous ne pensez.
         </h2>
-        <div className="mx-auto mt-8 max-w-[42rem] text-left">
+        <div className="relative mx-auto mt-8 max-w-[42rem] text-left">
           <CheckWidget taille="compact" />
         </div>
       </section>

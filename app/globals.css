@@ -417,6 +417,50 @@ body {
   border-top: 2px dashed var(--bordure);
 }
 
+/*
+  Filet perforé : la même découpe que la carte d'embarquement, mais en
+  séparateur de section.
+
+  Le motif du billet n'existait que sur la carte de verdict. Répété entre
+  les sections, il devient la signature du site — un trait pointillé et
+  deux encoches, comme une souche qu'on détache. C'est la seule forme
+  graphique que le produit possède en propre, il serait absurde de la
+  cantonner à un écran.
+*/
+.filet-perfore {
+  position: relative;
+  height: 1px;
+  border-top: 2px dashed var(--bordure);
+}
+
+.filet-perfore::before,
+.filet-perfore::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--bordure);
+  transform: translateY(-50%);
+}
+
+.filet-perfore::before {
+  left: -13px;
+}
+
+.filet-perfore::after {
+  right: -13px;
+}
+
+/* Sur fond blanc, les encoches doivent porter la couleur de la page qui
+   les entoure, sinon elles disparaissent. */
+.filet-perfore-clair::before,
+.filet-perfore-clair::after {
+  background: var(--bg-eleve);
+}
+
 /* --- Révélation du montant : clin d'oeil aux panneaux d'aéroport --- */
 
 .split-flap {
