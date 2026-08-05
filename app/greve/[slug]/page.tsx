@@ -64,7 +64,7 @@ export default function PageGreve({ params }: { params: { slug: string } }) {
         {due ? "Indemnisation due" : "À vérifier"}
       </span>
 
-      <h1 className="mt-4 titre text-[2.25rem] sm:text-[3rem]">
+      <h1 className="mt-4 titre text-[1.875rem] sm:text-[2.5rem]">
         {greve.titre}
       </h1>
       <p className="mt-3 text-[17px] leading-relaxed text-[var(--texte-attenue)]">

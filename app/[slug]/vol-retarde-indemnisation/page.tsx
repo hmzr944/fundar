@@ -36,7 +36,7 @@ export default function PageCompagnie({
 
   return (
     <main className="conteneur-etroit py-14 sm:py-20">
-      <h1 className="titre text-[2.25rem] sm:text-[3rem]">
+      <h1 className="titre text-[1.875rem] sm:text-[2.5rem]">
         Vol {compagnie.nom} retardé ou annulé ?
       </h1>
       <p className="mt-4 text-[15px] leading-relaxed text-[var(--texte-attenue)]">

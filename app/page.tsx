@@ -86,11 +86,14 @@ export default function HomePage() {
         écran de cartes ferait perdre la seule action qui compte.
       */}
       <section className="conteneur pt-14 pb-16 text-center sm:pt-20 sm:pb-20">
-        <div className="entree-fade mx-auto max-w-[44rem]">
-          <h1 className="titre text-[3rem] sm:text-[4.5rem]">
+        {/* Le titre a été redimensionné en passant du serif à Geist : une
+            sans en 700 occupe bien plus de largeur à corps égal, et les
+            valeurs calées sur l'ancien dessin partaient sur quatre lignes. */}
+        <div className="entree-fade mx-auto max-w-[52rem]">
+          <h1 className="titre text-[2.25rem] sm:text-[3.25rem]">
             Votre vol a été retardé.
             <br />
-            <span className="titre-italique text-[var(--color-accent-500)]">
+            <span className="text-[var(--color-accent-500)]">
               Récupérez votre argent.
             </span>
           </h1>
@@ -145,7 +148,7 @@ export default function HomePage() {
               className="object-cover"
             />
             <div className="verre-sur-image absolute inset-x-4 bottom-4 p-5">
-              <p className="titre text-[1.75rem] leading-tight">
+              <p className="titre text-[1.5rem] leading-tight">
                 Vous n&apos;avez rien à négocier.
               </p>
               <p className="mt-2 text-[14px] leading-relaxed text-[var(--texte-attenue)]">
@@ -188,7 +191,7 @@ export default function HomePage() {
 
           {/* Barème — pleine largeur, il porte les chiffres du produit */}
           <div className="carte reveler p-6 sm:col-span-2 lg:col-span-3">
-            <h2 className="titre text-[1.75rem] leading-tight sm:text-[2rem]">
+            <h2 className="titre text-[1.5rem] leading-tight sm:text-[1.75rem]">
               Ce que la loi vous doit
             </h2>
             <p className="mt-2 max-w-[46ch] text-[15px] leading-relaxed text-[var(--texte-attenue)]">
@@ -237,7 +240,7 @@ export default function HomePage() {
       {/* FAQ : lève les objections avant le dernier appel à l'action */}
       <section className="border-y border-[var(--bordure)] bg-[var(--bg-eleve)]">
         <div className="conteneur-etroit py-20 sm:py-24">
-          <h2 className="titre text-[2rem] sm:text-[2.5rem]">
+          <h2 className="titre text-[1.75rem] sm:text-[2.125rem]">
             Questions fréquentes
           </h2>
           <div className="mt-8 flex flex-col divide-y divide-[var(--bordure)]">
@@ -262,7 +265,7 @@ export default function HomePage() {
 
       {/* Dernier appel : on redonne le widget plutôt qu'un simple bouton */}
       <section className="conteneur py-20 text-center sm:py-24">
-        <h2 className="titre mx-auto max-w-[20ch] text-[2rem] sm:text-[2.75rem]">
+        <h2 className="titre mx-auto max-w-[22ch] text-[1.75rem] sm:text-[2.25rem]">
           Votre vol vaut peut-être plus que vous ne pensez.
         </h2>
         <div className="mx-auto mt-8 max-w-[42rem] text-left">

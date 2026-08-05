@@ -12,7 +12,7 @@ export default function NonTrouvee() {
       <p className="chiffres text-sm font-semibold uppercase tracking-[0.12em] text-[var(--texte-attenue)]">
         Erreur 404
       </p>
-      <h1 className="mt-3 titre text-[2.25rem] sm:text-[3rem]">
+      <h1 className="mt-3 titre text-[1.875rem] sm:text-[2.5rem]">
         Cette page n&apos;existe pas.
       </h1>
       <p className="mt-4 max-w-[52ch] text-[17px] leading-relaxed text-[var(--texte-attenue)]">

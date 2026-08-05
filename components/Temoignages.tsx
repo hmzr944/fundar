@@ -53,7 +53,7 @@ export default function Temoignages() {
   if (TEMOIGNAGES.length > 0) {
     return (
       <section className="conteneur py-20 sm:py-24">
-        <h2 className="titre max-w-[20ch] text-[2rem] sm:text-[2.5rem]">
+        <h2 className="titre max-w-[22ch] text-[1.75rem] sm:text-[2.125rem]">
           Ils ont récupéré leur argent
         </h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -81,7 +81,7 @@ export default function Temoignages() {
 
   return (
     <section className="conteneur py-20 sm:py-24">
-      <h2 className="titre max-w-[24ch] text-[2rem] sm:text-[2.5rem]">
+      <h2 className="titre max-w-[26ch] text-[1.75rem] sm:text-[2.125rem]">
         Pourquoi nous faire confiance avant d&apos;avoir des avis
       </h2>
       <p className="mt-3 max-w-[52ch] text-[17px] leading-relaxed text-[var(--texte-attenue)]">

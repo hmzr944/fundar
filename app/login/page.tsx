@@ -69,7 +69,7 @@ function LoginPageInterieur() {
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-succes-50)] text-[var(--color-succes-600)]">
                 <Icone nom="coche" taille={22} />
               </span>
-              <h1 className="titre mt-5 text-[2.25rem]">Regardez vos emails</h1>
+              <h1 className="titre mt-5 text-[1.875rem]">Regardez vos emails</h1>
               <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
                 Un lien de connexion vient de partir vers{" "}
                 <strong className="font-semibold text-[var(--texte)]">
@@ -92,7 +92,7 @@ function LoginPageInterieur() {
             </div>
           ) : (
             <>
-              <h1 className="titre mt-10 text-[2.25rem] sm:text-[2.75rem]">
+              <h1 className="titre mt-10 text-[1.875rem] sm:text-[2.25rem]">
                 Suivez votre dossier
               </h1>
               <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
@@ -152,7 +152,7 @@ function LoginPageInterieur() {
           className="object-cover"
         />
         <div className="verre-sur-image absolute inset-x-10 bottom-10 p-6">
-          <p className="titre text-[1.75rem] leading-tight">
+          <p className="titre text-[1.5rem] leading-tight">
             Un dossier, une adresse, aucune relance de votre part.
           </p>
         </div>

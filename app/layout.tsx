@@ -1,35 +1,27 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Sans, Instrument_Serif } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
 import SiteHeader from "@/components/SiteHeader";
 import "./globals.css";
 
 /*
-  Deux familles au lieu d'une.
+  Une seule famille : Geist, en variable.
 
-  Figtree était neutre au point d'être anonyme : la même géométrie que la
-  moitié des sites de 2024, donc aucune mémoire visuelle. Instrument Sans
-  garde cette lisibilité pour tout ce qui se lit vite — champs, tableaux,
-  montants — pendant qu'Instrument Serif porte les titres.
+  Une version précédente opposait un serif de titrage à une sans de texte.
+  Le serif donnait au produit un registre de courrier plutôt que
+  d'application, ce qui servait la promesse — mais le choix retenu est une
+  sans unique, et il vaut mieux une famille assumée que deux mal mariées.
 
-  Le serif n'est pas décoratif ici. Sur un sujet d'argent et de droit, il
-  fait basculer le ton de « application » vers « courrier » : c'est le
-  registre d'un journal ou d'un cabinet, pas d'un formulaire. C'est
-  exactement la promesse du produit — on vous dit la vérité par écrit.
+  Geist étant variable de 100 à 900, tout le contraste vient désormais de
+  la graisse et de la taille, plus du dessin. Les titres descendent donc
+  volontairement en interlignage et en approche (voir .titre) : une sans
+  très grande avec les réglages par défaut se lit comme un bloc de texte
+  agrandi, pas comme un titre.
+
+  La police vient du paquet `geist` publié par Vercel, et non de
+  `next/font/google` : le catalogue Google de Next 14 est figé à la version
+  du framework et ne connaît pas encore Geist. Le paquet embarque les
+  fichiers, donc rien n'est téléchargé au chargement de la page.
 */
-const texte = Instrument_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-texte",
-  display: "swap",
-});
-
-const affichage = Instrument_Serif({
-  subsets: ["latin"],
-  weight: ["400"],
-  style: ["normal", "italic"],
-  variable: "--font-affichage",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Volia : indemnisation vol retardé ou annulé",
@@ -49,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${texte.variable} ${affichage.variable}`}>
+    <html lang="fr" className={GeistSans.variable}>
       <body>
         <SiteHeader />
         {children}

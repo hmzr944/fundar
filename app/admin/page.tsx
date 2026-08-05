@@ -95,7 +95,7 @@ export default async function AdminPage() {
 
   return (
     <main className="conteneur py-14 sm:py-20">
-      <h1 className="titre text-[2.25rem] sm:text-[3rem]">
+      <h1 className="titre text-[1.875rem] sm:text-[2.5rem]">
         Exploitation
       </h1>
       <p className="mt-3 max-w-[60ch] text-[15px] leading-relaxed text-[var(--texte-attenue)]">

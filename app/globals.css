@@ -14,8 +14,10 @@
   Rayon : boutons/badges = pilule, cartes = 20px, champs = 14px.
 */
 @theme {
-  --font-sans: var(--font-texte), ui-sans-serif, system-ui, sans-serif;
-  --font-titre: var(--font-affichage), ui-serif, Georgia, serif;
+  /* --font-geist-sans est déclarée par le paquet `geist` de Vercel. */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Même famille pour les titres : le contraste vient de la graisse. */
+  --font-titre: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 
   --color-accent-50: #fbede9;
   --color-accent-100: #f6dad3;
@@ -82,20 +84,30 @@ body {
 }
 
 /*
-  Titres au serif. Instrument Serif n'existe qu'en Regular : on ne demande
-  jamais de graisse, et le poids visuel vient de la taille. Interlignage
-  resserré parce qu'un serif à 56px avec l'interligne par défaut se
-  déchire en lignes qui flottent.
+  Titres.
+
+  Geist étant la seule famille du site, un titre ne se distingue plus par
+  son dessin : tout repose sur la graisse, la taille et l'approche. D'où
+  700 et un resserrement net — une sans à 56px avec l'approche par défaut
+  se lit comme du texte agrandi, pas comme un titre.
+
+  L'interlignage descend à 1.05 : sur deux lignes en gros corps, la valeur
+  par défaut laisse un couloir blanc qui casse le bloc en deux.
 */
 .titre {
   font-family: var(--font-titre);
-  font-weight: 400;
-  line-height: 1.02;
-  letter-spacing: -0.015em;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
 }
 
+/*
+  L'italique portait l'accent de la ligne corail du hero. Geist a une vraie
+  italique, mais penchée elle passe inaperçue à côté du même gras : on
+  garde la classe pour ne rien casser, sans effet par défaut.
+*/
 .titre-italique {
-  font-style: italic;
+  font-style: normal;
 }
 
 /*
