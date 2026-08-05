@@ -31,7 +31,7 @@ export default function ClaimPage() {
   return (
     <Suspense
       fallback={
-        <main className="conteneur-etroit py-16">
+        <main id="contenu" className="conteneur-etroit py-16">
           <div className="carte h-64 animate-pulse" />
         </main>
       }
@@ -97,7 +97,7 @@ function ClaimPageInterieur() {
 
   if (!vol.numeroVol) {
     return (
-      <main className="conteneur-etroit py-16 text-center sm:py-24">
+      <main id="contenu" className="conteneur-etroit py-16 text-center sm:py-24">
         <h1 className="text-2xl font-semibold tracking-tight">Réclamation</h1>
         <p className="mt-2 text-[15px] text-[var(--texte-attenue)]">
           Commencez par vérifier votre vol sur la page{" "}
@@ -112,7 +112,7 @@ function ClaimPageInterieur() {
 
   if (etape === "attente_email") {
     return (
-      <main className="conteneur-etroit py-16 sm:py-24">
+      <main id="contenu" className="conteneur-etroit py-16 sm:py-24">
         <div className="carte flex flex-col items-center gap-3 p-8 text-center">
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-accent-50)] text-[var(--color-accent-600)]">
             <Icone nom="enveloppe" taille={22} />
@@ -131,7 +131,7 @@ function ClaimPageInterieur() {
 
   if (etape === "termine") {
     return (
-      <main className="conteneur-etroit py-16 sm:py-24">
+      <main id="contenu" className="conteneur-etroit py-16 sm:py-24">
         <div className="carte flex flex-col items-center gap-3 p-8 text-center">
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-succes-50)] text-[var(--color-succes-500)]">
             <Icone nom="coche-cercle" taille={24} />
@@ -303,7 +303,7 @@ function ClaimPageInterieur() {
   const indexEtape = etape === "identite" ? 0 : etape === "signature" ? 1 : 2;
 
   return (
-    <main className="conteneur-etroit py-14 sm:py-20">
+    <main id="contenu" className="conteneur-etroit py-14 sm:py-20">
       <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
         Finaliser ma réclamation
       </h1>

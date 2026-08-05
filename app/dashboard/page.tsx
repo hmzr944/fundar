@@ -65,7 +65,7 @@ export default async function DashboardPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <main className="conteneur-etroit py-14 sm:py-20">
+    <main id="contenu" className="conteneur-etroit py-14 sm:py-20">
       <h1 className="titre text-[1.875rem] sm:text-[2.5rem]">Mes dossiers</h1>
 
       {(!dossiers || dossiers.length === 0) && (

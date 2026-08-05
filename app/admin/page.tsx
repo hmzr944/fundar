@@ -94,7 +94,7 @@ export default async function AdminPage() {
   );
 
   return (
-    <main className="conteneur py-14 sm:py-20">
+    <main id="contenu" className="conteneur py-14 sm:py-20">
       <h1 className="titre text-[1.875rem] sm:text-[2.5rem]">
         Exploitation
       </h1>

@@ -38,8 +38,18 @@
   --color-revue-500: #5b5248;
   --color-revue-600: #4a423a;
 
+  /*
+    Échelle de rayons, et non une valeur unique.
+
+    Tout le site utilisait le même arrondi, du bouton au conteneur. Deux
+    formes emboîtées au même rayon donnent une bordure d'épaisseur
+    variable au coin — l'œil le lit comme un défaut d'alignement. Un
+    élément interne doit toujours être plus fermé que son contenant.
+  */
+  --radius-interne: 0.625rem;
   --radius-champ: 0.875rem;
   --radius-carte: 1.25rem;
+  --radius-section: 1.75rem;
   --radius-pilule: 999px;
 
   --shadow-carte: 0 1px 2px rgb(74 56 40 / 0.04), 0 8px 24px -12px rgb(74 56 40 / 0.10);
@@ -75,6 +85,61 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/*
+  Grain.
+
+  Le fond était un aplat parfaitement uniforme — le rendu le plus reconnaissable
+  d'une interface générée. Un bruit très faible suffit à casser cette planéité :
+  il ne se voit pas, il se sent, comme un papier plutôt qu'un écran.
+
+  Le motif est un SVG en ligne, donc aucune requête réseau et aucun octet
+  d'image. `pointer-events: none` est indispensable : cette couche recouvre
+  toute la page et intercepterait sinon la totalité des clics.
+*/
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23b)'/%3E%3C/svg%3E");
+}
+
+/*
+  Titres sans mot orphelin.
+
+  `balance` répartit les lignes d'un titre court pour qu'aucune ne se
+  retrouve seule avec un mot ; `pretty` fait le minimum sur les paragraphes,
+  où `balance` coûterait trop cher à calculer.
+*/
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Lien d'évitement : premier arrêt de tabulation, invisible à la souris. */
+.saut-contenu {
+  position: absolute;
+  left: -9999px;
+  z-index: 60;
+}
+
+.saut-contenu:focus {
+  left: 1rem;
+  top: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--bg-eleve);
+  border: 2px solid var(--color-accent-500);
+  border-radius: var(--radius-champ);
+  font-weight: 600;
 }
 
 /* Chiffres alignés pour les montants, sans police mono séparée. */

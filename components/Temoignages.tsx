@@ -90,21 +90,35 @@ export default function Temoignages() {
         aujourd&apos;hui.
       </p>
 
-      <div className="mt-10 grid gap-5 sm:grid-cols-3">
-        {ENGAGEMENTS.map((e) => {
-                    return (
-            <div key={e.titre} className="carte carte-interactive reveler p-6">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-accent-50)] text-[var(--color-accent-600)]">
-                <Icone nom={e.icone} taille={21} />
-              </span>
-              <h3 className="mt-4 text-[17px] font-semibold">{e.titre}</h3>
-              <p className="mt-2 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
-                {e.texte}
-              </p>
-            </div>
-          );
-        })}
-      </div>
+      {/*
+        Trois cartes égales côte à côte : c'est la rangée de fonctionnalités
+        la plus reconnaissable d'une page générée, et elle donne aux trois
+        engagements le même poids alors qu'ils ne se lisent pas au même
+        moment du raisonnement.
+
+        On passe donc à une liste numérotée, alignée à gauche, séparée par
+        le pointillé du billet. Chaque ligne se lit dans l'ordre, le texte
+        tient sur toute sa largeur, et le numéro sert de repère plutôt
+        qu'une pastille d'icône répétée trois fois.
+      */}
+      <ol className="mt-10 flex flex-col">
+        {ENGAGEMENTS.map((e, i) => (
+          <li
+            key={e.titre}
+            className={`reveler grid gap-x-8 gap-y-2 py-7 sm:grid-cols-[auto_0.9fr_1.4fr] sm:items-baseline ${
+              i > 0 ? "border-t-2 border-dashed border-[var(--bordure)]" : ""
+            }`}
+          >
+            <span className="chiffres text-[15px] font-bold text-[var(--color-accent-500)]">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <h3 className="text-[19px] font-semibold leading-snug">{e.titre}</h3>
+            <p className="text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+              {e.texte}
+            </p>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }

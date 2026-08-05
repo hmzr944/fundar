@@ -50,6 +50,19 @@ const REASSURANCE = [
   { chiffre: "UE", libelle: "vos données restent hébergées en Europe" },
 ];
 
+/*
+ * Délais de prescription, alignés sur config/jurisdictions.ts qui fait foi
+ * pour le moteur. Toute correction juridique doit être portée aux deux
+ * endroits — la table du moteur décide, celle-ci ne fait qu'informer.
+ */
+const PRESCRIPTION = [
+  { pays: "Belgique", delai: "1 an" },
+  { pays: "Italie, Pays-Bas", delai: "2 ans" },
+  { pays: "Allemagne", delai: "3 ans" },
+  { pays: "France, Espagne", delai: "5 ans" },
+  { pays: "Angleterre, Galles", delai: "6 ans" },
+];
+
 const QUESTIONS = [
   {
     question: "Dois-je créer un compte pour savoir si j'ai droit à quelque chose ?",
@@ -80,7 +93,7 @@ const QUESTIONS = [
 
 export default function HomePage() {
   return (
-    <main>
+    <main id="contenu">
       {/*
         Hero volontairement resté linéaire et centré : titre, une phrase,
         le champ. La grille bento commence en dessous. Encombrer ce premier
@@ -280,17 +293,65 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Dernier appel : on redonne le widget plutôt qu'un simple bouton */}
-      <section className="conteneur relative overflow-hidden py-20 text-center sm:py-24">
+      {/*
+        Dernier appel.
+
+        Cette section reprenait le formulaire du hero à l'identique, et la
+        page se lisait comme une boucle plutôt qu'une progression. Répéter
+        l'action en fin de page est juste — la supprimer ferait remonter le
+        visiteur convaincu jusqu'en haut — mais la répéter TELLE QUELLE ne
+        répond à aucune question nouvelle.
+
+        Après le barème et la FAQ, l'objection restante n'est plus « combien »
+        ni « comment » : c'est « est-il trop tard ». On mène donc par
+        l'échéance, avec un seul champ au lieu de deux, et le formulaire
+        complet reste à un clic.
+      */}
+      <section className="conteneur relative overflow-hidden py-20 sm:py-24">
         <Trajectoire
           className="-top-24 left-1/2 h-[34rem] w-[56rem] -translate-x-1/2"
           opacite={0.05}
         />
-        <h2 className="titre relative mx-auto max-w-[22ch] text-[1.75rem] sm:text-[2.25rem]">
-          Votre vol vaut peut-être plus que vous ne pensez.
-        </h2>
-        <div className="relative mx-auto mt-8 max-w-[42rem] text-left">
-          <CheckWidget taille="compact" />
+        <div className="relative grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <div>
+            <p className="etiquette">Le délai court</p>
+            <h2 className="titre mt-2 max-w-[16ch] text-[1.75rem] sm:text-[2.25rem]">
+              Un vol d&apos;il y a cinq ans peut encore être réclamé.
+            </h2>
+            <p className="mt-4 max-w-[46ch] text-[16px] leading-relaxed text-[var(--texte-attenue)]">
+              Le délai dépend du pays du vol, pas de votre nationalité. Passé
+              cette date le droit s&apos;éteint, et rien ne le rouvre. La
+              vérification prend moins d&apos;une minute.
+            </p>
+            <Link href="/check" className="bouton bouton-primaire mt-7">
+              Vérifier mon vol
+              <Icone nom="fleche" taille={18} />
+            </Link>
+          </div>
+
+          {/*
+            Les délais de prescription, et non le barème.
+
+            Une première version reprenait ici les montants 250/400/600 —
+            déjà affichés dans le bento quelques écrans plus haut. Corriger
+            une répétition en en créant une autre n'avance à rien. Ces
+            délais, eux, n'apparaissent nulle part ailleurs sur la page, et
+            ce sont eux qui donnent son sens au titre.
+          */}
+          <ul className="carte cascade divide-y divide-dashed divide-[var(--bordure)] p-2">
+            {PRESCRIPTION.map((pays, i) => (
+              <li
+                key={pays.pays}
+                style={{ ["--rang" as string]: i }}
+                className="flex items-baseline justify-between gap-4 p-4"
+              >
+                <span className="text-[15px] font-medium">{pays.pays}</span>
+                <span className="chiffres text-[15px] font-bold text-[var(--color-accent-500)]">
+                  {pays.delai}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 

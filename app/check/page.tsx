@@ -70,7 +70,7 @@ export default function CheckPage() {
   return (
     <Suspense
       fallback={
-        <main className="conteneur-etroit py-16">
+        <main id="contenu" className="conteneur-etroit py-16">
           <div className="carte h-64" />
         </main>
       }
@@ -173,7 +173,7 @@ function CheckPageInterieur() {
     // `overflow-hidden` contient la trajectoire de fond, qui déborde
     // volontairement du cadre pour ne pas se lire comme une illustration
     // centrée.
-    <main className="conteneur-etroit relative overflow-hidden py-14 sm:py-20">
+    <main id="contenu" className="conteneur-etroit relative overflow-hidden py-14 sm:py-20">
       <Trajectoire className="-right-40 -top-32 h-[34rem] w-[46rem]" />
 
       <h1 className="titre relative text-[1.875rem] sm:text-[2.5rem]">

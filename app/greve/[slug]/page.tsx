@@ -58,7 +58,7 @@ export default function PageGreve({ params }: { params: { slug: string } }) {
     .join(", ");
 
   return (
-    <main className="conteneur-etroit py-14 sm:py-20">
+    <main id="contenu" className="conteneur-etroit py-14 sm:py-20">
       <span className={`pilule ${due ? "pilule-eligible" : "pilule-revue"}`}>
         {due ? <Icone nom="coche-cercle" taille={15} /> : <Icone nom="recherche" taille={15} />}
         {due ? "Indemnisation due" : "À vérifier"}

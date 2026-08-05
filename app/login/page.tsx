@@ -12,7 +12,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <main className="conteneur-etroit py-16">
+        <main id="contenu" className="conteneur-etroit py-16">
           <div className="carte h-56 animate-pulse" />
         </main>
       }
@@ -57,7 +57,7 @@ function LoginPageInterieur() {
       à un formulaire de test. On rappelle donc ici ce qu'on est et ce
       qu'on ne fait pas de l'adresse.
     */
-    <main className="grid min-h-[calc(100vh-4rem)] lg:grid-cols-2">
+    <main id="contenu" className="grid min-h-[calc(100vh-4rem)] lg:grid-cols-2">
       <div className="flex items-center justify-center px-5 py-14 sm:py-20">
         <div className="w-full max-w-[25rem]">
           <Link href="/" className="inline-flex text-[var(--texte)]">
