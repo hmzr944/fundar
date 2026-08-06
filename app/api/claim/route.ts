@@ -6,6 +6,11 @@ import {
   type SourceVerification,
 } from "@/lib/eligibility/verification";
 import { TypePerturbation } from "@/lib/eligibility/types";
+import {
+  montantTotal,
+  validerPassagers,
+  type Passager,
+} from "@/lib/claims/passagers";
 
 interface CorpsRequete {
   numeroVol: string;
@@ -17,6 +22,11 @@ interface CorpsRequete {
   retardArriveeMinutes?: number;
   preavisAnnulationJours?: number;
   source?: SourceVerification;
+  /**
+   * Passagers du dossier, rang 1 = titulaire du compte. Absent ou vide =
+   * dossier à un seul passager, comportement d'avant.
+   */
+  passagers?: Passager[];
 }
 
 const PERTURBATIONS: TypePerturbation[] = [
@@ -94,6 +104,22 @@ export async function POST(request: NextRequest) {
     source
   );
 
+  // Le moteur répond pour UNE personne : c'est une règle de droit, elle ne
+  // dépend pas de la taille du groupe. La multiplication se fait ici, une
+  // fois le verdict rendu.
+  if (body.passagers?.length) {
+    const verdictPassagers = validerPassagers(body.passagers);
+    if (!verdictPassagers.valide) {
+      return NextResponse.json(
+        { erreur: verdictPassagers.message },
+        { status: 400 }
+      );
+    }
+  }
+
+  const nombrePassagers = body.passagers?.length ?? 1;
+  const montantDuDossier = montantTotal(resultat.montantEstime, nombrePassagers);
+
   // On n'ouvre pas de dossier sur un verdict négatif : le passager
   // signerait un mandat pour une réclamation qu'on sait perdue d'avance.
   if (resultat.statut === "INELIGIBLE" || resultat.statut === "WAITLIST") {
@@ -113,7 +139,10 @@ export async function POST(request: NextRequest) {
       aeroport_arrivee: aeroportArrivee,
       compagnie,
       statut_eligibilite: resultat.statut,
-      montant_estime: resultat.montantEstime,
+      // Total, déjà multiplié : la facturation et la commission de 22 %
+      // continuent de travailler sur un montant de dossier.
+      montant_estime: montantDuDossier,
+      nombre_passagers: nombrePassagers,
       devise: resultat.devise,
       motif: resultat.motif,
       explication: resultat.explication,
@@ -138,5 +167,30 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({ id: data.id, resultat });
+  if (body.passagers?.length) {
+    const { error: erreurPassagers } = await supabase.from("passagers").insert(
+      body.passagers.map((p, i) => ({
+        claim_id: data.id,
+        nom: p.nom.trim(),
+        prenom: p.prenom.trim(),
+        rang: i + 1,
+      }))
+    );
+
+    // Un dossier qui réclame un total sans pouvoir nommer les
+    // bénéficiaires se fait rejeter en bloc par la compagnie. Mieux vaut
+    // le dire avant la signature que le découvrir au refus.
+    if (erreurPassagers) {
+      return NextResponse.json(
+        {
+          erreur:
+            "Le dossier a été créé mais les passagers n'ont pas pu être enregistrés. Contactez-nous avant de signer.",
+          id: data.id,
+        },
+        { status: 500 }
+      );
+    }
+  }
+
+  return NextResponse.json({ id: data.id, resultat, nombrePassagers });
 }

@@ -92,8 +92,19 @@ export async function POST(
     (depart && resoudreJuridiction(depart.paysCode, depart.iata)) ??
     (arrivee && resoudreJuridiction(arrivee.paysCode, arrivee.iata));
 
+  // Sans la liste nominative, la compagnie réduit l'indemnisation au seul
+  // signataire, quel que soit le total réclamé.
+  const { data: passagers } = await supabase
+    .from("passagers")
+    .select("nom, prenom")
+    .eq("claim_id", params.id)
+    .order("rang");
+
   const pdfBytes = await genererLettreReclamationPdf({
     compagnieNom,
+    passagers: passagers?.length
+      ? passagers
+      : [{ nom: profil?.nom ?? "", prenom: profil?.prenom ?? "" }],
     numeroVol: dossier.numero_vol,
     dateVol: dossier.date_vol,
     aeroportDepart: dossier.aeroport_depart,

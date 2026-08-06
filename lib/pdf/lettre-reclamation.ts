@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import type { Passager } from "@/lib/claims/passagers";
 
 export interface DonneesLettreReclamation {
   compagnieNom: string;
@@ -11,6 +12,12 @@ export interface DonneesLettreReclamation {
   passagerNom: string;
   passagerPrenom: string;
   passagerAdresse: string;
+  /**
+   * Tous les passagers du dossier, rang 1 en premier. La compagnie
+   * n'indemnise que les personnes nommément désignées : un total réclamé
+   * sans la liste se fait réduire au seul signataire.
+   */
+  passagers: Passager[];
   /** Libellé humain de la juridiction applicable, ex: "France". */
   juridiction: string;
   /** V1 : anglais uniquement (§8, hors scope le multilingue). */
@@ -60,9 +67,21 @@ export async function genererLettreReclamationPdf(
   );
   y -= 12;
 
-  ligne("Passenger", { gras: true, interligne: 18 });
-  ligne(`${d.passagerPrenom} ${d.passagerNom}`);
-  ligne(d.passagerAdresse, { interligne: 24 });
+  if (d.passagers.length > 1) {
+    ligne(`Passengers (${d.passagers.length})`, { gras: true, interligne: 18 });
+    d.passagers.forEach((p, i) => {
+      ligne(`${i + 1}. ${p.prenom} ${p.nom}`);
+    });
+    ligne(`Contact address: ${d.passagerAdresse}`, { interligne: 18 });
+    ligne(
+      `The amount claimed below covers all ${d.passagers.length} passengers listed above, who travelled on the same booking.`,
+      { taille: 10, interligne: 24 }
+    );
+  } else {
+    ligne("Passenger", { gras: true, interligne: 18 });
+    ligne(`${d.passagerPrenom} ${d.passagerNom}`);
+    ligne(d.passagerAdresse, { interligne: 24 });
+  }
 
   ligne("Flight details", { gras: true, interligne: 18 });
   ligne(`Flight ${d.numeroVol}, ${d.dateVol}`);

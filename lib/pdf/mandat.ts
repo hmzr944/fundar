@@ -1,8 +1,15 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import type { Passager } from "@/lib/claims/passagers";
 
 export interface DonneesMandat {
   nom: string;
   prenom: string;
+  /**
+   * Tous les passagers couverts. Le mandant reste `nom`/`prenom` — un seul
+   * signataire — mais la compagnie doit savoir pour qui la réclamation est
+   * portée, faute de quoi elle n'indemnise que le signataire.
+   */
+  passagers: Passager[];
   adresse: string;
   email: string;
   iban: string;
@@ -60,6 +67,22 @@ export async function genererMandatPdf(d: DonneesMandat): Promise<Uint8Array> {
   ligne(d.adresse);
   ligne(d.email);
   ligne(`IBAN : ${d.iban}`, { interligne: 28 });
+
+  // Un dossier à un seul passager n'a pas besoin d'une liste : le mandant
+  // est déjà nommé juste au-dessus.
+  if (d.passagers.length > 1) {
+    ligne(`Passagers couverts (${d.passagers.length})`, {
+      gras: true,
+      interligne: 20,
+    });
+    d.passagers.forEach((p, i) => {
+      ligne(`${i + 1}. ${p.prenom} ${p.nom}`);
+    });
+    ligne(
+      "Le mandant agit pour l'ensemble des passagers ci-dessus, voyageant sur la même réservation.",
+      { taille: 10, interligne: 28 }
+    );
+  }
 
   ligne("Vol concerné", { gras: true, interligne: 20 });
   ligne(`Vol ${d.numeroVol} du ${d.dateVol}`);

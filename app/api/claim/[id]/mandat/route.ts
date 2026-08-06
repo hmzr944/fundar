@@ -89,10 +89,22 @@ export async function POST(
     iban: iban.normalise,
   });
 
+  // Les passagers sont enregistrés à la création du dossier. Un dossier
+  // ancien, créé avant le multi-passagers, n'en a aucun : le signataire
+  // est alors le seul passager.
+  const { data: passagers } = await supabase
+    .from("passagers")
+    .select("nom, prenom")
+    .eq("claim_id", params.id)
+    .order("rang");
+
   const signeLe = new Date();
   const pdfBytes = await genererMandatPdf({
     nom: body.nom,
     prenom: body.prenom,
+    passagers: passagers?.length
+      ? passagers
+      : [{ nom: body.nom, prenom: body.prenom }],
     adresse: body.adresse,
     email: body.email,
     iban: iban.normalise,
