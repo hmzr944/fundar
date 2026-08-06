@@ -553,36 +553,14 @@ p {
   }
 }
 
-/* --- Attente : pulsation douce plutôt qu'un balayage technique --- */
+/*
+  `.pulsation` a été supprimée.
 
-.pulsation {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
+  Deux anneaux en scale + opacity, en boucle infinie autour d'un indicateur
+  d'état : le motif que l'audit signale sans seuil de tolérance. Son dernier
+  usage était l'attente de vérification, remplacée depuis par le tracé de la
+  trajectoire — mais la règle CSS, elle, était restée.
 
-.pulsation::before,
-.pulsation::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  border: 2px solid var(--color-accent-500);
-  animation: pulsation-onde 2s var(--ease-out) infinite;
-}
-
-.pulsation::after {
-  animation-delay: 0.7s;
-}
-
-@keyframes pulsation-onde {
-  0% {
-    transform: scale(0.7);
-    opacity: 0.55;
-  }
-  100% {
-    transform: scale(1.5);
-    opacity: 0;
-  }
-}
+  Du CSS mort qui décrit une animation reste une animation : quelqu'un la
+  réutilisera. On l'enlève plutôt que de la commenter.
+*/
