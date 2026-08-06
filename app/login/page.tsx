@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -22,13 +22,50 @@ export default function LoginPage() {
   );
 }
 
+/**
+ * Un lien qui ne marche pas mérite mieux qu'un formulaire vierge.
+ *
+ * Le parcours partait en boucle : le lien échouait, la page de connexion
+ * réapparaissait sans un mot d'explication, l'utilisateur ressaisissait
+ * son adresse, recevait un nouveau lien... et comme le précédent devenait
+ * caduc, la moindre erreur de clic relançait le tour.
+ */
+const MESSAGE_ECHEC: Record<string, { titre: string; detail: string }> = {
+  lien_perime: {
+    titre: "Ce lien a déjà servi",
+    detail:
+      "Les liens de connexion ne fonctionnent qu'une fois, et un lien plus récent annule les précédents. Demandez-en un nouveau ci-dessous, puis ouvrez le dernier email reçu.",
+  },
+  lien_autre_navigateur: {
+    titre: "Ce lien a été ouvert dans un autre navigateur",
+    detail:
+      "Pour votre sécurité, le lien ne s'active que dans le navigateur qui l'a demandé. Redemandez-en un ici, depuis cette fenêtre, et ouvrez-le sans changer de navigateur.",
+  },
+};
+
 function LoginPageInterieur() {
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/claim";
+  const next = searchParams.get("next") ?? "/dashboard";
   const [email, setEmail] = useState("");
   const [envoye, setEnvoye] = useState(false);
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [echecLien, setEchecLien] = useState(
+    () => MESSAGE_ECHEC[searchParams.get("erreur") ?? ""] ?? null
+  );
+
+  // Supabase place le motif du refus dans le fragment (#error_code=...),
+  // que le serveur ne voit jamais. On le lit ici, puis on le retire de la
+  // barre d'adresse : le message est affiché, l'URL n'a plus à le porter.
+  useEffect(() => {
+    if (!window.location.hash.includes("error")) return;
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    const code = params.get("error_code");
+    if (code === "otp_expired" || code === "access_denied") {
+      setEchecLien(MESSAGE_ECHEC.lien_perime);
+    }
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+  }, []);
 
   async function envoyerLienMagique(e: React.FormEvent) {
     e.preventDefault();
@@ -77,6 +114,15 @@ function LoginPageInterieur() {
                 </strong>
                 . Il est valable une heure.
               </p>
+              {/* Le piège du lien magique : chaque nouvelle demande annule
+                  la précédente. Sans cette phrase, on ouvre un vieil email,
+                  on tombe sur une erreur, on redemande un lien — et la
+                  boucle se referme. */}
+              <p className="mt-3 text-[14px] leading-relaxed text-[var(--texte-attenue)]">
+                Ouvrez bien le <strong className="font-semibold text-[var(--texte)]">dernier</strong>{" "}
+                email reçu : chaque nouvelle demande annule les liens
+                précédents.
+              </p>
               <p className="mt-4 text-[14px] leading-relaxed text-[var(--texte-attenue)]">
                 Rien reçu au bout de deux minutes ? Regardez dans les
                 indésirables, puis{" "}
@@ -92,12 +138,33 @@ function LoginPageInterieur() {
             </div>
           ) : (
             <>
-              <h1 className="titre mt-10 text-[1.875rem] sm:text-[2.25rem]">
-                Suivez votre dossier
+              {echecLien && (
+                <div className="entree-fade mt-10 flex gap-3 rounded-[var(--radius-interne)] border border-[var(--color-attente-500)]/30 bg-[var(--color-attente-50)] p-4">
+                  <Icone
+                    nom="sablier"
+                    taille={18}
+                    className="mt-0.5 shrink-0 text-[var(--color-attente-600)]"
+                  />
+                  <div>
+                    <p className="text-[15px] font-semibold">{echecLien.titre}</p>
+                    <p className="mt-1 text-[14px] leading-relaxed text-[var(--texte-attenue)]">
+                      {echecLien.detail}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <h1
+                className={`titre text-[1.875rem] sm:text-[2.25rem] ${
+                  echecLien ? "mt-8" : "mt-10"
+                }`}
+              >
+                {echecLien ? "Renvoyer un lien" : "Suivez votre dossier"}
               </h1>
               <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
-                Pas de mot de passe à retenir : nous envoyons un lien de
-                connexion à usage unique.
+                {echecLien
+                  ? "Votre dossier n'est pas perdu : il vous attend, et vous le retrouverez là où vous l'aviez laissé."
+                  : "Pas de mot de passe à retenir : nous envoyons un lien de connexion à usage unique."}
               </p>
 
               <form onSubmit={envoyerLienMagique} className="mt-8 flex flex-col gap-2">

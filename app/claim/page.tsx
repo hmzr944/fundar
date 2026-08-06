@@ -14,11 +14,15 @@ import {
   validerPassagers,
   type Passager,
 } from "@/lib/claims/passagers";
+import {
+  effacerDossier,
+  enregistrerDossier,
+  lireDossier,
+} from "@/lib/claims/dossier-en-attente";
 
 type Etape = "identite" | "signature" | "justificatif" | "attente_email" | "termine";
 
 const LABELS_ETAPES = ["Coordonnées", "Signature", "Justificatif"];
-const CLE_SESSION = "volia:dossier-en-attente";
 
 interface Identite {
   nom: string;
@@ -26,11 +30,6 @@ interface Identite {
   adresse: string;
   email: string;
   iban: string;
-}
-
-interface DossierEnAttente {
-  identite: Identite;
-  signatureDataUrl: string;
 }
 
 export default function ClaimPage() {
@@ -87,20 +86,18 @@ function ClaimPageInterieur() {
     preavisAnnulationJours: searchParams.get("preavisAnnulationJours") ?? "",
   };
 
-  // Retour après vérification email : on restaure ce qui a déjà été saisi
-  // plutôt que de faire tout recommencer depuis zéro.
+  // Retour après vérification email. Le lien s'ouvre dans un onglet neuf,
+  // donc la relecture passe par localStorage : sessionStorage y serait
+  // vide et le passager retrouverait un formulaire vierge après avoir
+  // saisi son IBAN et signé.
   useEffect(() => {
-    const brut = sessionStorage.getItem(CLE_SESSION);
-    if (!brut) return;
-    try {
-      const dossier: DossierEnAttente = JSON.parse(brut);
-      setIdentite(dossier.identite);
-      setSignatureDataUrl(dossier.signatureDataUrl);
-      setCguAcceptees(true);
-      setEtape("justificatif");
-    } catch {
-      sessionStorage.removeItem(CLE_SESSION);
-    }
+    const dossier = lireDossier(localStorage);
+    if (!dossier) return;
+    setIdentite(dossier.identite);
+    setSignatureDataUrl(dossier.signatureDataUrl);
+    setCompagnons(dossier.compagnons);
+    setCguAcceptees(true);
+    setEtape("justificatif");
   }, []);
 
   if (!vol.numeroVol) {
@@ -131,6 +128,14 @@ function ClaimPageInterieur() {
             Cliquez sur le lien envoyé à{" "}
             <strong className="text-[var(--texte)]">{emailEnAttente}</strong>{" "}
             pour confirmer et finaliser votre dossier.
+          </p>
+          {/* Deux précisions qui évitent la boucle observée en test : un
+              lien déjà ouvert ne se rouvre pas, et changer de navigateur
+              casse la preuve de sécurité déposée ici. */}
+          <p className="max-w-[42ch] text-[14px] leading-relaxed text-[var(--texte-attenue)]">
+            Ouvrez-le <strong className="text-[var(--texte)]">une seule fois</strong>,
+            et depuis ce navigateur. Vous reviendrez ici même, à l&apos;étape
+            du justificatif — rien de ce que vous avez saisi n&apos;est perdu.
           </p>
         </div>
       </main>
@@ -265,7 +270,9 @@ function ClaimPageInterieur() {
       return false;
     }
 
-    sessionStorage.removeItem(CLE_SESSION);
+    // Le dossier est en base : identité, IBAN et signature n'ont plus
+    // aucune raison de rester sur la machine.
+    effacerDossier(localStorage);
     return true;
   }
 
@@ -295,8 +302,11 @@ function ClaimPageInterieur() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        const dossier: DossierEnAttente = { identite, signatureDataUrl: signatureDataUrl! };
-        sessionStorage.setItem(CLE_SESSION, JSON.stringify(dossier));
+        enregistrerDossier(localStorage, {
+          identite,
+          signatureDataUrl: signatureDataUrl!,
+          compagnons,
+        });
 
         const { error } = await supabase.auth.signInWithOtp({
           email: identite.email,
