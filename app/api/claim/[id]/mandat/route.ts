@@ -50,7 +50,7 @@ export async function POST(
   const { data: dossier, error: erreurDossier } = await supabase
     .from("claims")
     .select(
-      "id, numero_vol, date_vol, aeroport_depart, aeroport_arrivee, compagnie, montant_estime, devise, modele_juridique"
+      "id, numero_vol, date_vol, aeroport_depart, aeroport_arrivee, compagnie, montant_estime, devise, modele_juridique, nombre_passagers"
     )
     .eq("id", params.id)
     .single();
@@ -97,6 +97,23 @@ export async function POST(
     .select("nom, prenom")
     .eq("claim_id", params.id)
     .order("rang");
+
+  // Le repli sur le signataire n'est légitime que pour un dossier d'une
+  // personne. Si le dossier en annonce plusieurs et que la liste manque —
+  // l'enregistrement des passagers a échoué à la création — le mandat
+  // signé nommerait une personne tout en engageant un montant calculé pour
+  // quatre. C'est le document que la compagnie oppose ensuite au client :
+  // mieux vaut refuser de le produire.
+  if (dossier.nombre_passagers > 1 && !passagers?.length) {
+    return NextResponse.json(
+      {
+        erreur:
+          "La liste des passagers de ce dossier est incomplète. Contactez-nous : signer maintenant produirait un mandat contradictoire avec le montant réclamé.",
+        code: "PASSAGERS_MANQUANTS",
+      },
+      { status: 409 }
+    );
+  }
 
   const signeLe = new Date();
   const pdfBytes = await genererMandatPdf({

@@ -56,7 +56,7 @@ export async function POST(
   const { data: dossier, error: erreurDossier } = await supabase
     .from("claims")
     .select(
-      "id, numero_vol, date_vol, aeroport_depart, aeroport_arrivee, compagnie, montant_estime, devise, statut_dossier, reclamation_envoyee_le"
+      "id, numero_vol, date_vol, aeroport_depart, aeroport_arrivee, compagnie, montant_estime, devise, statut_dossier, reclamation_envoyee_le, nombre_passagers"
     )
     .eq("id", params.id)
     .single();
@@ -99,6 +99,21 @@ export async function POST(
     .select("nom, prenom")
     .eq("claim_id", params.id)
     .order("rang");
+
+  // Même règle qu'au mandat : un dossier qui annonce plusieurs passagers
+  // sans liste ferait réclamer un total au nom d'une seule personne. La
+  // compagnie ramènerait l'indemnisation au signataire, et le client
+  // découvrirait la perte des mois plus tard, sans recours.
+  if (dossier.nombre_passagers > 1 && !passagers?.length) {
+    return NextResponse.json(
+      {
+        statut: "PASSAGERS_MANQUANTS",
+        explication:
+          "Ce dossier annonce plusieurs passagers mais aucune liste nominative n'est enregistrée. L'envoi est annulé : la compagnie n'indemniserait que le signataire.",
+      },
+      { status: 409 }
+    );
+  }
 
   const pdfBytes = await genererLettreReclamationPdf({
     compagnieNom,

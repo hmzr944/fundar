@@ -9,7 +9,11 @@ import ProgressionEtapes from "@/components/ProgressionEtapes";
 import { validerIban } from "@/lib/validation/iban";
 import { nomFichierSur, validerFichier } from "@/lib/validation/fichier";
 import SaisiePassagers from "@/components/SaisiePassagers";
-import { validerPassagers, type Passager } from "@/lib/claims/passagers";
+import {
+  montantTotal,
+  validerPassagers,
+  type Passager,
+} from "@/lib/claims/passagers";
 
 type Etape = "identite" | "signature" | "justificatif" | "attente_email" | "termine";
 
@@ -324,6 +328,14 @@ function ClaimPageInterieur() {
 
   const indexEtape = etape === "identite" ? 0 : etape === "signature" ? 1 : 2;
 
+  const nombrePassagers = compagnons.length + 1;
+  // Number("") vaut 0 : sans le test de présence, un dossier en revue
+  // manuelle afficherait « 0 € » là où la vérité est « pas encore chiffré ».
+  const montantUnitaire = vol.montantEstime ? Number(vol.montantEstime) : NaN;
+  const montantAffiche = Number.isFinite(montantUnitaire)
+    ? montantTotal(montantUnitaire, nombrePassagers)
+    : null;
+
   return (
     <main id="contenu" className="conteneur-etroit py-14 sm:py-20">
       <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -337,10 +349,21 @@ function ClaimPageInterieur() {
           </p>
           <p className="text-sm text-[var(--texte-attenue)]">{vol.dateVol}</p>
         </div>
-        {vol.montantEstime && (
-          <p className="chiffres text-2xl font-bold text-[var(--color-succes-600)]">
-            {vol.montantEstime} {vol.devise}
-          </p>
+        {/* Le montant suit la liste des passagers en direct. Sans cela
+            l'en-tête resterait à 600 € pendant qu'on ajoute sa famille,
+            et le total réel n'apparaîtrait qu'après signature — au moment
+            où le client ne peut plus rien vérifier. */}
+        {montantAffiche !== null && (
+          <div className="text-right">
+            <p className="chiffres text-2xl font-bold text-[var(--color-succes-600)]">
+              {montantAffiche} {vol.devise}
+            </p>
+            {nombrePassagers > 1 && (
+              <p className="text-xs text-[var(--texte-attenue)]">
+                pour {nombrePassagers} passagers
+              </p>
+            )}
+          </div>
         )}
       </div>
 
