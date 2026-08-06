@@ -57,10 +57,10 @@ export default async function DashboardPage() {
     redirect("/login?next=/dashboard");
   }
 
-  const { data: dossiers } = await supabase
+  const { data: dossiers, error: erreurDossiers } = await supabase
     .from("claims")
     .select(
-      "id, numero_vol, date_vol, aeroport_depart, aeroport_arrivee, compagnie, montant_estime, devise, statut_dossier, created_at, reclamation_envoyee_le, montant_recupere, commission_due, commission_encaissee_le, paiement_declare_le, montant_declare"
+      "id, numero_vol, date_vol, aeroport_depart, aeroport_arrivee, compagnie, montant_estime, devise, statut_dossier, created_at, reclamation_envoyee_le, montant_recupere, commission_due, commission_encaissee_le, paiement_declare_le, montant_declare, nombre_passagers"
     )
     .order("created_at", { ascending: false });
 
@@ -68,7 +68,23 @@ export default async function DashboardPage() {
     <main id="contenu" className="conteneur-etroit py-14 sm:py-20">
       <h1 className="titre text-[1.875rem] sm:text-[2.5rem]">Mes dossiers</h1>
 
-      {(!dossiers || dossiers.length === 0) && (
+      {/* Une lecture en échec ne doit pas se déguiser en « aucun dossier » :
+          un client qui a signé un mandat et voit une page vide croit avoir
+          tout perdu, et nous ne saurions même pas pourquoi. */}
+      {erreurDossiers && (
+        <div className="carte mt-8 border-[var(--color-accent-100)] bg-[var(--color-accent-50)] p-6">
+          <p className="text-[15px] font-semibold">
+            Vos dossiers n&apos;ont pas pu être chargés.
+          </p>
+          <p className="mt-1 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+            Ils sont bien enregistrés — c&apos;est l&apos;affichage qui a
+            échoué. Réessayez dans un instant, ou écrivez-nous si cela
+            persiste.
+          </p>
+        </div>
+      )}
+
+      {!erreurDossiers && (!dossiers || dossiers.length === 0) && (
         <div className="carte mt-8 p-8 text-center">
           <p className="text-[15px] text-[var(--texte-attenue)]">
             Aucun dossier pour l&apos;instant.
@@ -98,6 +114,14 @@ export default async function DashboardPage() {
                   <p className="mt-0.5 text-sm text-[var(--texte-attenue)]">
                     {dossier.date_vol}
                   </p>
+                  {/* Le montant affiché couvre tout le monde : sans ce
+                      rappel, un dossier familial ressemble à une erreur
+                      de calcul. */}
+                  {dossier.nombre_passagers > 1 && (
+                    <p className="mt-0.5 text-sm text-[var(--texte-attenue)]">
+                      {dossier.nombre_passagers} passagers · montant total
+                    </p>
+                  )}
                 </div>
                 {dossier.montant_recupere !== null ? (
                   <div className="text-right">

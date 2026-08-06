@@ -8,6 +8,8 @@ import SignatureCanvas, { SignatureCanvasHandle } from "@/components/SignatureCa
 import ProgressionEtapes from "@/components/ProgressionEtapes";
 import { validerIban } from "@/lib/validation/iban";
 import { nomFichierSur, validerFichier } from "@/lib/validation/fichier";
+import SaisiePassagers from "@/components/SaisiePassagers";
+import { validerPassagers, type Passager } from "@/lib/claims/passagers";
 
 type Etape = "identite" | "signature" | "justificatif" | "attente_email" | "termine";
 
@@ -49,6 +51,8 @@ function ClaimPageInterieur() {
   const [etape, setEtape] = useState<Etape>("identite");
   const [erreur, setErreur] = useState<string | null>(null);
   const [fichier, setFichier] = useState<File | null>(null);
+  // Compagnons de voyage : le titulaire est le passager 1, saisi plus haut.
+  const [compagnons, setCompagnons] = useState<Passager[]>([]);
   const [cguAcceptees, setCguAcceptees] = useState(false);
   const [envoi, setEnvoi] = useState(false);
   const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
@@ -164,6 +168,18 @@ function ClaimPageInterieur() {
     }
     setIdentite({ ...identite, iban: iban.normalise });
 
+    // Le doublon est signalé ici plutôt qu'au moment de l'envoi : une
+    // compagnie qui reçoit deux fois la même personne rejette le dossier
+    // entier, pas seulement la ligne fautive.
+    const verdictPassagers = validerPassagers([
+      { nom: identite.nom, prenom: identite.prenom },
+      ...compagnons,
+    ]);
+    if (!verdictPassagers.valide) {
+      setErreur(verdictPassagers.message ?? "Vérifiez la liste des passagers.");
+      return;
+    }
+
     setEtape("signature");
   }
 
@@ -201,6 +217,12 @@ function ClaimPageInterieur() {
         preavisAnnulationJours: vol.preavisAnnulationJours
           ? Number(vol.preavisAnnulationJours)
           : undefined,
+        // Le titulaire ouvre toujours la liste : c'est lui le rang 1, et
+        // le serveur revalide l'ensemble avant de multiplier le montant.
+        passagers: [
+          { nom: identite.nom, prenom: identite.prenom },
+          ...compagnons,
+        ],
       }),
     });
 
@@ -403,6 +425,14 @@ function ClaimPageInterieur() {
                 onChange={(e) => setIdentite({ ...identite, iban: e.target.value })}
               />
             </div>
+          </div>
+
+          <div className="border-t-2 border-dashed border-[var(--bordure)] pt-5">
+            <SaisiePassagers
+              titulaire={{ nom: identite.nom, prenom: identite.prenom }}
+              compagnons={compagnons}
+              onChange={setCompagnons}
+            />
           </div>
 
           {erreur && (
