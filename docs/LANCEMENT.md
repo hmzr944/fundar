@@ -55,6 +55,29 @@ select id, file_size_limit, allowed_mime_types from storage.buckets
 `RESEND_FROM_EMAIL` doit appartenir à un domaine **vérifié chez Resend**,
 sinon les envois vers les compagnies partent en spam ou sont rejetés.
 
+### SMTP personnalisé sur Supabase — bloquant
+
+Ces variables ne couvrent que les emails que *nous* envoyons. Les **liens de
+connexion** partent, eux, du service intégré de Supabase, plafonné à
+**2 emails par heure** et explicitement réservé au développement. Au-delà,
+l'API répond `429 over_email_send_rate_limit` et plus personne ne peut se
+connecter — y compris les clients qui viennent de signer leur mandat.
+
+À faire avant toute mise en ligne : **Authentication → Emails → SMTP
+Settings**, activer *Enable Custom SMTP* et pointer sur Resend.
+
+| Champ | Valeur |
+|---|---|
+| Host | `smtp.resend.com` |
+| Port | `465` |
+| Username | `resend` |
+| Password | la même clé que `RESEND_API_KEY` |
+| Sender email | la même adresse que `RESEND_FROM_EMAIL` |
+
+Relever ensuite le *Rate limit for sending emails* dans
+**Authentication → Rate Limits**, qui reste à 2/heure même après le
+changement de SMTP.
+
 ---
 
 ## 3. Tâches planifiées

@@ -19,6 +19,7 @@ import {
   enregistrerDossier,
   lireDossier,
 } from "@/lib/claims/dossier-en-attente";
+import { messageErreurEnvoi } from "@/lib/auth/message-erreur";
 
 type Etape = "identite" | "signature" | "justificatif" | "attente_email" | "termine";
 
@@ -316,7 +317,7 @@ function ClaimPageInterieur() {
         });
 
         if (error) {
-          setErreur("Impossible d'envoyer le lien de vérification. Réessayez.");
+          setErreur(messageErreurEnvoi(error));
           setEnvoi(false);
           return;
         }

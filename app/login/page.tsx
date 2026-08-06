@@ -7,6 +7,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import Icone from "@/components/Icone";
 import Logotype from "@/components/Logotype";
+import { messageErreurEnvoi } from "@/lib/auth/message-erreur";
 
 export default function LoginPage() {
   return (
@@ -80,7 +81,7 @@ function LoginPageInterieur() {
     });
     setEnvoi(false);
     if (error) {
-      setErreur("Impossible d'envoyer le lien. Réessayez dans un instant.");
+      setErreur(messageErreurEnvoi(error));
       return;
     }
     setEnvoye(true);
