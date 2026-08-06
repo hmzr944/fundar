@@ -59,7 +59,8 @@ declare
 begin
   foreach manquant in array array[
     'claims', 'documents', 'signatures', 'consentements', 'waitlist',
-    'envois_reclamation', 'notifications_email', 'reponses_compagnie', 'factures'
+    'envois_reclamation', 'notifications_email', 'reponses_compagnie',
+    'factures', 'passagers'
   ] loop
     if to_regclass('public.' || manquant) is null then
       raise exception 'Table manquante : %', manquant;
