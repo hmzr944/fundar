@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
   }));
 
   const aRelancer = dossiersARelancer(candidats).slice(0, LOT);
-  const urlSite = process.env.NEXT_PUBLIC_SITE_URL ?? "https://volia.example";
+  const urlSite = process.env.NEXT_PUBLIC_SITE_URL ?? "https://clearto.example";
 
   let envoyees = 0;
   const echecs: { id: string; detail: string }[] = [];

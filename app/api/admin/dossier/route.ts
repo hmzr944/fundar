@@ -62,7 +62,7 @@ export async function PATCH(request: NextRequest) {
   // On facture donc immédiatement, pendant qu'il vient de recevoir l'argent.
   if (body.statut === "PAYE") {
     const facturation = await emettreFacture(admin, body.claimId, {
-      urlSite: process.env.NEXT_PUBLIC_SITE_URL ?? "https://volia.example",
+      urlSite: process.env.NEXT_PUBLIC_SITE_URL ?? "https://clearto.example",
     });
 
     // Le dossier EST à jour : un échec de facturation ne doit pas faire

@@ -1,4 +1,4 @@
-# Positionnement Volia
+# Positionnement Clearto
 
 Document de travail. Il ne décrit pas ce que nous aimerions être, il décrit
 ce que les données disponibles rendent défendable **aujourd'hui, à zéro
@@ -112,11 +112,11 @@ avoir le droit de les revendiquer.
 
 > Pour le passager d'un vol perturbé en Europe qui pense, à tort ou à
 > raison, qu'il n'y a rien à faire,
-> **Volia** obtient l'indemnisation que la loi prévoit, **sans qu'il ait à
+> **Clearto** obtient l'indemnisation que la loi prévoit, **sans qu'il ait à
 > relancer qui que ce soit et sans qu'il ait à se demander où en est son
 > dossier**.
 > Là où les services existants prennent 35 % et laissent quatre mois sans
-> nouvelles, Volia prend 22 % quoi qu'il arrive, montre l'état réel du
+> nouvelles, Clearto prend 22 % quoi qu'il arrive, montre l'état réel du
 > dossier à chaque étape, et publie ses propres statistiques par compagnie —
 > y compris les mauvaises.
 

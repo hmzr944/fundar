@@ -30,7 +30,7 @@ export default function SiteHeader() {
           <Link
             href="/"
             className="flex items-center text-[var(--texte)] transition-opacity hover:opacity-70"
-            aria-label="Volia, retour à l'accueil"
+            aria-label="Clearto, retour à l'accueil"
           >
             <Logotype hauteur={21} titre={null} />
           </Link>

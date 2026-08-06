@@ -14,7 +14,7 @@
 - `montant_estime` et `montant_recupere` de `claims` restent des **totaux** — les colonnes existantes, la facturation et la commission ne changent pas de sémantique.
 - Maximum **9 passagers** par dossier. Au-delà, une compagnie traite la demande comme un groupe et exige une procédure distincte.
 - Le titulaire du compte est toujours le passager n° 1 et l'unique signataire.
-- Aucun paiement encaissé par Volia (modèle mandat) — inchangé.
+- Aucun paiement encaissé par Clearto (modèle mandat) — inchangé.
 - Toute migration doit passer `./scripts/verifier-migrations.sh` (application + rejeu).
 - Les tests existants (198) doivent rester verts à chaque commit.
 
@@ -775,6 +775,6 @@ git commit -m "Show the passenger count on each claim card"
 
 ## Hors périmètre, volontairement
 
-- **Un IBAN par passager.** La compagnie verse au signataire, qui répartit. Ajouter des IBAN multiples supposerait que Volia encaisse et redistribue — un autre métier, avec un autre statut réglementaire.
+- **Un IBAN par passager.** La compagnie verse au signataire, qui répartit. Ajouter des IBAN multiples supposerait que Clearto encaisse et redistribue — un autre métier, avec un autre statut réglementaire.
 - **Passagers mineurs.** Le mandat suppose un signataire majeur pour tout le monde. Le cas d'un parent signant pour ses enfants est juridiquement solide mais mérite une mention aux CGV, à traiter avec le juriste.
 - **Modifier les passagers après signature.** Le mandat signé nomme la liste ; la changer invaliderait la preuve. Passe par une révocation, comme le changement d'IBAN.

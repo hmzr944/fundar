@@ -109,7 +109,7 @@ export async function genererLettreReclamationPdf(
   });
 
   ligne("Sincerely,", { interligne: 24 });
-  ligne("Volia, on behalf of the passenger", { gras: true });
+  ligne("Clearto, on behalf of the passenger", { gras: true });
 
   return doc.save();
 }

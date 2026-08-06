@@ -73,7 +73,7 @@ describe("dossier en attente de vérification email", () => {
 
   it("rend null et nettoie sur un contenu illisible", () => {
     const s = stockageFactice();
-    s.setItem("volia:dossier-en-attente", "{ceci n'est pas du json");
+    s.setItem("clearto:dossier-en-attente", "{ceci n'est pas du json");
     expect(lireDossier(s, 1000)).toBeNull();
     expect(s.length).toBe(0);
   });
@@ -89,7 +89,7 @@ describe("dossier en attente de vérification email", () => {
     // Un enregistrement tronqué ferait signer un mandat vide.
     const s = stockageFactice();
     s.setItem(
-      "volia:dossier-en-attente",
+      "clearto:dossier-en-attente",
       JSON.stringify({ enregistreLe: 1000, identite: dossier.identite })
     );
     expect(lireDossier(s, 1000)).toBeNull();

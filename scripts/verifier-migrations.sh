@@ -10,7 +10,7 @@
 set -euo pipefail
 
 RACINE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CLUSTER="${TMPDIR:-/tmp}/volia-pg-verif"
+CLUSTER="${TMPDIR:-/tmp}/clearto-pg-verif"
 PORT="${PGPORT_VERIF:-54329}"
 BIN="/usr/lib/postgresql/16/bin"
 
@@ -99,7 +99,7 @@ declare
   dossier uuid;
   numeros text[];
 begin
-  insert into auth.users (email) values ('test@volia.test') returning id into utilisateur;
+  insert into auth.users (email) values ('test@clearto.test') returning id into utilisateur;
 
   for i in 1..3 loop
     insert into claims (

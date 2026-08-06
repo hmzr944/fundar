@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://volia.example";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://clearto.example";
 
 /**
  * Le site répondait 404 sur /robots.txt.

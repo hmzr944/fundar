@@ -106,7 +106,7 @@ export async function emettreFacture(
     lienPaiement = await creerLienPaiement({
       montant: Number(dossier.commission_due),
       devise,
-      libelle: `Commission Volia — vol ${dossier.numero_vol}`,
+      libelle: `Commission Clearto — vol ${dossier.numero_vol}`,
       reference: facture.numero,
       emailClient: await emailUtilisateur(admin, dossier.user_id),
       urlRetour: `${options.urlSite}/dashboard`,

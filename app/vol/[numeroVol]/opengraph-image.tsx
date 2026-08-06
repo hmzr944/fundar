@@ -45,7 +45,7 @@ export default async function Image({
             />
           </svg>
           <span style={{ fontSize: 40, fontWeight: 700, color: "#241e1a" }}>
-            Volia
+            Clearto
           </span>
         </div>
 

@@ -26,7 +26,7 @@ export interface DossierEnAttente {
   compagnons: Passager[];
 }
 
-export const CLE_DOSSIER = "volia:dossier-en-attente";
+export const CLE_DOSSIER = "clearto:dossier-en-attente";
 
 /** Deux heures : bien au-delà du temps d'aller chercher un email, bien en
  *  deçà d'un oubli durable sur la machine. */

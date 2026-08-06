@@ -4,7 +4,7 @@ import { AEROPORTS } from "@/lib/eligibility/airports";
 import { slugify } from "@/lib/seo/slugs";
 import { grevesEncoreReclamables } from "@/config/greves";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://volia.example";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://clearto.example";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const pagesStatiques: MetadataRoute.Sitemap = [

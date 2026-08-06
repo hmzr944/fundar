@@ -37,7 +37,7 @@ export function generateMetadata({
 
   const due = perspectiveIndemnisation(greve.origine) === "DUE";
   return {
-    title: `${greve.titre} : avez-vous droit à une indemnisation ? | Volia`,
+    title: `${greve.titre} : avez-vous droit à une indemnisation ? | Clearto`,
     description: due
       ? `Votre vol a été annulé ou retardé ${formaterPeriode(greve.dateDebut, greve.dateFin)}. Une grève du personnel de la compagnie n'est pas une circonstance extraordinaire : l'indemnisation reste due. Vérifiez en 60 secondes.`
       : `Votre vol a été perturbé ${formaterPeriode(greve.dateDebut, greve.dateFin)}. Vérifiez en 60 secondes si une indemnisation EU261/UK261 vous est due.`,

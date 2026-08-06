@@ -54,8 +54,8 @@ export async function genererMandatPdf(d: DonneesMandat): Promise<Uint8Array> {
 
   ligne(
     d.modeleJuridique === "MANDAT"
-      ? "Le mandant mandate Volia pour engager, en son nom, une réclamation d'indemnisation"
-      : "Le cédant cède à Volia sa créance d'indemnisation",
+      ? "Le mandant mandate Clearto pour engager, en son nom, une réclamation d'indemnisation"
+      : "Le cédant cède à Clearto sa créance d'indemnisation",
     { interligne: 24 }
   );
   ligne("auprès de la compagnie aérienne concernée au titre du règlement EU261/UK261.", {

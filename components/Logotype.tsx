@@ -1,20 +1,22 @@
 /**
- * Logotype « volia », tracé et non composé.
+ * Logotype « clearto », tracé et non composé.
  *
- * Le mot est construit au compas et à la règle : cercles parfaits pour le o
- * et le ventre du a, segments à épaisseur constante ailleurs, terminaisons
- * arrondies partout. Aucune police n'intervient, donc le mot est identique
- * sur toutes les machines et se redimensionne sans se recomposer.
+ * Le mot est construit au compas et à la règle : cercles parfaits pour le c,
+ * le e, le ventre du a et le o, segments à épaisseur constante ailleurs,
+ * terminaisons arrondies partout. Aucune police n'intervient, donc le mot est
+ * identique sur toutes les machines et se redimensionne sans se recomposer.
  *
- * La seule lettre dessinée est la première : le bras droit du v ne redescend
- * pas sur la hauteur d'x, il s'incurve et grimpe. Le mot décolle sur sa
- * première lettre, et le o vient se glisser sous cette aile — c'est cet
- * emboîtement qui fait tenir l'ensemble plutôt qu'un simple v surdimensionné.
+ * Aucune lettre n'est déformée, et c'est délibéré. Quatre gestes ont été
+ * tentés sur le logotype précédent — un a relevé, un o transformé en boucle,
+ * un l incurvé, une traînée pointillée. Les trois premiers ont produit un mot
+ * qu'on ne lisait plus (« volid », « v dia », « vofia »), le quatrième était
+ * invisible en dessous de trente pixels. Une lettre qu'on décore cesse d'être
+ * une lettre. L'identité tient ici à la construction géométrique et à la
+ * régularité du rythme, pas à un accident greffé sur une lettre.
  *
- * Le v reste un v : sa branche gauche et son sommet sont intacts, seule la
- * sortie change. Une tentative précédente modifiait le a final de la même
- * manière ; le mot se lisait « volid ». Une lettre qu'on déforme cesse
- * d'être une lettre, et la première est la seule qui supporte ce geste.
+ * Seul le pied du t s'incurve vers la droite : ce n'est pas un ornement mais
+ * un trait typographique standard, que l'œil lit comme un t et non comme une
+ * bizarrerie.
  *
  * Le tracé hérite de currentColor : posé sur un aplat corail il devient
  * blanc sans qu'on ait à prévoir une seconde version.
@@ -22,7 +24,7 @@
 export default function Logotype({
   hauteur = 22,
   className,
-  titre = "Volia",
+  titre = "Clearto",
 }: {
   /** Hauteur de rendu en pixels. La largeur suit le ratio du tracé. */
   hauteur?: number;
@@ -30,11 +32,11 @@ export default function Logotype({
   /** Passer null quand le mot est déjà lu par un texte adjacent. */
   titre?: string | null;
 }) {
-  const RATIO = 186 / 66;
+  const RATIO = 303 / 66;
 
   return (
     <svg
-      viewBox="0 0 186 66"
+      viewBox="0 0 303 66"
       height={hauteur}
       width={hauteur * RATIO}
       fill="none"
@@ -49,26 +51,31 @@ export default function Logotype({
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        {/* v — descente franche, puis l'aile s'incurve et monte */}
-        <path d="M7 20 L20 60 C28 44 34 24 49 9" />
-
-        {/* o — cercle parfait, glissé sous l'aile */}
-        <circle cx="72" cy="40" r="18" />
+        {/* c — anneau ouvert sur la droite, à 45° de part et d'autre */}
+        <path d="M41.7 27.3 A18 18 0 1 0 41.7 52.7" />
 
         {/* l — hampe pleine hauteur */}
-        <path d="M104 6 L104 60" />
+        <path d="M58 6 L58 60" />
 
-        {/* i — fût sur la hauteur d'x */}
-        <path d="M122 20 L122 60" />
+        {/* e — barre médiane, puis l'anneau ouvert en bas à droite */}
+        <path d="M74 40 L110 40" />
+        <path d="M110 40 A18 18 0 1 0 104.7 52.7" />
 
         {/* a — ventre circulaire et fût arrêté net sur la hauteur d'x */}
-        <circle cx="156" cy="40" r="18" />
-        <path d="M174 20 L174 60" />
-      </g>
+        <circle cx="144" cy="40" r="18" />
+        <path d="M162 20 L162 60" />
 
-      {/* Point du i : un cercle plein plutôt qu'un segment nul, que certains
-          moteurs de rendu escamotent. */}
-      <circle cx="122" cy="8" r="4.5" fill="currentColor" />
+        {/* r — fût et épaule amorcée, sans retomber */}
+        <path d="M178 20 L178 60" />
+        <path d="M178 32 C178 23 186 18 194 20" />
+
+        {/* t — hampe montante, pied incurvé, barre sur la hauteur d'x */}
+        <path d="M222 6 L222 51 C222 58 227 61 234 60" />
+        <path d="M209 20 L239 20" />
+
+        {/* o — cercle parfait, qui referme le mot comme il l'a ouvert */}
+        <circle cx="274" cy="40" r="18" />
+      </g>
     </svg>
   );
 }

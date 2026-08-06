@@ -11,7 +11,7 @@ export function generateMetadata({
 }): Metadata {
   const numeroVol = params.numeroVol.toUpperCase();
   return {
-    title: `Vol ${numeroVol} retardé ou annulé ? Indemnisation EU261/UK261 | Volia`,
+    title: `Vol ${numeroVol} retardé ou annulé ? Indemnisation EU261/UK261 | Clearto`,
     description: `Le vol ${numeroVol} a-t-il été retardé, annulé ou surbooké ? Vérifiez votre droit à indemnisation en 60 secondes, sans créer de compte.`,
   };
 }

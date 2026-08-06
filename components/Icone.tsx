@@ -4,7 +4,7 @@
  * Les bibliothèques génériques donnent à tous les sites la même main : on
  * reconnaît le jeu avant de reconnaître la marque. Ces dessins n'utilisent
  * que des cercles parfaits, des segments droits et un arc au maximum, avec
- * des terminaisons arrondies — exactement les primitives du mot « volia ».
+ * des terminaisons arrondies — exactement les primitives du mot « clearto ».
  *
  * Grille de 24, trait de 1.6. Le trait ne se met JAMAIS à l'échelle
  * (`vectorEffect`) : à 14px une icône dont le trait maigrit devient grise

@@ -2,9 +2,9 @@ import { Metadata } from "next";
 import { ENTREPRISE, identiteIncomplete } from "@/config/entreprise";
 
 export const metadata: Metadata = {
-  title: "Mentions légales | Volia",
+  title: "Mentions légales | Clearto",
   description:
-    "Éditeur du site, hébergement, contact et cadre réglementaire du service Volia.",
+    "Éditeur du site, hébergement, contact et cadre réglementaire du service Clearto.",
 };
 
 /**
@@ -79,9 +79,9 @@ export default function MentionsLegalesPage() {
           Nature de l&apos;activité
         </h2>
         <p className="mt-3 text-[15px] leading-relaxed text-[var(--texte-attenue)]">
-          Volia exerce une activité de recouvrement amiable de créances pour le
+          Clearto exerce une activité de recouvrement amiable de créances pour le
           compte d&apos;autrui, régie par les articles R124-1 et suivants du
-          Code des procédures civiles d&apos;exécution. Volia n&apos;est pas un
+          Code des procédures civiles d&apos;exécution. Clearto n&apos;est pas un
           cabinet d&apos;avocats et ne fournit aucun conseil juridique.
         </p>
       </section>
