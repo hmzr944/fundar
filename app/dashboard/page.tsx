@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Icone, { type NomIcone } from "@/components/Icone";
-import FriseDossier, { etapeDuDossier } from "@/components/motion/FriseDossier";
+import FriseDossier from "@/components/motion/FriseDossier";
+import { etapeDuDossier } from "@/lib/claims/etape-dossier";
 import EnvoyerLettreButton from "@/components/EnvoyerLettreButton";
 import SupprimerCompteButton from "@/components/SupprimerCompteButton";
 import DeclarerPaiementButton from "@/components/DeclarerPaiementButton";

@@ -22,17 +22,11 @@ const ETAPES: { cle: NomEtape; libelle: string }[] = [
   { cle: "indemnite", libelle: "Indemnité reçue" },
 ];
 
-export function etapeDuDossier(dossier: {
-  statut_dossier: string;
-  reclamation_envoyee_le: string | null;
-  montant_recupere: number | null;
-}): number {
-  if (dossier.statut_dossier === "PAYE" || dossier.montant_recupere !== null) return 3;
-  if (dossier.reclamation_envoyee_le) return 2;
-  // Un dossier n'existe pas sans justificatif : la deuxième étape est
-  // franchie dès sa création.
-  return 1;
-}
+// etapeDuDossier vivait ici et a déménagé dans lib/claims/etape-dossier.
+// Ce fichier porte « use client » : un composant serveur qui importait la
+// fonction d'ici recevait une référence client, pas une fonction, et le
+// tableau de bord plantait à l'affichage. Un module client n'exporte que
+// des composants.
 
 export default function FriseDossier({
   etapeCourante,
