@@ -189,15 +189,31 @@ export async function POST(
     },
   ]);
 
+  let emailConfirmationEnvoye = false;
   try {
     await envoyerConfirmationMandat({
       destinataire: body.email,
       numeroVol: dossier.numero_vol,
       pdfMandat: pdfBytes,
     });
-  } catch {
-    // L'email de confirmation n'est pas bloquant : le dossier est déjà enregistré.
+    emailConfirmationEnvoye = true;
+  } catch (erreur) {
+    // L'email n'est pas bloquant — le mandat est signé et archivé — mais
+    // l'avaler en silence l'était : on cherchait pourquoi rien n'arrivait
+    // sans avoir la moindre trace. La cause la plus fréquente est un
+    // expéditeur non vérifié chez Resend, qui ne délivre alors qu'au
+    // titulaire du compte.
+    console.error(
+      `[claim ${dossier.id}] mandat signé mais email de confirmation non envoyé à ${body.email} :`,
+      erreur
+    );
   }
 
-  return NextResponse.json({ statut: "MANDAT_SIGNE", hash });
+  // Le client doit savoir que sa copie n'est pas partie, sinon il attend
+  // un email qui ne viendra jamais et croit son dossier bloqué.
+  return NextResponse.json({
+    statut: "MANDAT_SIGNE",
+    hash,
+    emailConfirmationEnvoye,
+  });
 }
