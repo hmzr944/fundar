@@ -12,6 +12,8 @@ import {
 } from "@/lib/stats/dossiers";
 import SaisieReponse from "@/components/admin/SaisieReponse";
 import SaisieIssue from "@/components/admin/SaisieIssue";
+import SaisieEnvoiManuel from "@/components/admin/SaisieEnvoiManuel";
+import { CONTACTS_COMPAGNIES } from "@/config/airline-contacts";
 
 /** Données vivantes : jamais de cache sur un tableau de bord d'exploitation. */
 export const dynamic = "force-dynamic";
@@ -82,6 +84,20 @@ export default async function AdminPage() {
 
   const global = statistiquesGlobales(mesures, TAUX_COMMISSION);
   const parCompagnie = statistiquesParCompagnie(mesures);
+
+  // Un dossier ne part que mandat en main : sans lui la compagnie rejette
+  // la réclamation, et la route d'enregistrement refuse de toute façon.
+  const { data: mandats } = await admin
+    .from("documents")
+    .select("claim_id")
+    .eq("type", "MANDAT_SIGNE");
+  const avecMandat = new Set((mandats ?? []).map((m) => m.claim_id));
+
+  // La file la plus urgente : signés, prêts, et personne ne les a encore
+  // transmis. Tant qu'un dossier reste ici, le client attend sans le savoir.
+  const aEnvoyer = dossiers.filter(
+    (d) => !d.reclamation_envoyee_le && avecMandat.has(d.id)
+  );
 
   const aRelancer = dossiers.filter(
     (d) => d.reclamation_envoyee_le && !d.premiere_reponse_le
@@ -183,6 +199,49 @@ export default async function AdminPage() {
           </table>
         </div>
       )}
+
+      <h2 className="mt-12 titre text-[1.5rem]">
+        À transmettre à la compagnie ({aEnvoyer.length})
+      </h2>
+      <p className="mt-2 max-w-[70ch] text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+        Mandat signé, dossier prêt, rien n&apos;est encore parti. Les
+        compagnies configurées n&apos;acceptent que leur formulaire :
+        remplissez-le, puis déclarez-le ici. C&apos;est cette déclaration qui
+        prévient le client et démarre le calendrier des relances — sans elle
+        le dossier dort et personne ne le sait.
+      </p>
+      <div className="mt-4 flex flex-col gap-3">
+        {aEnvoyer.map((dossier) => {
+          const contact = CONTACTS_COMPAGNIES[dossier.compagnie?.toUpperCase()];
+          return (
+            <div key={dossier.id} className="carte p-5">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="font-semibold">
+                  {dossier.compagnie} · vol {dossier.numero_vol} du{" "}
+                  {dossier.date_vol}
+                </p>
+                <p className="chiffres text-sm text-[var(--texte-attenue)]">
+                  {dossier.montant_estime !== null
+                    ? `${dossier.montant_estime} ${dossier.devise ?? ""}`
+                    : "montant à trancher"}
+                </p>
+              </div>
+              {!contact && (
+                <p className="mt-2 text-sm text-[var(--color-accent-600)]">
+                  Aucun contact configuré pour {dossier.compagnie}. Renseignez-le
+                  dans config/airline-contacts.ts : l&apos;envoi ne peut pas être
+                  déclaré tant qu&apos;on ne sait pas où il est parti.
+                </p>
+              )}
+              <SaisieEnvoiManuel
+                claimId={dossier.id}
+                urlFormulaire={contact?.urlFormulaire}
+                note={contact?.note}
+              />
+            </div>
+          );
+        })}
+      </div>
 
       <h2 className="mt-12 titre text-[1.5rem]">
         Paiements déclarés, à vérifier et facturer ({aFacturer.length})
