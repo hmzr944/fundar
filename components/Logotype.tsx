@@ -1,22 +1,30 @@
 /**
  * Logotype « clearto », tracé et non composé.
  *
- * Le mot est construit au compas et à la règle : cercles parfaits pour le c,
- * le e, le ventre du a et le o, segments à épaisseur constante ailleurs,
- * terminaisons arrondies partout. Aucune police n'intervient, donc le mot est
- * identique sur toutes les machines et se redimensionne sans se recomposer.
+ * Construit au compas et à la règle : anneaux ouverts à 45° pour le c et le
+ * e, cercles vrais pour le ventre du a et le o, segments à épaisseur
+ * constante ailleurs, terminaisons arrondies partout. Aucune police
+ * n'intervient, donc le mot est identique sur toutes les machines et se
+ * redimensionne sans se recomposer.
  *
- * Aucune lettre n'est déformée, et c'est délibéré. Quatre gestes ont été
- * tentés sur le logotype précédent — un a relevé, un o transformé en boucle,
- * un l incurvé, une traînée pointillée. Les trois premiers ont produit un mot
- * qu'on ne lisait plus (« volid », « v dia », « vofia »), le quatrième était
- * invisible en dessous de trente pixels. Une lettre qu'on décore cesse d'être
- * une lettre. L'identité tient ici à la construction géométrique et à la
- * régularité du rythme, pas à un accident greffé sur une lettre.
+ * Trois corrections sur la version précédente, qui se lisait « brouillon » :
  *
- * Seul le pied du t s'incurve vers la droite : ce n'est pas un ornement mais
- * un trait typographique standard, que l'œil lit comme un t et non comme une
- * bizarrerie.
+ * 1. Le trait passe de 9 à 7,5 pour une hauteur d'x de 38 — de 22 % à 20 %.
+ *    Au-delà, les contreformes du e et du a se bouchent et le mot devient
+ *    une tache avant d'être un mot.
+ * 2. L'espacement n'est plus mécanique. Une ronde suivie d'une ronde demande
+ *    plus d'air qu'une hampe suivie d'une ronde : les blancs sont réglés à
+ *    l'œil (8 après le c, 9,5 après le l, 10,5 entre le e et le a) et non
+ *    au décimètre. C'est la cause principale de l'effet désordonné.
+ * 3. La barre du t monte vers la droite et pointe vers le o. C'est le seul
+ *    écart au tracé géométrique, et il est volontaire : « cleared to » est
+ *    l'autorisation de la tour de contrôle, la barre est la trajectoire de
+ *    montée, et le o qu'elle vise ferme le mot.
+ *
+ * Une barre inclinée reste une barre : le squelette de la lettre est
+ * intact. C'est précisément ce qui manquait aux quatre gestes tentés sur le
+ * logotype précédent, qui déformaient des lettres et donnaient des mots
+ * illisibles — « volid », « v dia », « vofia ».
  *
  * Le tracé hérite de currentColor : posé sur un aplat corail il devient
  * blanc sans qu'on ait à prévoir une seconde version.
@@ -32,11 +40,11 @@ export default function Logotype({
   /** Passer null quand le mot est déjà lu par un texte adjacent. */
   titre?: string | null;
 }) {
-  const RATIO = 303 / 66;
+  const RATIO = 319 / 76;
 
   return (
     <svg
-      viewBox="0 0 303 66"
+      viewBox="0 0 319 76"
       height={hauteur}
       width={hauteur * RATIO}
       fill="none"
@@ -47,34 +55,36 @@ export default function Logotype({
     >
       <g
         stroke="currentColor"
-        strokeWidth="9"
+        strokeWidth="7.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        {/* c — anneau ouvert sur la droite, à 45° de part et d'autre */}
-        <path d="M41.7 27.3 A18 18 0 1 0 41.7 52.7" />
+        {/* c — anneau ouvert à 45° de part et d'autre */}
+        <path d="M40.4 31.6 A19 19 0 1 0 40.4 58.4" />
 
         {/* l — hampe pleine hauteur */}
-        <path d="M58 6 L58 60" />
+        <path d="M56 12 L56 64" />
 
         {/* e — barre médiane, puis l'anneau ouvert en bas à droite */}
-        <path d="M74 40 L110 40" />
-        <path d="M110 40 A18 18 0 1 0 104.7 52.7" />
+        <path d="M73 45 L111 45" />
+        <path d="M111 45 A19 19 0 1 0 105.4 58.4" />
 
         {/* a — ventre circulaire et fût arrêté net sur la hauteur d'x */}
-        <circle cx="144" cy="40" r="18" />
-        <path d="M162 20 L162 60" />
+        <circle cx="148" cy="45" r="19" />
+        <path d="M167 26 L167 64" />
 
         {/* r — fût et épaule amorcée, sans retomber */}
-        <path d="M178 20 L178 60" />
-        <path d="M178 32 C178 23 186 18 194 20" />
+        <path d="M184 26 L184 64" />
+        <path d="M184 38 C184 29 192 24 200 26" />
 
-        {/* t — hampe montante, pied incurvé, barre sur la hauteur d'x */}
-        <path d="M222 6 L222 51 C222 58 227 61 234 60" />
-        <path d="M209 20 L239 20" />
+        {/* t — hampe montante, pied incurvé */}
+        <path d="M232 12 L232 57 C232 62 236 65 244 64" />
+
+        {/* la barre monte et vise le o : la trajectoire de montée */}
+        <path d="M217 26 L254 21" />
 
         {/* o — cercle parfait, qui referme le mot comme il l'a ouvert */}
-        <circle cx="274" cy="40" r="18" />
+        <circle cx="292" cy="45" r="19" />
       </g>
     </svg>
   );

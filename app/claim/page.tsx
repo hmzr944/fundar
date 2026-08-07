@@ -124,19 +124,17 @@ function ClaimPageInterieur() {
             <Icone nom="enveloppe" taille={22} />
           </span>
           <h1 className="titre text-[1.5rem]">Plus qu'une étape</h1>
-          <p className="max-w-[40ch] text-[15px] leading-relaxed text-[var(--texte-attenue)]">
-            Vos informations et votre signature sont déjà enregistrées.
-            Cliquez sur le lien envoyé à{" "}
-            <strong className="text-[var(--texte)]">{emailEnAttente}</strong>{" "}
-            pour confirmer et finaliser votre dossier.
+          {/* Deux contraintes seulement, celles qui évitent la boucle
+              observée en test : un lien ne se rouvre pas, et changer de
+              navigateur casse la preuve de sécurité déposée ici. Le reste
+              — « vos informations sont enregistrées », « vous reviendrez
+              au justificatif » — allongeait l'écran sans rien débloquer. */}
+          <p className="max-w-[34ch] text-[15px] leading-relaxed text-[var(--texte-attenue)]">
+            Ouvrez le lien envoyé à{" "}
+            <strong className="text-[var(--texte)]">{emailEnAttente}</strong>.
           </p>
-          {/* Deux précisions qui évitent la boucle observée en test : un
-              lien déjà ouvert ne se rouvre pas, et changer de navigateur
-              casse la preuve de sécurité déposée ici. */}
-          <p className="max-w-[42ch] text-[14px] leading-relaxed text-[var(--texte-attenue)]">
-            Ouvrez-le <strong className="text-[var(--texte)]">une seule fois</strong>,
-            et depuis ce navigateur. Vous reviendrez ici même, à l&apos;étape
-            du justificatif — rien de ce que vous avez saisi n&apos;est perdu.
+          <p className="text-[14px] text-[var(--texte-attenue)]">
+            Une seule fois, depuis ce navigateur.
           </p>
         </div>
       </main>
