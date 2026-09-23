@@ -13,15 +13,16 @@ import { cancelRun, recoverStaleRuns, startAnalysis, startExecution } from "@/se
 import { ScriptedProvider, lastToolResults, textResult, toolCallsResult } from "@/server/llm/scripted";
 import { LlmError } from "@/server/llm/types";
 import { addMessage, createMission, getMissionDetail, updateStepByUser } from "@/server/missions/service";
+import type { Analysis } from "@/server/agent/analysis-schema";
 import { uploadDocument } from "@/server/documents/service";
-import { analysis, planFromBriefing, stepsOf, turn } from "../helpers/agent";
+import { analysis, stepsOf, turn } from "../helpers/agent";
 import { createTestUser, db, FakeSearch, makeDeps, MemoryStorage, resetDb } from "../helpers/db";
 
 beforeEach(resetDb);
 
 const analyzer = (a: Parameters<typeof analysis>[0]) => new ScriptedProvider(() => textResult(JSON.stringify(analysis(a))));
 
-async function plannedMission(steps: Parameters<typeof analysis>[0]["steps"], request = "Une mission de test") {
+async function plannedMission(steps: Analysis["steps"], request = "Une mission de test") {
   const user = await createTestUser();
   const m = await createMission(db, user.id, request);
   await analyzeMission({ db, llm: analyzer({ steps }), capabilities: { webSearch: false, searchProvider: null } }, m.id, null);

@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { ZodError, type ZodType } from "zod";
 import { getDb } from "@/db";
@@ -15,6 +16,13 @@ export async function currentUser(): Promise<User | null> {
 export async function requireUser(): Promise<User> {
   const user = await currentUser();
   if (!user) throw unauthorized();
+  return user;
+}
+
+/** For pages: redirects to the login page instead of throwing. */
+export async function requirePageUser(): Promise<User> {
+  const user = await currentUser();
+  if (!user) redirect("/login");
   return user;
 }
 
