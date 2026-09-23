@@ -1,20 +1,17 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { config } from "@/lib/config";
-import { requireUser, route } from "@/lib/http";
+import { assertDeclaredUploadSize, requireUser, route } from "@/lib/http";
 import { uploadDocument } from "@/server/documents/service";
 import { getStorage } from "@/server/documents/storage";
-import { AppError, badRequest } from "@/server/errors";
+import { badRequest } from "@/server/errors";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export const POST = route(async (req, { params }: Ctx) => {
   const user = await requireUser();
   const { id } = await params;
-  const declared = Number(req.headers.get("content-length") ?? 0);
-  if (declared > config.uploads.maxBytes + 64 * 1024) {
-    throw new AppError(413, `Fichier trop volumineux (maximum ${config.uploads.maxBytes / 1024 / 1024} Mo).`, "too_large");
-  }
+  assertDeclaredUploadSize(req.headers.get("content-length"), config.uploads.maxBytes);
   let form: FormData;
   try {
     form = await req.formData();

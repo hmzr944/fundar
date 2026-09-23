@@ -45,6 +45,24 @@ export async function assertSameOrigin(req: Request) {
   if (originHost !== host) throw new AppError(403, "Requête refusée (origine différente).", "bad_origin");
 }
 
+/**
+ * Rejects an upload before its body is read into memory. A missing or
+ * non-numeric Content-Length (e.g. chunked transfer-encoding) used to skip
+ * this pre-check entirely: the full body was still buffered in memory by
+ * req.formData() before the real, post-buffering size check ever ran,
+ * letting an attacker without a fixed Content-Length exhaust memory with an
+ * oversized body regardless of the configured upload limit.
+ */
+export function assertDeclaredUploadSize(contentLength: string | null, maxBytes: number) {
+  const declared = contentLength === null ? NaN : Number(contentLength);
+  if (!Number.isFinite(declared) || declared <= 0) {
+    throw badRequest("Taille du fichier inconnue (en-tête Content-Length manquant ou invalide) : envoi refusé.");
+  }
+  if (declared > maxBytes + 64 * 1024) {
+    throw new AppError(413, `Fichier trop volumineux (maximum ${Math.round(maxBytes / 1024 / 1024)} Mo).`, "too_large");
+  }
+}
+
 export async function parseJson<T>(req: Request, schema: ZodType<T>): Promise<T> {
   let body: unknown;
   try {
