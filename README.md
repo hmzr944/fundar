@@ -52,6 +52,7 @@ Scripts utiles :
 | `pnpm test` | Tests unitaires et d'intégration (PostgreSQL requis) |
 | `pnpm test:e2e` | Tests de bout en bout dans Chromium |
 | `pnpm test:live` | Tests contre la vraie API Claude (nécessite `ANTHROPIC_API_KEY`, payant) |
+| `pnpm check:integrations` | Un appel réel minimal à chaque service configuré (Claude, recherche, lecture de page) |
 | `pnpm lint` / `pnpm typecheck` | Qualité |
 
 ---
@@ -261,7 +262,9 @@ Bases de test : `TEST_DATABASE_URL` (défaut `postgres://atlas:atlas@localhost:5
 
 - Dans `pnpm test` et `pnpm test:e2e`, le modèle de langage est remplacé par un **double de test scripté** (`src/server/llm/scripted.ts`), et la recherche par un faux fournisseur. Ces tests vérifient ce que *le système* fait des réponses du modèle, **pas la qualité de compréhension d'un vrai modèle**. Le double de test est refusé si `NODE_ENV=production`, et l'interface affiche un bandeau « Mode test » quand il est actif.
 - Les intégrations **Anthropic, Tavily et Brave** n'ont pas été exécutées dans l'environnement de développement de ce MVP, faute de clés. Le code suit la documentation officielle et compile, mais `pnpm test:live` doit être lancé avec une vraie clé pour valider la qualité des analyses. Les tests de recherche réelle restent à écrire.
-- La lecture de pages a été testée contre un serveur HTTP local, pas contre des sites réels.
+- La lecture de pages a été testée contre un serveur HTTP local ; un seul essai réel a été fait (`pnpm check:integrations` sur service-public.fr, redirection comprise).
+
+La procédure de validation avec les vraies clés (connexions, `test:live`, 12 missions réelles, grille d'évaluation, critères de décision) est décrite dans [`docs/VALIDATION.md`](docs/VALIDATION.md).
 
 ---
 
@@ -311,7 +314,7 @@ Bases de test : `TEST_DATABASE_URL` (défaut `postgres://atlas:atlas@localhost:5
 
 ## Prochaines étapes recommandées
 
-1. **Valider le vrai modèle.** Lancer `pnpm test:live` avec une clé, puis écrire un petit jeu d'évaluation (20 à 30 demandes réelles) pour régler les prompts : pertinence des questions, qualité des plans, respect des règles de preuve.
+1. **Valider le vrai modèle** en suivant [`docs/VALIDATION.md`](docs/VALIDATION.md) : lancer `pnpm check:integrations` et `pnpm test:live` avec une clé, puis écrire un petit jeu d'évaluation (20 à 30 demandes réelles) pour régler les prompts : pertinence des questions, qualité des plans, respect des règles de preuve.
 2. **Valider la recherche réelle.** Tester Tavily ou Brave sur les scénarios « comparer des offres » et « déménagement », et ajouter des tests `live` pour la recherche.
 3. **File de tâches persistante** (pg-boss, qui réutilise PostgreSQL) pour sortir les exécutions du processus web et permettre plusieurs instances.
 4. **Streaming et progression** : afficher en direct les étapes et les outils utilisés (SSE).

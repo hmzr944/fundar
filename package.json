@@ -13,7 +13,8 @@
     "purge": "tsx scripts/purge.ts",
     "test": "vitest run --exclude tests/integration/live-llm.test.ts",
     "test:live": "vitest run tests/integration/live-llm.test.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "check:integrations": "tsx scripts/check-integrations.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",
