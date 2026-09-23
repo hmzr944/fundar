@@ -133,7 +133,7 @@ L'interface interroge `GET /api/missions/:id` toutes les 2 s pendant qu'Atlas tr
 | Outil | Rôle | Garde-fous |
 |---|---|---|
 | `web_search` | Recherche réelle (Tavily/Brave) ; chaque résultat devient une `Source` | Proposé seulement si un fournisseur est configuré |
-| `fetch_page` | Lit le texte d'une page | URL limitées à celles trouvées par la recherche ou écrites par l'utilisateur (anti-exfiltration) ; blocage SSRF à la résolution DNS ; http(s) et ports standard uniquement ; 2 Mo, 15 s, 4 redirections revalidées |
+| `fetch_page` | Lit le texte d'une page | URL limitées à celles trouvées par la recherche ou écrites par l'utilisateur (anti-exfiltration) ; blocage SSRF à la résolution DNS ; http(s) et ports standard uniquement ; 2 Mo, 15 s, 4 redirections revalidées ; une page coupée à 2 Mo ou à 60 000 caractères est signalée comme **lue partiellement** (au modèle et dans l'onglet Sources) |
 | `read_document` | Lit le texte extrait d'un document importé, par tranches | Limité aux documents de la mission et de son propriétaire |
 | `create_deliverable` | Crée un livrable Markdown (courrier, e-mail, checklist, tableau…) | Taille bornée |
 | `update_step` | Change le statut d'une étape | `done` exige une preuve selon le type (voir ci-dessous) |
@@ -193,6 +193,11 @@ Preuves exigées pour qu'Atlas termine une étape (`update_step` refuse sinon) :
 | `user_action` | **jamais par Atlas** : seulement une déclaration de l'utilisateur |
 
 Une étape marquée faite par l'utilisateur est enregistrée avec `completedBy = "user"` et affichée « Déclarée par vous », distincte de « Exécutée par Atlas ». À la fin d'une exécution, une étape restée « en cours » est rouverte plutôt que présentée comme faite.
+
+**Choix produit assumé : une déclaration de l'utilisateur suffit à clore une étape.** `stepHasEvidence()` l'accepte comme preuve, parce que certaines actions (appeler, payer, signer, envoyer) ne peuvent être réalisées que par l'utilisateur, et qu'Atlas n'a aucun moyen de les vérifier. En contrepartie :
+- la déclaration est toujours distinguée d'une exécution vérifiée : badge « Déclarée par vous », message dans la conversation, décompte séparé dans le bilan factuel ;
+- Atlas ne peut jamais clore lui-même une étape `user_action` ;
+- une mission n'est « Terminée » que si les étapes réalisées par Atlas portent leurs propres preuves : une déclaration de l'utilisateur ne remplace pas une source, un document lu ou un livrable manquant sur une autre étape.
 
 ---
 

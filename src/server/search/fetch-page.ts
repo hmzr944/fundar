@@ -79,7 +79,7 @@ export function htmlToText(html: string): { title: string | null; text: string }
 }
 
 function requestOnce(url: URL, allowPrivate: boolean, signal?: AbortSignal) {
-  return new Promise<{ status: number; headers: http.IncomingHttpHeaders; body: Buffer }>((resolve, reject) => {
+  return new Promise<{ status: number; headers: http.IncomingHttpHeaders; body: Buffer; truncated: boolean }>((resolve, reject) => {
     const mod = url.protocol === "https:" ? https : http;
     const req = mod.request(
       url,
@@ -100,13 +100,15 @@ function requestOnce(url: URL, allowPrivate: boolean, signal?: AbortSignal) {
         res.on("data", (c: Buffer) => {
           size += c.length;
           if (size > MAX_BYTES) {
+            // Too large: stop downloading and flag the body as partial so the
+            // caller never presents it as the complete page.
             req.destroy();
-            resolve({ status: res.statusCode ?? 0, headers: res.headers, body: Buffer.concat(chunks) });
+            resolve({ status: res.statusCode ?? 0, headers: res.headers, body: Buffer.concat(chunks), truncated: true });
             return;
           }
           chunks.push(c);
         });
-        res.on("end", () => resolve({ status: res.statusCode ?? 0, headers: res.headers, body: Buffer.concat(chunks) }));
+        res.on("end", () => resolve({ status: res.statusCode ?? 0, headers: res.headers, body: Buffer.concat(chunks), truncated: false }));
         res.on("error", reject);
       },
     );
@@ -162,7 +164,7 @@ export function createPageFetcher(opts: { allowPrivate?: boolean } = {}): PageFe
         throw new FetchPageError(`Type de contenu non pris en charge (${type.split(";")[0]}).`);
       }
       if (!text.trim()) throw new FetchPageError("La page ne contient pas de texte lisible (contenu probablement généré en JavaScript).");
-      return { url: url.toString(), title, text: text.slice(0, MAX_TEXT), truncated: text.length > MAX_TEXT };
+      return { url: url.toString(), title, text: text.slice(0, MAX_TEXT), truncated: res.truncated || text.length > MAX_TEXT };
     }
     throw new FetchPageError("Trop de redirections.");
   };

@@ -273,7 +273,8 @@ const handlers: { [K in ToolName]: (ctx: ToolContext, input: z.infer<(typeof inp
       const id = await upsertSource(ctx, {
         url: page.url,
         title: page.title,
-        excerpt: page.text.slice(0, 500),
+        // The partial-read marker is stored with the source so the UI shows it too.
+        excerpt: `${page.truncated ? "[Page lue partiellement] " : ""}${page.text.slice(0, 500)}`,
         origin: "page",
       });
       return {
@@ -285,9 +286,15 @@ const handlers: { [K in ToolName]: (ctx: ToolContext, input: z.infer<(typeof inp
           title: page.title,
           retrieved_at: new Date().toISOString(),
           truncated: page.truncated,
+          ...(page.truncated
+            ? {
+                truncation_notice:
+                  "Contenu INCOMPLET : seule la première partie de la page a été lue. Ne tire aucune conclusion sur ce qui n'y figure pas et signale cette limite.",
+              }
+            : {}),
           text: untrusted(page.url, page.text),
         },
-        logDetails: { host: safeHost(page.url), chars: page.text.length },
+        logDetails: { host: safeHost(page.url), chars: page.text.length, truncated: page.truncated },
       };
     } catch (e) {
       const msg = e instanceof FetchPageError ? e.message : "La page n'a pas pu être lue.";

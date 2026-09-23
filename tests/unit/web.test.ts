@@ -39,6 +39,15 @@ describe("createPageFetcher", () => {
         res.writeHead(200, { "content-type": "image/png" });
         return res.end("x");
       }
+      if (req.url === "/huge") {
+        res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+        // ~3 MB of mostly whitespace: above the 2 MB download cap, but the
+        // readable text stays far below the 60 000-character text cap, so
+        // only the byte cap can mark this page as truncated.
+        res.write("<title>Grande page</title><p>Début du contenu</p>");
+        for (let i = 0; i < 3000; i++) res.write(" ".repeat(1000));
+        return res.end("<p>Fin du contenu</p>");
+      }
       if (req.url === "/page") {
         res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
         return res.end("<title>Test</title><p>Contenu réel</p>");
@@ -69,6 +78,15 @@ describe("createPageFetcher", () => {
     expect(page.text).toContain("Contenu réel");
     await expect(fetchPage(`${base}/binary`)).rejects.toThrow(/non pris en charge/);
     await expect(fetchPage(`${base}/missing`)).rejects.toThrow(/404/);
+    expect(page.truncated).toBe(false);
+  });
+
+  it("flags pages cut at the download cap as truncated instead of returning them as complete", async () => {
+    const page = await createPageFetcher({ allowPrivate: true })(`${base}/huge`);
+    expect(page.truncated).toBe(true);
+    expect(page.text).toContain("Début du contenu");
+    expect(page.text).not.toContain("Fin du contenu");
+    expect(page.text.length).toBeLessThan(1000);
   });
 });
 

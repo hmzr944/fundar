@@ -6,8 +6,9 @@ const TERMINAL_OK: StepStatus[] = ["DONE", "SKIPPED"];
 
 /**
  * Checks that a step marked DONE carries the proof expected for its kind.
- * Steps declared by the user are trusted as declarations (and labelled as
- * such in the UI) — Atlas never claims to have executed them.
+ * Product choice: a user declaration is accepted as sufficient (some actions,
+ * like paying or signing, can only be done and known by the user). It stays
+ * labelled as a declaration in the UI — Atlas never claims to have executed it.
  */
 export function stepHasEvidence(step: StepLike): boolean {
   if (step.status !== "DONE") return false;
