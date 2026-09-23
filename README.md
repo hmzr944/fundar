@@ -266,10 +266,10 @@ Bases de test : `TEST_DATABASE_URL` (défaut `postgres://atlas:atlas@localhost:5
 **Ce qui n'est PAS couvert par les tests automatiques** (à lire honnêtement) :
 
 - Dans `pnpm test` et `pnpm test:e2e`, le modèle de langage est remplacé par un **double de test scripté** (`src/server/llm/scripted.ts`), et la recherche par un faux fournisseur. Ces tests vérifient ce que *le système* fait des réponses du modèle, **pas la qualité de compréhension d'un vrai modèle**. Le double de test est refusé si `NODE_ENV=production`, et l'interface affiche un bandeau « Mode test » quand il est actif.
-- Les intégrations **Anthropic, Tavily et Brave** n'ont pas été exécutées dans l'environnement de développement de ce MVP, faute de clés. Le code suit la documentation officielle et compile, mais `pnpm test:live` doit être lancé avec une vraie clé pour valider la qualité des analyses. Les tests de recherche réelle restent à écrire.
-- La lecture de pages a été testée contre un serveur HTTP local ; un seul essai réel a été fait (`pnpm check:integrations` sur service-public.fr, redirection comprise).
+- Les intégrations **Anthropic et Tavily** ont depuis été exécutées avec de vraies clés, hors de cet environnement de développement (`pnpm check:integrations`, `pnpm test:live`, puis les 12 missions réelles de `docs/VALIDATION.md`). Résultat consigné dans [`docs/VALIDATION-REPORT.md`](docs/VALIDATION-REPORT.md) : décision « utilisable ». Brave n'a pas été testé (Tavily suffisait). Les tests de recherche réelle en continu restent à écrire — cette campagne était manuelle.
+- La lecture de pages a été testée contre un serveur HTTP local pour les cas limites (redirections, SSRF, troncature), et contre de vraies pages lors de la campagne ci-dessus.
 
-La procédure de validation avec les vraies clés (connexions, `test:live`, 12 missions réelles, grille d'évaluation, critères de décision) est décrite dans [`docs/VALIDATION.md`](docs/VALIDATION.md).
+La procédure de validation avec les vraies clés (connexions, `test:live`, 12 missions réelles, grille d'évaluation, critères de décision) est décrite dans [`docs/VALIDATION.md`](docs/VALIDATION.md) ; son résultat est dans [`docs/VALIDATION-REPORT.md`](docs/VALIDATION-REPORT.md).
 
 ---
 
@@ -319,8 +319,10 @@ La procédure de validation avec les vraies clés (connexions, `test:live`, 12 m
 
 ## Prochaines étapes recommandées
 
-1. **Valider le vrai modèle** en suivant [`docs/VALIDATION.md`](docs/VALIDATION.md) : lancer `pnpm check:integrations` et `pnpm test:live` avec une clé, puis écrire un petit jeu d'évaluation (20 à 30 demandes réelles) pour régler les prompts : pertinence des questions, qualité des plans, respect des règles de preuve.
-2. **Valider la recherche réelle.** Tester Tavily ou Brave sur les scénarios « comparer des offres » et « déménagement », et ajouter des tests `live` pour la recherche.
+La validation avec le vrai modèle et la recherche réelle (`docs/VALIDATION.md`) a été faite ; voir [`docs/VALIDATION-REPORT.md`](docs/VALIDATION-REPORT.md) pour le résultat et les limites restantes. Au-delà :
+
+1. **Étoffer le jeu d'évaluation** au-delà des 12 missions de la checklist (20 à 30 demandes réelles supplémentaires) pour continuer à régler les prompts : pertinence des questions, qualité des plans, respect des règles de preuve.
+2. **Tests `live` pour la recherche**, en plus de la campagne manuelle déjà faite, pour la garder sous surveillance continue.
 3. **File de tâches persistante** (pg-boss, qui réutilise PostgreSQL) pour sortir les exécutions du processus web et permettre plusieurs instances.
 4. **Streaming et progression** : afficher en direct les étapes et les outils utilisés (SSE).
 5. **Rappels** : table `reminders` + tâche planifiée + envoi d'e-mails (et vérification d'e-mail / réinitialisation du mot de passe).
