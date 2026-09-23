@@ -320,6 +320,11 @@ Résultat détaillé, coûts, défauts trouvés et corrigés : [`docs/VALIDATION
 - **Contexte d'une exécution** : l'historique complet des tours est conservé en mémoire pendant l'exécution. Pour de très longues missions, la compaction n'est pas encore activée.
 - **Coûts** : ce sont des estimations fondées sur les tarifs publics, qui ne tiennent pas compte des remises ni des coûts des fournisseurs de recherche.
 - **Pas de vérification d'e-mail** à l'inscription.
+- **Limiteur de connexion contournable sans proxy de confiance en amont.** La clé de limitation de débit du login/inscription (`clientKey()`, `src/lib/http.ts`) se base sur l'en-tête `X-Forwarded-For`, que le client peut falsifier si rien en amont ne le réécrit. À vérifier avant une exposition publique sans proxy de confiance devant l'application.
+- **DOCX/PDF sans limite de décompression/pages avant troncature.** Un document sous la limite de taille d'upload mais très compressible (DOCX) ou à très grand nombre de pages (PDF) peut provoquer un pic mémoire/CPU pendant l'extraction, avant que la troncature du texte extrait ne s'applique.
+- **Nettoyage mineur en attente** : un export de test inutilisé (`setStorageForTests`), et le champ `evidence` d'une étape non réinitialisé à sa réouverture (affichage seulement, sans effet sur le calcul du statut).
+
+Détail, gravité et recommandations pour ces trois points : [`docs/VALIDATION-REPORT.md`](docs/VALIDATION-REPORT.md).
 
 ---
 
