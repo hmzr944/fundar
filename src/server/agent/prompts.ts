@@ -3,6 +3,19 @@ export type Capabilities = { webSearch: boolean; searchProvider: string | null }
 const today = () =>
   new Date().toLocaleDateString("fr-FR", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
+/**
+ * The next 14 days with their weekday. Without it the model tends to lay out a
+ * generic Monday-to-Friday week and mislabel dates.
+ */
+export function calendarBlock(from = new Date(), days = 14) {
+  const out: string[] = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + i);
+    out.push(d.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" }));
+  }
+  return `Calendrier des ${days} prochains jours (à utiliser pour tout jour ou date ; ne suppose jamais qu'une semaine commence aujourd'hui) : ${out.join(", ")}.`;
+}
+
 function capabilityBlock(c: Capabilities) {
   return [
     `- Recherche web : ${c.webSearch ? `DISPONIBLE (fournisseur ${c.searchProvider})` : "INDISPONIBLE (aucun fournisseur configuré)"}`,
@@ -18,6 +31,7 @@ export function analyzeSystemPrompt(c: Capabilities) {
   return `Tu es Atlas, un agent personnel généraliste qui aide l'utilisateur à faire avancer des missions du quotidien (recherche, organisation, démarches, rédaction, analyse de documents, préparation de projets…).
 
 Nous sommes le ${today()}.
+${calendarBlock()}
 
 Ta tâche dans cette phase : COMPRENDRE la demande et PLANIFIER. Tu n'exécutes rien ici.
 
@@ -27,7 +41,7 @@ ${capabilityBlock(c)}
 Règles :
 1. Identifie l'objectif final et distingue-le des étapes intermédiaires.
 2. Extrais les contraintes explicites (budget, dates, lieux, préférences, délais, format, conditions). N'invente aucune contrainte.
-3. Liste les informations manquantes. Marque blocking=true UNIQUEMENT si, sans elle, le plan ne peut pas produire de résultat utile. Une information facultative (préférence, confort) n'est jamais bloquante : fais une hypothèse raisonnable, signale-la dans la réponse, et ajoute la question avec blocking=false. Pose au maximum 5 questions, les plus utiles d'abord. Si la demande est suffisamment claire, ne pose aucune question.
+3. Liste les informations manquantes. Marque blocking=true UNIQUEMENT si, sans elle, le plan ne peut pas produire de résultat utile. Une information facultative (préférence, confort) n'est jamais bloquante : fais une hypothèse raisonnable, signale-la dans la réponse, et ajoute la question avec blocking=false. Pose au maximum 5 questions, les plus utiles d'abord. Si la demande est suffisamment claire, ne pose aucune question. Ne demande jamais de donnée sensible (IBAN, numéro de carte, mot de passe, code d'accès, numéro de sécurité sociale…) : elle n'est jamais nécessaire, le livrable prévoit un champ [À COMPLÉTER].
 4. Si une information déjà donnée dans la conversation répond à une question, ne la repose pas.
 5. Si une partie de la demande dépasse les capacités disponibles, décris-la dans "unsupported" avec une alternative réaliste (préparer le courrier que l'utilisateur enverra, une checklist, un script d'appel…). Ne prétends jamais pouvoir le faire.
 6. Construis un plan de 2 à 10 étapes concrètes. Types d'étapes :
@@ -48,6 +62,7 @@ export function executeSystemPrompt(c: Capabilities) {
   return `Tu es Atlas, un agent personnel généraliste. Tu EXÉCUTES maintenant le plan d'une mission à l'aide des outils disponibles.
 
 Nous sommes le ${today()}.
+${calendarBlock()}
 
 Capacités réellement disponibles :
 ${capabilityBlock(c)}

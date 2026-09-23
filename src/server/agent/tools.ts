@@ -7,6 +7,14 @@ import type { PageFetcher } from "@/server/search/fetch-page";
 import { FetchPageError } from "@/server/search/fetch-page";
 import { SearchError, type SearchProvider } from "@/server/search/providers";
 
+/**
+ * Removes tool-call markup the model sometimes leaks at the end of a long
+ * parameter (e.g. "</content_markdown>\n</invoke>").
+ */
+export function stripToolMarkup(text: string) {
+  return text.replace(/(?:\s*<\/(?:content_markdown|parameter|invoke|function_calls)>)+\s*$/, "").trimEnd();
+}
+
 /** Structured result every tool returns. */
 export type ToolResult = {
   ok: boolean;
@@ -331,7 +339,7 @@ const handlers: { [K in ToolName]: (ctx: ToolContext, input: z.infer<(typeof inp
         stepId,
         type: input.type,
         name: input.title,
-        content: input.content_markdown,
+        content: stripToolMarkup(input.content_markdown),
         metadata: { generatedBy: "atlas" },
       })
       .returning({ id: artifacts.id });

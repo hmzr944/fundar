@@ -17,7 +17,11 @@ export class SearchError extends Error {
 }
 
 async function httpError(res: Response, provider: string): Promise<never> {
-  if (res.status === 401 || res.status === 403) throw new SearchError(`Clé ${provider} invalide ou refusée.`, false);
+  if (res.status === 401) throw new SearchError(`Clé ${provider} invalide ou refusée.`, false);
+  // A 403 can also come from a proxy or firewall in front of the service: do not blame the key.
+  if (res.status === 403) {
+    throw new SearchError(`Accès à ${provider} refusé (clé sans droits, ou réseau/proxy qui bloque le service).`, false);
+  }
   if (res.status === 429) throw new SearchError(`Quota ou limite de débit ${provider} atteint.`, true);
   throw new SearchError(`Le service de recherche ${provider} a répondu ${res.status}.`, res.status >= 500);
 }
