@@ -362,6 +362,19 @@ describe("orchestration", () => {
     expect(d.mission.status).toBe("PLANNED");
   });
 
+  it("refuses a user declaration of DONE on a step Atlas is meant to prove, but allows skipping it", async () => {
+    // Regression: completedBy:"user" used to satisfy stepHasEvidence for any
+    // step kind, letting a mission reach COMPLETED on an unverified claim.
+    const { user, mission, ids } = await plannedMission([{ key: "r", title: "Rechercher", description: "", kind: "research", depends_on: [] }]);
+    await expect(updateStepByUser(db, user.id, mission.id, ids.r, { status: "DONE" })).rejects.toMatchObject({ status: 400 });
+    let d = await getMissionDetail(db, user.id, mission.id);
+    expect(d.steps.find((s) => s.key === "r")).toMatchObject({ status: "PENDING" });
+    // Skipping (not claiming it was done) remains allowed for any step kind.
+    await updateStepByUser(db, user.id, mission.id, ids.r, { status: "SKIPPED" });
+    d = await getMissionDetail(db, user.id, mission.id);
+    expect(d.steps.find((s) => s.key === "r")).toMatchObject({ status: "SKIPPED", completedBy: "user" });
+  });
+
   it("recovers runs interrupted by a server restart", async () => {
     const { user, mission, ids } = await plannedMission([{ key: "a", title: "Organiser", description: "", kind: "planning", depends_on: [] }]);
     await db.insert(missionRuns).values({ missionId: mission.id, userId: user.id, kind: "execution", heartbeatAt: new Date(Date.now() - 3600_000) });

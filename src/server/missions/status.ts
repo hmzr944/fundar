@@ -6,13 +6,17 @@ const TERMINAL_OK: StepStatus[] = ["DONE", "SKIPPED"];
 
 /**
  * Checks that a step marked DONE carries the proof expected for its kind.
- * Product choice: a user declaration is accepted as sufficient (some actions,
- * like paying or signing, can only be done and known by the user). It stays
- * labelled as a declaration in the UI — Atlas never claims to have executed it.
+ * Product choice: a user declaration is accepted as sufficient, but only for
+ * user_action steps (some actions, like paying or signing, can only be done
+ * and known by the user). It stays labelled as a declaration in the UI —
+ * Atlas never claims to have executed it. A user declaration on any other
+ * step kind is not proof: research, document reading and deliverables are
+ * things Atlas itself can do and verify, so self-declaring them done must
+ * not be enough to reach COMPLETED.
  */
 export function stepHasEvidence(step: StepLike): boolean {
   if (step.status !== "DONE") return false;
-  if (step.completedBy === "user") return true;
+  if (step.completedBy === "user") return step.kind === "user_action";
   if (!step.result || !step.result.trim()) return false;
   const ev = step.evidence ?? {};
   switch (step.kind as StepKind) {

@@ -146,9 +146,11 @@ function StepItem({
             <div className="mt-3 flex flex-wrap gap-2">
               {!closed && (
                 <>
-                  <Button className="px-2.5 py-1 text-xs" onClick={() => setNoteOpen((v) => !v)} disabled={busy}>
-                    J&apos;ai fait cette étape
-                  </Button>
+                  {step.kind === "user_action" && (
+                    <Button className="px-2.5 py-1 text-xs" onClick={() => setNoteOpen((v) => !v)} disabled={busy}>
+                      J&apos;ai fait cette étape
+                    </Button>
+                  )}
                   <Button variant="ghost" className="px-2.5 py-1 text-xs" onClick={() => update("SKIPPED")} disabled={busy}>
                     Ignorer
                   </Button>

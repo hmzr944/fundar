@@ -242,6 +242,11 @@ export async function updateStepByUser(
   if (!step) throw notFound("Étape");
 
   const status = input.status as StepStatus;
+  if (status === "DONE" && step.kind !== "user_action") {
+    throw badRequest(
+      "Seule une étape « à réaliser par vous » peut être déclarée terminée directement. Pour les autres, laissez Atlas la terminer avec une preuve, ou ignorez-la.",
+    );
+  }
   const patch: Partial<typeof missionSteps.$inferInsert> = { status };
   if (status === "DONE" || status === "SKIPPED") {
     patch.completedBy = "user";

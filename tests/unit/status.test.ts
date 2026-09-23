@@ -22,6 +22,14 @@ describe("stepHasEvidence", () => {
     expect(stepHasEvidence(step({ kind: "user_action", status: "DONE", result: "ok", completedBy: "atlas" }))).toBe(false);
     expect(stepHasEvidence(step({ kind: "user_action", status: "DONE", completedBy: "user" }))).toBe(true);
   });
+  it("does not accept a user declaration as proof for a step kind Atlas itself can verify", () => {
+    // Regression: a user declaring a research/document_analysis/deliverable/planning
+    // step done, with no source/document/artifact, must not count as proven —
+    // only user_action is exempt (the user is the only one who can know it happened).
+    for (const kind of ["research", "document_analysis", "deliverable", "planning"] as const) {
+      expect(stepHasEvidence(step({ kind, status: "DONE", completedBy: "user", evidence: {} }))).toBe(false);
+    }
+  });
   it("rejects an empty result", () => {
     expect(stepHasEvidence(step({ kind: "planning", status: "DONE", result: "  ", completedBy: "atlas" }))).toBe(false);
   });
