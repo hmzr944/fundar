@@ -3,8 +3,9 @@
  * set (they cost money and depend on the network). They check the quality of
  * the understanding phase on real requests, which scripted tests cannot do.
  *
- *   ANTHROPIC_API_KEY=sk-... pnpm test:live
+ *   pnpm test:live   (reads ANTHROPIC_API_KEY and ATLAS_MODEL from the environment or .env)
  */
+import "dotenv/config";
 import { beforeEach, describe, expect, it } from "vitest";
 import { analyzeMission } from "@/server/agent/analyze";
 import { AnthropicProvider } from "@/server/llm/anthropic";

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { analyzeSystemPrompt, calendarBlock, executeSystemPrompt } from "@/server/agent/prompts";
-import { stripToolMarkup } from "@/server/agent/tools";
+import { stripToolMarkup, toolDefinitions } from "@/server/agent/tools";
 import { TavilySearch } from "@/server/search/providers";
 
 const caps = { webSearch: true, searchProvider: "tavily" };
@@ -17,6 +17,18 @@ describe("prompts", () => {
   it("includes the calendar in both phases", () => {
     expect(analyzeSystemPrompt(caps)).toContain("Calendrier des 14 prochains jours");
     expect(executeSystemPrompt(caps)).toContain("Calendrier des 14 prochains jours");
+  });
+
+  it("drops 'provide the document' steps once documents are imported and plans updates of stale deliverables", () => {
+    const p = analyzeSystemPrompt(caps);
+    expect(p).toContain("Si des documents lisibles sont déjà importés, ne garde aucune étape demandant à l'utilisateur de les fournir.");
+    expect(p).toContain("ajoute une nouvelle étape (nouvelle clé) pour les mettre à jour");
+  });
+
+  it("states that 'done' always needs a result, in the prompt and in the tool description", () => {
+    expect(executeSystemPrompt(caps)).toContain("fournis toujours un \"result\" concret");
+    const updateStep = toolDefinitions({ webSearch: true }).find((t) => t.name === "update_step");
+    expect(updateStep?.description).toContain("'done' exige TOUJOURS un 'result' concret");
   });
 
   it("forbids asking for sensitive data such as an IBAN", () => {

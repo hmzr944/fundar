@@ -147,7 +147,7 @@ export function toolDefinitions(opts: { webSearch: boolean }): LlmTool[] {
     {
       name: "update_step",
       description:
-        "Met à jour le statut d'une étape. 'done' exige une preuve selon le type d'étape (source_ids, document_ids, artifact_ids ou result).",
+        "Met à jour le statut d'une étape. 'done' exige TOUJOURS un 'result' concret, plus la preuve propre au type d'étape (research : source_ids ; document_analysis : document_ids ; deliverable : artifact_ids). 'blocked' et 'failed' exigent 'error'.",
       input_schema: {
         type: "object",
         additionalProperties: false,
@@ -155,7 +155,7 @@ export function toolDefinitions(opts: { webSearch: boolean }): LlmTool[] {
         properties: {
           step_id: { type: "string" },
           status: { type: "string", enum: ["in_progress", "done", "waiting_user", "blocked", "failed"] },
-          result: { type: "string", description: "Résultat concret de l'étape (Markdown court)." },
+          result: { type: "string", description: "Résultat concret de l'étape (Markdown court). Obligatoire pour 'done'." },
           error: { type: "string", description: "Explication en cas de blocage ou d'échec." },
           source_ids: { type: "array", items: { type: "string" } },
           artifact_ids: { type: "array", items: { type: "string" } },
