@@ -288,11 +288,17 @@ La procédure de validation avec les vraies clés (connexions, `test:live`, 12 m
 - Isolation des données entre utilisateurs ; suppression (mission, document, données, compte) ; purge de conservation
 - Interface responsive sombre : landing, authentification, tableau de bord, espace de mission, historique, paramètres
 
-### Implémenté mais non vérifié contre le service réel
+### Vérifié en conditions réelles (campagne manuelle, pas seulement par les tests automatiques)
 
 - Appels à Claude (`AnthropicProvider`) : sortie structurée pour l'analyse, outils pour l'exécution, repli en cas de refus
-- Recherche **Tavily** et **Brave**
-- Lecture de pages web publiques réelles
+- Recherche **Tavily** et lecture de pages web publiques réelles
+- Les 12 missions réelles de [`docs/VALIDATION.md`](docs/VALIDATION.md), avec les vérifications de reprise et de sécurité (section E/F)
+
+Résultat détaillé, coûts, défauts trouvés et corrigés : [`docs/VALIDATION-REPORT.md`](docs/VALIDATION-REPORT.md). Décision : **utilisable**.
+
+### Implémenté mais non vérifié contre le service réel
+
+- Recherche **Brave** (le fournisseur alternatif ; seul Tavily a été testé en conditions réelles)
 
 ### Non implémenté (hors périmètre du MVP)
 
