@@ -55,6 +55,15 @@ export async function uploadDocument(
   } catch (e) {
     const message =
       e instanceof UnsupportedFileError ? e.message : "La lecture du document a échoué. Le fichier est peut-être corrompu ou protégé.";
+    // An UnsupportedFileError is an expected, already-descriptive outcome
+    // (bad extension/magic bytes); anything else is unexpected (extraction
+    // library crash, timeout-adjacent failure...) and must not vanish behind
+    // the generic message — log it so a real bug or exploitation attempt
+    // against the extraction libraries is distinguishable from a merely
+    // corrupted file.
+    if (!(e instanceof UnsupportedFileError)) {
+      console.error(`[atlas] document extraction failed (document ${doc.id}, mission ${missionId})`, e);
+    }
     const [updated] = await db
       .update(documents)
       .set({ status: "FAILED", error: message })
