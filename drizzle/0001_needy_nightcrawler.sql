@@ -1,0 +1,2 @@
+ALTER TABLE "mission_steps" ADD COLUMN "active_run_id" uuid;--> statement-breakpoint
+ALTER TABLE "mission_steps" ADD CONSTRAINT "mission_steps_active_run_id_mission_runs_id_fk" FOREIGN KEY ("active_run_id") REFERENCES "public"."mission_runs"("id") ON DELETE set null ON UPDATE no action;

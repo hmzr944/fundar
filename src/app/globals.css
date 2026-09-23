@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #070b14;
+  --bg-elev: #0c1322;
+  --surface: #101a2e;
+  --surface-2: #15213a;
+  --border: #1f2c47;
+  --border-strong: #2c3d61;
+  --text: #e6ecf7;
+  --text-muted: #9aa8c2;
+  --text-faint: #6b7a96;
+  --accent: #6ea8ff;
+  --accent-strong: #4f8dfb;
+  --accent-contrast: #06101f;
+  --success: #4fd1a1;
+  --warning: #f5c26b;
+  --danger: #ff7b7b;
+  --info: #8fb8ff;
+  --violet: #b59cff;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-elev: var(--bg-elev);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-fg: var(--text);
+  --color-muted: var(--text-muted);
+  --color-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-violet: var(--violet);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Rendered markdown (deliverables, reports, messages) */
+.prose-atlas {
+  line-height: 1.65;
+  font-size: 0.925rem;
+  overflow-wrap: anywhere;
+}
+.prose-atlas > * + * {
+  margin-top: 0.7em;
+}
+.prose-atlas h1,
+.prose-atlas h2,
+.prose-atlas h3,
+.prose-atlas h4 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.2em;
+}
+.prose-atlas h1 { font-size: 1.25rem; }
+.prose-atlas h2 { font-size: 1.1rem; }
+.prose-atlas h3 { font-size: 1rem; }
+.prose-atlas a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-atlas ul { list-style: disc; padding-left: 1.3em; }
+.prose-atlas ol { list-style: decimal; padding-left: 1.4em; }
+.prose-atlas li + li { margin-top: 0.25em; }
+.prose-atlas li:has(> input[type="checkbox"]) { list-style: none; margin-left: -1.3em; }
+.prose-atlas input[type="checkbox"] { margin-right: 0.5em; accent-color: var(--accent); }
+.prose-atlas blockquote {
+  border-left: 3px solid var(--border-strong);
+  padding-left: 0.9em;
+  color: var(--text-muted);
+}
+.prose-atlas code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--surface-2);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+.prose-atlas pre {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  padding: 0.8em;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+.prose-atlas pre code { background: none; padding: 0; }
+.prose-atlas hr { border-color: var(--border); margin: 1.2em 0; }
+.prose-atlas .table-wrap { overflow-x: auto; }
+.prose-atlas table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.875rem;
+}
+.prose-atlas th,
+.prose-atlas td {
+  border: 1px solid var(--border);
+  padding: 0.45em 0.65em;
+  text-align: left;
+  vertical-align: top;
+}
+.prose-atlas th { background: var(--surface-2); font-weight: 600; }
+.prose-atlas strong { font-weight: 600; color: var(--text); }
+
+@keyframes atlas-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.animate-atlas-pulse { animation: atlas-pulse 1.6s ease-in-out infinite; }
