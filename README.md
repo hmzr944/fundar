@@ -194,10 +194,10 @@ Preuves exigées pour qu'Atlas termine une étape (`update_step` refuse sinon) :
 
 Une étape marquée faite par l'utilisateur est enregistrée avec `completedBy = "user"` et affichée « Déclarée par vous », distincte de « Exécutée par Atlas ». À la fin d'une exécution, une étape restée « en cours » est rouverte plutôt que présentée comme faite.
 
-**Choix produit assumé : une déclaration de l'utilisateur suffit à clore une étape.** `stepHasEvidence()` l'accepte comme preuve, parce que certaines actions (appeler, payer, signer, envoyer) ne peuvent être réalisées que par l'utilisateur, et qu'Atlas n'a aucun moyen de les vérifier. En contrepartie :
+**Choix produit assumé : une déclaration de l'utilisateur ne clôt que les étapes `user_action`.** `stepHasEvidence()` l'accepte comme preuve uniquement pour ce type d'étape. Certaines actions (appeler, payer, signer, envoyer) ne peuvent être réalisées que par l'utilisateur, et Atlas n'a aucun moyen de les vérifier. En contrepartie :
+- pour les autres types d'étapes (`research`, `document_analysis`, `deliverable`, `planning`), `updateStepByUser()` refuse une déclaration « terminée » (400), et l'interface ne propose pas « J'ai fait cette étape ». L'utilisateur peut seulement les ignorer : l'étape est alors affichée « Ignorée », sans prétendre à aucun résultat ;
 - la déclaration est toujours distinguée d'une exécution vérifiée : badge « Déclarée par vous », message dans la conversation, décompte séparé dans le bilan factuel ;
-- Atlas ne peut jamais clore lui-même une étape `user_action` ;
-- une mission n'est « Terminée » que si les étapes réalisées par Atlas portent leurs propres preuves : une déclaration de l'utilisateur ne remplace pas une source, un document lu ou un livrable manquant sur une autre étape.
+- Atlas ne peut jamais clore lui-même une étape `user_action`.
 
 ---
 
