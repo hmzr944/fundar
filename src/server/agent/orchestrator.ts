@@ -126,6 +126,7 @@ export async function executeMission(
     db,
     userId,
     missionId,
+    runId,
     search: deps.search,
     fetchPage: deps.fetchPage,
     signal,
@@ -150,7 +151,17 @@ export async function executeMission(
   while (!outcome && !finish) {
     // ── Guards ────────────────────────────────────────────────────────────
     const run = await db.query.missionRuns.findFirst({ where: eq(missionRuns.id, runId) });
-    if (signal.aborted || run?.cancelRequested) {
+    if (!run || run.status !== "RUNNING") {
+      // This run's own row was flipped away from RUNNING by something
+      // outside this loop (stale-run recovery is the only source today)
+      // while the loop was still alive. That path already reopened this
+      // run's steps and posted a message about it, so stop immediately
+      // without calling finalizeRun on top of it: doing so would post a
+      // second, contradictory message and could race a resumed run that
+      // has since started on the same mission.
+      return { runStatus: "CANCELLED", stopReason: "Exécution arrêtée : elle n'est plus considérée active par le système.", finished: false };
+    }
+    if (signal.aborted || run.cancelRequested) {
       stop("CANCELLED", "Exécution interrompue à votre demande.");
       break;
     }
@@ -310,11 +321,13 @@ export async function finalizeRun(
     cost: number | null;
   },
 ) {
-  // A step left "in progress" was not finished: reopen it rather than pretend.
+  // A step left "in progress" by THIS run was not finished: reopen it rather
+  // than pretend. Scoped to this run's own steps (activeRunId), never a step
+  // another, still-active run currently owns.
   await db
     .update(missionSteps)
-    .set({ status: "PENDING" })
-    .where(and(eq(missionSteps.missionId, p.missionId), eq(missionSteps.status, "IN_PROGRESS")));
+    .set({ status: "PENDING", activeRunId: null })
+    .where(and(eq(missionSteps.missionId, p.missionId), eq(missionSteps.status, "IN_PROGRESS"), eq(missionSteps.activeRunId, p.runId)));
 
   await db
     .update(missionRuns)

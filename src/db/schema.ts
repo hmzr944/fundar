@@ -156,6 +156,14 @@ export const missionSteps = pgTable(
       .$type<{ sourceIds?: string[]; artifactIds?: string[]; documentIds?: string[] }>()
       .notNull()
       .default({}),
+    /**
+     * The run currently holding this step IN_PROGRESS. Set when a run moves it
+     * to IN_PROGRESS, cleared on any other transition. Lets a run's own
+     * cleanup (finalize, crash handler, stale-run recovery) reopen only the
+     * steps it itself left in progress, never a step another, still-active
+     * run owns.
+     */
+    activeRunId: uuid("active_run_id").references(() => missionRuns.id, { onDelete: "set null" }),
     ...timestamps,
   },
   (t) => [

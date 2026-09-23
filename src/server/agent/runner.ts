@@ -1,4 +1,4 @@
-import { and, count, eq, gte, lt } from "drizzle-orm";
+import { and, count, eq, gte, inArray, lt } from "drizzle-orm";
 import type { Db } from "@/db";
 import { executionLogs, missionRuns, missions, missionSteps, type MissionRun } from "@/db/schema";
 import { conflict, tooMany, unavailable } from "@/server/errors";
@@ -64,10 +64,21 @@ export async function recoverStaleRuns(db: Db, missionId: string, staleSeconds =
     .where(and(eq(missionRuns.missionId, missionId), eq(missionRuns.status, "RUNNING"), lt(missionRuns.heartbeatAt, threshold)))
     .returning();
   if (!stale.length) return false;
+  // Scoped to the steps owned by the run(s) just marked stale — never a step
+  // a different, genuinely still-running run currently owns.
   await db
     .update(missionSteps)
-    .set({ status: "PENDING" })
-    .where(and(eq(missionSteps.missionId, missionId), eq(missionSteps.status, "IN_PROGRESS")));
+    .set({ status: "PENDING", activeRunId: null })
+    .where(
+      and(
+        eq(missionSteps.missionId, missionId),
+        eq(missionSteps.status, "IN_PROGRESS"),
+        inArray(
+          missionSteps.activeRunId,
+          stale.map((r) => r.id),
+        ),
+      ),
+    );
   await addMessage(
     db,
     missionId,
@@ -189,10 +200,12 @@ export async function startExecution(deps: AgentDeps, userId: string, missionId:
         .update(missionRuns)
         .set({ status: "FAILED", finishedAt: new Date(), stopReason: "Erreur interne." })
         .where(and(eq(missionRuns.id, run.id), eq(missionRuns.status, "RUNNING")));
+      // Scoped to this run's own steps: a step another, still-active run
+      // owns must not be reopened by this run's crash handler.
       await deps.db
         .update(missionSteps)
-        .set({ status: "PENDING" })
-        .where(and(eq(missionSteps.missionId, missionId), eq(missionSteps.status, "IN_PROGRESS")));
+        .set({ status: "PENDING", activeRunId: null })
+        .where(and(eq(missionSteps.missionId, missionId), eq(missionSteps.status, "IN_PROGRESS"), eq(missionSteps.activeRunId, run.id)));
       await addMessage(deps.db, missionId, "event", "Une erreur interne a interrompu l'exécution. Le travail déjà réalisé est conservé.", {
         kind: "run_crashed",
       });

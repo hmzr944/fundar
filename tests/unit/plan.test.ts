@@ -16,6 +16,7 @@ const existing = (key: string, status: MissionStep["status"], position: number):
   error: status === "BLOCKED" ? "bloqué" : null,
   completedBy: status === "DONE" ? "atlas" : null,
   evidence: {},
+  activeRunId: status === "IN_PROGRESS" ? "run-1" : null,
   createdAt: new Date(),
   updatedAt: new Date(),
 });

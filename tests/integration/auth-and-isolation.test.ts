@@ -99,7 +99,7 @@ describe("data isolation between users", () => {
 
     // Agent tools are scoped to the mission owner too.
     const evesMission = await createMission(db, eve.id, "Autre mission");
-    const ctx = { db, userId: eve.id, missionId: evesMission.id, search: null, fetchPage: noFetch, readDocumentIds: new Set<string>() };
+    const ctx = { db, userId: eve.id, missionId: evesMission.id, runId: "00000000-0000-0000-0000-000000000000", search: null, fetchPage: noFetch, readDocumentIds: new Set<string>() };
     const read = await executeTool(ctx, "read_document", { document_id: doc.id });
     expect(read.ok).toBe(false);
     const upd = await executeTool(ctx, "update_step", { step_id: step.id, status: "in_progress" });

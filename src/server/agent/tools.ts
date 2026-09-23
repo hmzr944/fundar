@@ -31,6 +31,8 @@ export type ToolContext = {
   db: Db;
   userId: string;
   missionId: string;
+  /** The run this tool call belongs to, so step ownership can be scoped per run. */
+  runId: string;
   search: SearchProvider | null;
   fetchPage: PageFetcher;
   signal?: AbortSignal;
@@ -338,6 +340,26 @@ const handlers: { [K in ToolName]: (ctx: ToolContext, input: z.infer<(typeof inp
       });
       if (!step) return fail("not_found", "Étape introuvable dans cette mission.");
       stepId = step.id;
+      // Idempotency: a crash between creating the artifact and closing the
+      // step reopens the step on resume, and the model may redo it. Reuse
+      // the existing artifact of the same type for that step instead of
+      // creating a duplicate; a step legitimately producing several
+      // deliverables of *different* types is unaffected.
+      const existing = await ctx.db.query.artifacts.findFirst({
+        where: and(eq(artifacts.missionId, ctx.missionId), eq(artifacts.stepId, stepId), eq(artifacts.type, input.type)),
+      });
+      if (existing) {
+        return {
+          ok: true,
+          content: {
+            ok: true,
+            artifact_id: existing.id,
+            title: existing.name,
+            note: "Un livrable de ce type existe déjà pour cette étape ; réutilisé au lieu d'en créer un doublon.",
+          },
+          logDetails: { artifactId: existing.id, type: input.type, reused: true },
+        };
+      }
     }
     const [art] = await ctx.db
       .insert(artifacts)
@@ -425,6 +447,10 @@ const handlers: { [K in ToolName]: (ctx: ToolContext, input: z.infer<(typeof inp
         error: status === "BLOCKED" || status === "FAILED" ? input.error!.trim() : null,
         completedBy: status === "DONE" ? "atlas" : null,
         evidence: status === "DONE" ? evidence : step.evidence,
+        // IN_PROGRESS records which run owns the step, so only that run's own
+        // cleanup (finalize, crash handler, stale-run recovery) may reopen it;
+        // any other transition releases that ownership.
+        activeRunId: status === "IN_PROGRESS" ? ctx.runId : null,
       })
       .where(eq(missionSteps.id, step.id));
     await ctx.db.update(missions).set({ updatedAt: new Date() }).where(eq(missions.id, ctx.missionId));

@@ -15,7 +15,7 @@ describe("fetch_page tool", () => {
     await addMessage(db, mission.id, "user", "Voici le lien : https://example.org/grande-page");
     const partial: PageFetcher = async (url) => ({ url, title: "Grande page", text: "Début du contenu", truncated: true });
     const complete: PageFetcher = async (url) => ({ url, title: "Petite page", text: "Tout le contenu", truncated: false });
-    const ctx = (fetchPage: PageFetcher) => ({ db, userId: user.id, missionId: mission.id, search: null, fetchPage, readDocumentIds: new Set<string>() });
+    const ctx = (fetchPage: PageFetcher) => ({ db, userId: user.id, missionId: mission.id, runId: "00000000-0000-0000-0000-000000000000", search: null, fetchPage, readDocumentIds: new Set<string>() });
 
     const cut = await executeTool(ctx(partial), "fetch_page", { url: "https://example.org/grande-page" });
     expect(cut.ok).toBe(true);

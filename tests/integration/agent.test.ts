@@ -7,9 +7,11 @@
  */
 import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
-import { executionLogs, missionRuns, missions, sources } from "@/db/schema";
+import { executionLogs, missionRuns, missions, missionSteps, sources } from "@/db/schema";
 import { analyzeMission } from "@/server/agent/analyze";
+import { finalizeRun } from "@/server/agent/orchestrator";
 import { cancelRun, recoverStaleRuns, startAnalysis, startExecution } from "@/server/agent/runner";
+import { executeTool } from "@/server/agent/tools";
 import { ScriptedProvider, lastToolResults, textResult, toolCallsResult } from "@/server/llm/scripted";
 import { LlmError } from "@/server/llm/types";
 import { addMessage, createMission, getMissionDetail, updateStepByUser } from "@/server/missions/service";
@@ -362,6 +364,43 @@ describe("orchestration", () => {
     expect(d.mission.status).toBe("PLANNED");
   });
 
+  it("stops itself as soon as its own run is no longer RUNNING, without re-finalizing over the external recovery", async () => {
+    // Regression: the loop only ever checked cancelRequested, never its own
+    // run's status. A run whose row was flipped away from RUNNING by
+    // stale-run recovery (heartbeat lag while the process was still alive)
+    // kept calling the model and tools under a run id the system already
+    // considered dead.
+    const { user, mission, ids } = await plannedMission([{ key: "a", title: "Organiser", description: "", kind: "planning", depends_on: [] }]);
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const llm = new ScriptedProvider(async (req) => {
+      if (turn(req) === 0) return toolCallsResult([{ name: "update_step", input: { step_id: ids.a, status: "in_progress" } }]);
+      await gate;
+      return toolCallsResult([{ name: "list_history", input: {} }]);
+    });
+    const deps = makeDeps(llm);
+    const { run, done } = await startExecution(deps, user.id, mission.id);
+    while (llm.calls.length < 2) await new Promise((r) => setTimeout(r, 10));
+    // Simulate what recoverStaleRuns() does, from a concurrent request, while
+    // this run's process is still alive and mid-call.
+    await db
+      .update(missionRuns)
+      .set({ status: "INTERRUPTED", stopReason: "Exécution interrompue (serveur redémarré ou délai dépassé)." })
+      .where(eq(missionRuns.id, run.id));
+    await db.update(missionSteps).set({ status: "PENDING", activeRunId: null }).where(eq(missionSteps.id, ids.a));
+    release();
+    await done;
+    // Only the two calls before the external flip: the loop noticed at the
+    // next guard check and stopped instead of calling the model again.
+    expect(llm.calls.length).toBe(2);
+    const d = await getMissionDetail(db, user.id, mission.id);
+    // The external recovery's own status/message stand: not overwritten by
+    // this run's own finalize (which would have posted a second, different
+    // "run stopped" message and could have clobbered a resumed run).
+    expect(d.runs[0]).toMatchObject({ status: "INTERRUPTED" });
+    expect(d.steps[0]).toMatchObject({ status: "PENDING", activeRunId: null });
+  });
+
   it("refuses a user declaration of DONE on a step Atlas is meant to prove, but allows skipping it", async () => {
     // Regression: completedBy:"user" used to satisfy stepHasEvidence for any
     // step kind, letting a mission reach COMPLETED on an unverified claim.
@@ -377,15 +416,73 @@ describe("orchestration", () => {
 
   it("recovers runs interrupted by a server restart", async () => {
     const { user, mission, ids } = await plannedMission([{ key: "a", title: "Organiser", description: "", kind: "planning", depends_on: [] }]);
-    await db.insert(missionRuns).values({ missionId: mission.id, userId: user.id, kind: "execution", heartbeatAt: new Date(Date.now() - 3600_000) });
+    const [staleRun] = await db
+      .insert(missionRuns)
+      .values({ missionId: mission.id, userId: user.id, kind: "execution", heartbeatAt: new Date(Date.now() - 3600_000) })
+      .returning();
     await db.update(missions).set({ status: "IN_PROGRESS" }).where(eq(missions.id, mission.id));
-    const { missionSteps } = await import("@/db/schema");
-    await db.update(missionSteps).set({ status: "IN_PROGRESS" }).where(eq(missionSteps.id, ids.a));
+    await db.update(missionSteps).set({ status: "IN_PROGRESS", activeRunId: staleRun.id }).where(eq(missionSteps.id, ids.a));
     expect(await recoverStaleRuns(db, mission.id, 180)).toBe(true);
     const d = await getMissionDetail(db, user.id, mission.id);
-    expect(d.runs[0].status).toBe("INTERRUPTED");
+    expect(d.runs.find((r) => r.id === staleRun.id)?.status).toBe("INTERRUPTED");
     expect(d.steps[0].status).toBe("PENDING");
     expect(d.mission.status).toBe("PLANNED");
+  });
+
+  it("finalizeRun only reopens the steps its own run left in progress", async () => {
+    // Regression: finalizeRun() used to reopen every IN_PROGRESS step of the
+    // mission, not just the ones its own run left in progress — it could
+    // clobber a second, still-active run's in-flight step. This is exactly
+    // what happens once the orchestrator's own run has been flipped away
+    // from RUNNING (by stale-run recovery) while it was still alive: by the
+    // time its finalize eventually runs, its row is no longer RUNNING, but a
+    // new run for the same mission may legitimately be RUNNING by then (the
+    // single-active-run index only ever allows one RUNNING row at a time).
+    const { user, mission, ids } = await plannedMission([
+      { key: "a", title: "Étape A", description: "", kind: "planning", depends_on: [] },
+      { key: "b", title: "Étape B", description: "", kind: "planning", depends_on: [] },
+    ]);
+    const [runA] = await db.insert(missionRuns).values({ missionId: mission.id, userId: user.id, kind: "execution" }).returning();
+    await db.update(missionRuns).set({ status: "INTERRUPTED" }).where(eq(missionRuns.id, runA.id));
+    const [runB] = await db.insert(missionRuns).values({ missionId: mission.id, userId: user.id, kind: "execution" }).returning();
+    await db.update(missionSteps).set({ status: "IN_PROGRESS", activeRunId: runA.id }).where(eq(missionSteps.id, ids.a));
+    await db.update(missionSteps).set({ status: "IN_PROGRESS", activeRunId: runB.id }).where(eq(missionSteps.id, ids.b));
+
+    await finalizeRun(db, {
+      runId: runA.id,
+      missionId: mission.id,
+      outcome: { runStatus: "STOPPED", stopReason: "Limite atteinte.", finished: false },
+      finish: null,
+      cost: null,
+    });
+
+    const steps = await stepsOf(mission.id);
+    expect(steps.find((s) => s.key === "a")).toMatchObject({ status: "PENDING", activeRunId: null });
+    expect(steps.find((s) => s.key === "b")).toMatchObject({ status: "IN_PROGRESS", activeRunId: runB.id });
+  });
+
+  it("create_deliverable is idempotent per step and type, so a resumed run does not duplicate a deliverable", async () => {
+    // Regression: resuming after a crash relied only on a prompt hint to
+    // avoid recreating a deliverable a prior, unfinished run already made.
+    const { user, mission, ids } = await plannedMission([{ key: "d", title: "Comparatif", description: "", kind: "deliverable", depends_on: [] }]);
+    const ctx = {
+      db,
+      userId: user.id,
+      missionId: mission.id,
+      runId: "11111111-1111-1111-1111-111111111111",
+      search: null,
+      fetchPage: async () => {
+        throw new Error("not used");
+      },
+      readDocumentIds: new Set<string>(),
+    };
+    const input = { type: "comparison_table" as const, title: "Comparatif", step_id: ids.d, content_markdown: "| A | B |\n|---|---|\n| 1 | 2 |" };
+    const first = await executeTool(ctx, "create_deliverable", input);
+    const second = await executeTool(ctx, "create_deliverable", { ...input, title: "Comparatif (repris)" });
+    expect(first.content).toMatchObject({ ok: true });
+    expect(second.content).toMatchObject({ ok: true, artifact_id: (first.content as { artifact_id: string }).artifact_id });
+    const d = await getMissionDetail(db, user.id, mission.id);
+    expect(d.artifacts).toHaveLength(1);
   });
 
   it("treats web and document content as untrusted data and blocks exfiltration URLs", async () => {
