@@ -125,6 +125,11 @@ export const missions = pgTable(
     remainingActions: jsonb("remaining_actions").$type<string[]>().notNull().default([]),
     limitations: jsonb("limitations").$type<string[]>().notNull().default([]),
     lastError: text("last_error"),
+    /**
+     * Random reference used by the usage ledger instead of the mission id, so
+     * that ledger rows cannot be joined back to missions once they are deleted.
+     */
+    usageRef: uuid("usage_ref").notNull().defaultRandom(),
     ...timestamps,
   },
   (t) => [
@@ -323,3 +328,46 @@ export type MissionStatus = (typeof missionStatus.enumValues)[number];
 export type StepStatus = (typeof stepStatus.enumValues)[number];
 export type StepKind = (typeof stepKind.enumValues)[number];
 export type ArtifactType = (typeof artifactType.enumValues)[number];
+
+/**
+ * Usage ledger: one row per analysis or execution run, kept independently of
+ * missions (quotas and pilot economics survive mission deletion). Holds counters
+ * and costs only, never content. On account deletion rows are anonymized.
+ */
+export const usageRecords = pgTable(
+  "usage_records",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** Null once the account is deleted (anonymized row). */
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    /** Copy of missions.usage_ref (no foreign key); re-randomized on anonymization. */
+    missionRef: uuid("mission_ref").notNull(),
+    /** Run being measured (no foreign key); cleared on anonymization. */
+    runId: uuid("run_id"),
+    kind: runKind("kind").notNull(),
+    model: text("model"),
+    searchProvider: text("search_provider"),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    durationMs: integer("duration_ms"),
+    outcome: runStatus("outcome"),
+    llmCalls: integer("llm_calls").notNull().default(0),
+    toolCalls: integer("tool_calls").notNull().default(0),
+    webSearches: integer("web_searches").notNull().default(0),
+    pagesFetched: integer("pages_fetched").notNull().default(0),
+    errors: integer("errors").notNull().default(0),
+    inputTokens: integer("input_tokens").notNull().default(0),
+    outputTokens: integer("output_tokens").notNull().default(0),
+    /** Null when a model call had no known price. */
+    estimatedCostUsd: numeric("estimated_cost_usd", { precision: 12, scale: 6 }),
+    pricingVersion: text("pricing_version"),
+    anonymizedAt: timestamp("anonymized_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("usage_user_kind_started_idx").on(t.userId, t.kind, t.startedAt),
+    index("usage_run_idx").on(t.runId),
+    index("usage_started_idx").on(t.startedAt),
+  ],
+);
+
+export type UsageRecord = typeof usageRecords.$inferSelect;

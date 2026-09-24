@@ -1,10 +1,9 @@
-import { and, desc, eq, ilike, inArray, or, gte, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/db";
 import {
   artifacts,
   documents,
-  executionLogs,
   messages,
   missionRuns,
   missions,
@@ -17,6 +16,7 @@ import {
 import type { Analysis } from "@/server/agent/analysis-schema";
 import { badRequest, conflict, notFound } from "@/server/errors";
 import type { FileStorage } from "@/server/documents/storage";
+import { closeUsageForMissions } from "@/server/usage";
 import { mergePlan } from "./plan";
 import { ACTIVE_STATUSES, deriveMissionStatus, NEEDS_ACTION_STATUSES } from "./status";
 
@@ -268,6 +268,8 @@ export async function deleteMission(db: Db, storage: FileStorage, userId: string
     throw conflict("Interrompez l'exécution en cours avant de supprimer la mission.");
   }
   const docs = await db.select({ key: documents.storageKey }).from(documents).where(eq(documents.missionId, missionId));
+  // Record the final totals in the usage ledger before the logs disappear with the mission.
+  await closeUsageForMissions(db, [missionId]);
   await db.delete(missions).where(and(eq(missions.id, missionId), eq(missions.userId, userId)));
   // Files are removed after the rows: an orphan file is harmless, a row pointing to a missing file is not.
   await Promise.allSettled(docs.map((d) => storage.delete(d.key)));
@@ -280,20 +282,3 @@ export async function renameMission(db: Db, userId: string, missionId: string, t
   await db.update(missions).set({ title: t }).where(eq(missions.id, missionId));
 }
 
-/** Usage summary for the settings page (real numbers from the logs). */
-export async function usageSummary(db: Db, userId: string, sinceDays = 30) {
-  const since = new Date(Date.now() - sinceDays * 86_400_000);
-  const [row] = await db
-    .select({
-      llmCalls: sql<number>`count(*) filter (where ${executionLogs.kind} like 'llm:%')::int`,
-      toolCalls: sql<number>`count(*) filter (where ${executionLogs.kind} like 'tool:%')::int`,
-      errors: sql<number>`count(*) filter (where ${executionLogs.status} <> 'ok')::int`,
-      inputTokens: sql<number>`coalesce(sum(${executionLogs.inputTokens}),0)::int`,
-      outputTokens: sql<number>`coalesce(sum(${executionLogs.outputTokens}),0)::int`,
-      estimatedCostUsd: sql<string | null>`sum(${executionLogs.estimatedCostUsd})::text`,
-    })
-    .from(executionLogs)
-    .innerJoin(missions, eq(missions.id, executionLogs.missionId))
-    .where(and(eq(missions.userId, userId), gte(executionLogs.createdAt, since)));
-  return row;
-}

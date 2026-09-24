@@ -1,4 +1,4 @@
-import { and, count, eq, gte, lt } from "drizzle-orm";
+import { and, eq, lt } from "drizzle-orm";
 import type { Db } from "@/db";
 import { executionLogs, missionRuns, missions, missionSteps, type MissionRun } from "@/db/schema";
 import { conflict, tooMany, unavailable } from "@/server/errors";
@@ -6,6 +6,7 @@ import { LlmError, type LlmProvider } from "@/server/llm/types";
 import { addMessage, getOwnedMission, refreshMissionStatus } from "@/server/missions/service";
 import type { PageFetcher } from "@/server/search/fetch-page";
 import type { SearchProvider } from "@/server/search/providers";
+import { closeUsageRecords, openUsageRecord, runsInLastDay } from "@/server/usage";
 import { analyzeMission } from "./analyze";
 import { executeMission, type RunLimits } from "./orchestrator";
 import type { Capabilities } from "./prompts";
@@ -38,12 +39,8 @@ async function assertNoActiveRun(db: Db, missionId: string, staleSeconds: number
 }
 
 async function assertQuota(db: Db, userId: string, kind: "analysis" | "execution", max: number) {
-  const since = new Date(Date.now() - 86_400_000);
-  const [{ n }] = await db
-    .select({ n: count() })
-    .from(missionRuns)
-    .where(and(eq(missionRuns.userId, userId), eq(missionRuns.kind, kind), gte(missionRuns.startedAt, since)));
-  if (n >= max) {
+  // Counted on the usage ledger, which deleting a mission does not touch.
+  if ((await runsInLastDay(db, userId, kind)) >= max) {
     throw tooMany(
       kind === "analysis"
         ? `Limite quotidienne d'analyses atteinte (${max} par 24 h).`
@@ -64,6 +61,10 @@ export async function recoverStaleRuns(db: Db, missionId: string, staleSeconds =
     .where(and(eq(missionRuns.missionId, missionId), eq(missionRuns.status, "RUNNING"), lt(missionRuns.heartbeatAt, threshold)))
     .returning();
   if (!stale.length) return false;
+  await closeUsageRecords(
+    db,
+    stale.map((r) => r.id),
+  ).catch((e) => console.error("[atlas] usage ledger close failed", e));
   await db
     .update(missionSteps)
     .set({ status: "PENDING" })
@@ -79,10 +80,23 @@ export async function recoverStaleRuns(db: Db, missionId: string, staleSeconds =
   return true;
 }
 
-async function createRun(db: Db, userId: string, missionId: string, kind: "analysis" | "execution") {
+async function createRun(deps: AgentDeps, userId: string, missionId: string, kind: "analysis" | "execution") {
+  const db = deps.db;
   let run: MissionRun;
   try {
-    [run] = await db.insert(missionRuns).values({ userId, missionId, kind, status: "RUNNING" }).returning();
+    // The run and its usage ledger row are created together: a run is always counted.
+    run = await db.transaction(async (tx) => {
+      const [r] = await tx.insert(missionRuns).values({ userId, missionId, kind, status: "RUNNING" }).returning();
+      await openUsageRecord(tx, {
+        userId,
+        missionId,
+        runId: r.id,
+        kind,
+        model: deps.llm?.model ?? null,
+        searchProvider: kind === "execution" ? (deps.search?.name ?? null) : null,
+      });
+      return r;
+    });
   } catch (e) {
     // Unique partial index: another request started a run concurrently.
     if ((e as { cause?: { code?: string }; code?: string }).cause?.code === "23505" || (e as { code?: string }).code === "23505") {
@@ -111,7 +125,7 @@ export async function startAnalysis(deps: AgentDeps, userId: string, missionId: 
   }
   await assertNoActiveRun(deps.db, missionId, deps.limits.staleRunSeconds);
   await assertQuota(deps.db, userId, "analysis", deps.limits.analysesPerDay);
-  const run = await createRun(deps.db, userId, missionId, "analysis");
+  const run = await createRun(deps, userId, missionId, "analysis");
   const ctrl = track(run.id);
   const llm = deps.llm;
 
@@ -150,6 +164,7 @@ export async function startAnalysis(deps: AgentDeps, userId: string, missionId: 
     } finally {
       clearInterval(beat);
       controllers.delete(run.id);
+      await closeUsageRecords(deps.db, [run.id]).catch((e) => console.error("[atlas] usage ledger close failed", e));
     }
   })();
   return { run, done };
@@ -169,7 +184,7 @@ export async function startExecution(deps: AgentDeps, userId: string, missionId:
   if (!runnable.length) throw conflict("Il ne reste aucune étape qu'Atlas puisse exécuter. Les étapes restantes vous reviennent.");
   await assertQuota(deps.db, userId, "execution", deps.limits.runsPerDay);
 
-  const run = await createRun(deps.db, userId, missionId, "execution");
+  const run = await createRun(deps, userId, missionId, "execution");
   const ctrl = track(run.id);
   const llm = deps.llm;
   await addMessage(deps.db, missionId, "event", "Atlas commence l'exécution du plan.", { kind: "run_started", runId: run.id });
@@ -200,6 +215,7 @@ export async function startExecution(deps: AgentDeps, userId: string, missionId:
     } finally {
       clearInterval(beat);
       controllers.delete(run.id);
+      await closeUsageRecords(deps.db, [run.id]).catch((e) => console.error("[atlas] usage ledger close failed", e));
     }
   })();
   return { run, done };

@@ -56,6 +56,9 @@ export interface LlmProvider {
   complete(req: LlmRequest): Promise<LlmResult>;
 }
 
+/** Version of the price table below, recorded with each usage ledger row. */
+export const PRICING_VERSION = "2026-09";
+
 /**
  * Public list prices in USD per million tokens, used for *estimates* only.
  * Unknown models yield `null` rather than a made-up number.

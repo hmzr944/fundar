@@ -5,7 +5,7 @@ import { Card, SectionTitle } from "@/components/ui";
 import { config } from "@/lib/config";
 import { requirePageUser } from "@/lib/http";
 import { integrationStatus } from "@/server/deps";
-import { usageSummary } from "@/server/missions/service";
+import { usageSummary } from "@/server/usage";
 
 export const metadata: Metadata = { title: "Paramètres" };
 

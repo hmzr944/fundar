@@ -4,6 +4,7 @@ import type { Db } from "@/db";
 import { documents, missionRuns, missions, users } from "@/db/schema";
 import { badRequest, conflict } from "./errors";
 import type { FileStorage } from "./documents/storage";
+import { anonymizeUsage, closeUsageForMissions } from "./usage";
 
 async function assertNoRunning(db: Db, userId: string) {
   const running = await db.query.missionRuns.findFirst({
@@ -16,6 +17,11 @@ async function assertNoRunning(db: Db, userId: string) {
 export async function deleteAllUserData(db: Db, storage: FileStorage, userId: string) {
   await assertNoRunning(db, userId);
   const docs = await db.select({ key: documents.storageKey }).from(documents).where(eq(documents.userId, userId));
+  const owned = await db.select({ id: missions.id }).from(missions).where(eq(missions.userId, userId));
+  await closeUsageForMissions(
+    db,
+    owned.map((m) => m.id),
+  );
   await db.delete(missions).where(eq(missions.userId, userId));
   await Promise.allSettled(docs.map((d) => storage.delete(d.key)));
   return { deletedFiles: docs.length };
@@ -26,6 +32,8 @@ export async function deleteAccount(db: Db, storage: FileStorage, userId: string
   const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
   if (!user || !(await bcrypt.compare(password, user.passwordHash))) throw badRequest("Mot de passe incorrect.");
   await deleteAllUserData(db, storage, userId);
+  // Before deleting the user: afterwards the foreign key would only null user_id, leaving the rest identifiable.
+  await anonymizeUsage(db, userId);
   await db.delete(users).where(eq(users.id, userId));
 }
 
@@ -36,6 +44,7 @@ export async function purgeInactiveMissions(db: Db, storage: FileStorage, days: 
   if (!old.length) return { missions: 0, files: 0 };
   const ids = old.map((m) => m.id);
   const docs = await db.select({ key: documents.storageKey }).from(documents).where(inArray(documents.missionId, ids));
+  await closeUsageForMissions(db, ids);
   await db.delete(missions).where(inArray(missions.id, ids));
   await Promise.allSettled(docs.map((d) => storage.delete(d.key)));
   return { missions: ids.length, files: docs.length };

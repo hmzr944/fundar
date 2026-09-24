@@ -12,7 +12,7 @@ export const db: Db = getDb();
 
 export async function resetDb() {
   await db.execute(
-    sql`truncate table execution_logs, mission_runs, sources, artifacts, documents, messages, mission_steps, missions, sessions, users restart identity cascade`,
+    sql`truncate table usage_records, execution_logs, mission_runs, sources, artifacts, documents, messages, mission_steps, missions, sessions, users restart identity cascade`,
   );
 }
 
