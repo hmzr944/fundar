@@ -6,13 +6,13 @@ import type { AgentDeps } from "@/server/agent/runner";
 import type { LlmProvider } from "@/server/llm/types";
 import type { PageFetcher } from "@/server/search/fetch-page";
 import type { SearchProvider, SearchResult } from "@/server/search/providers";
-import type { FileStorage } from "@/server/documents/storage";
+import { MissingFileError, type FileStorage } from "@/server/documents/storage";
 
 export const db: Db = getDb();
 
 export async function resetDb() {
   await db.execute(
-    sql`truncate table app_settings, usage_records, execution_logs, mission_runs, sources, artifacts, documents, messages, mission_steps, missions, sessions, users restart identity cascade`,
+    sql`truncate table file_deletions, app_settings, usage_records, execution_logs, mission_runs, sources, artifacts, documents, messages, mission_steps, missions, sessions, users restart identity cascade`,
   );
 }
 
@@ -31,7 +31,7 @@ export class MemoryStorage implements FileStorage {
   }
   async get(key: string) {
     const f = this.files.get(key);
-    if (!f) throw new Error("missing");
+    if (!f) throw new MissingFileError(key);
     return f;
   }
   async delete(key: string) {

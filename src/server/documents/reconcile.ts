@@ -1,13 +1,16 @@
 import { eq } from "drizzle-orm";
 import type { Db } from "@/db";
 import { documents } from "@/db/schema";
+import { queuedKeys } from "./deletions";
 import type { LocalFileStorage } from "./storage";
 
 export type ReconcileReport = {
   filesOnDisk: number;
   documentsInDb: number;
-  /** Files on disk that no document references. */
+  /** Files on disk that no document references (excluding files already queued for erasure). */
   orphans: { key: string; ageHours: number }[];
+  /** Files on disk waiting in the deletion queue (handled by the queue, not here). */
+  queued: number;
   /** Documents whose file is missing from disk (data loss to investigate). */
   missing: { documentId: string; key: string }[];
   emptyUserDirs: string[];
@@ -40,14 +43,15 @@ export async function reconcileStorage(
   const rows = await db.select({ id: documents.id, key: documents.storageKey }).from(documents);
   const referenced = new Set(rows.map((r) => r.key));
   const present = new Set(onDisk.map((f) => f.key));
+  const inQueue = await queuedKeys(db);
+  const unreferenced = onDisk.filter((f) => !referenced.has(f.key) && !inQueue.has(f.key));
 
   const report: ReconcileReport = {
     filesOnDisk: onDisk.length,
     documentsInDb: rows.length,
-    orphans: onDisk
-      .filter((f) => !referenced.has(f.key))
-      .map((f) => ({ key: f.key, ageHours: Math.floor((now.getTime() - f.modifiedAt.getTime()) / 3_600_000) })),
+    orphans: unreferenced.map((f) => ({ key: f.key, ageHours: Math.floor((now.getTime() - f.modifiedAt.getTime()) / 3_600_000) })),
     missing: rows.filter((r) => !present.has(r.key)).map((r) => ({ documentId: r.id, key: r.key })),
+    queued: onDisk.filter((f) => inQueue.has(f.key)).length,
     emptyUserDirs: [],
     deletedOrphans: 0,
     removedDirs: 0,
@@ -66,7 +70,7 @@ export async function reconcileStorage(
   const deleting = Boolean(opts.deleteOrphans && !report.blocked);
 
   if (deleting) {
-    for (const o of onDisk.filter((f) => !referenced.has(f.key) && now.getTime() - f.modifiedAt.getTime() >= minAge)) {
+    for (const o of unreferenced.filter((f) => now.getTime() - f.modifiedAt.getTime() >= minAge)) {
       // Re-check right before deleting: a document may have been created since the listing.
       const [stillReferenced] = await db.select({ id: documents.id }).from(documents).where(eq(documents.storageKey, o.key)).limit(1);
       if (stillReferenced) continue;

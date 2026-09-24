@@ -27,6 +27,7 @@ async function main() {
   console.log(`Fichiers sur disque : ${r.filesOnDisk} — documents en base : ${r.documentsInDb}`);
   console.log(`Fichiers orphelins : ${r.orphans.length}${deleteOrphans ? ` (supprimés : ${r.deletedOrphans}, les plus récents que 24 h sont conservés)` : ""}`);
   for (const o of r.orphans) console.log(`  - ${o.key} (${o.ageHours} h)`);
+  console.log(`Fichiers en attente dans la file de suppression : ${r.queued}`);
   console.log(`Fichiers manquants (document en base, fichier absent) : ${r.missing.length}`);
   for (const m of r.missing) console.log(`  - document ${m.documentId} → ${m.key}`);
   console.log(`Répertoires utilisateurs vides : ${r.emptyUserDirs.length}${deleteOrphans ? ` (supprimés : ${r.removedDirs})` : ""}`);

@@ -3,6 +3,7 @@ import { and, eq, lt, inArray } from "drizzle-orm";
 import type { Db } from "@/db";
 import { documents, missionRuns, missions, users } from "@/db/schema";
 import { badRequest, conflict } from "./errors";
+import { processFileDeletions, queueFileDeletions } from "./documents/deletions";
 import type { FileStorage } from "./documents/storage";
 import { anonymizeUsage, closeUsageForMissions } from "./usage";
 
@@ -22,9 +23,14 @@ export async function deleteAllUserData(db: Db, storage: FileStorage, userId: st
     db,
     owned.map((m) => m.id),
   );
-  await db.delete(missions).where(eq(missions.userId, userId));
-  await Promise.allSettled(docs.map((d) => storage.delete(d.key)));
-  return { deletedFiles: docs.length };
+  const keys = docs.map((d) => d.key);
+  await db.transaction(async (tx) => {
+    await queueFileDeletions(tx, keys);
+    await tx.delete(missions).where(eq(missions.userId, userId));
+  });
+  const res = await processFileDeletions(db, storage, keys);
+  // Files still queued (storage failure) are retried by the nightly purge.
+  return { deletedFiles: res.deleted, pendingFiles: keys.length - res.deleted };
 }
 
 /** Deletes the account itself after password confirmation. */
@@ -45,7 +51,11 @@ export async function purgeInactiveMissions(db: Db, storage: FileStorage, days: 
   const ids = old.map((m) => m.id);
   const docs = await db.select({ key: documents.storageKey }).from(documents).where(inArray(documents.missionId, ids));
   await closeUsageForMissions(db, ids);
-  await db.delete(missions).where(inArray(missions.id, ids));
-  await Promise.allSettled(docs.map((d) => storage.delete(d.key)));
+  const keys = docs.map((d) => d.key);
+  await db.transaction(async (tx) => {
+    await queueFileDeletions(tx, keys);
+    await tx.delete(missions).where(inArray(missions.id, ids));
+  });
+  await processFileDeletions(db, storage, keys);
   return { missions: ids.length, files: docs.length };
 }

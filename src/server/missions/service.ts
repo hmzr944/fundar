@@ -16,6 +16,7 @@ import {
 import type { Analysis } from "@/server/agent/analysis-schema";
 import { badRequest, conflict, notFound } from "@/server/errors";
 import type { FileStorage } from "@/server/documents/storage";
+import { processFileDeletions, queueFileDeletions } from "@/server/documents/deletions";
 import { closeUsageForMissions } from "@/server/usage";
 import { mergePlan } from "./plan";
 import { ACTIVE_STATUSES, deriveMissionStatus, NEEDS_ACTION_STATUSES } from "./status";
@@ -270,9 +271,12 @@ export async function deleteMission(db: Db, storage: FileStorage, userId: string
   const docs = await db.select({ key: documents.storageKey }).from(documents).where(eq(documents.missionId, missionId));
   // Record the final totals in the usage ledger before the logs disappear with the mission.
   await closeUsageForMissions(db, [missionId]);
-  await db.delete(missions).where(and(eq(missions.id, missionId), eq(missions.userId, userId)));
-  // Files are removed after the rows: an orphan file is harmless, a row pointing to a missing file is not.
-  await Promise.allSettled(docs.map((d) => storage.delete(d.key)));
+  const keys = docs.map((d) => d.key);
+  await db.transaction(async (tx) => {
+    await queueFileDeletions(tx, keys);
+    await tx.delete(missions).where(and(eq(missions.id, missionId), eq(missions.userId, userId)));
+  });
+  await processFileDeletions(db, storage, keys);
 }
 
 export async function renameMission(db: Db, userId: string, missionId: string, title: string) {

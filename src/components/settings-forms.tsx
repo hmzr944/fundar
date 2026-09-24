@@ -54,8 +54,13 @@ export function DangerZone() {
     if (!confirm("Supprimer TOUTES vos missions, documents et livrables ? Cette action est irréversible.")) return;
     setPending("data");
     try {
-      const res = await api<{ deletedFiles: number }>("/api/account/data", { method: "DELETE" });
-      setMsg({ ok: true, text: `Toutes vos missions ont été supprimées (${res.deletedFiles} fichier(s)).` });
+      const res = await api<{ deletedFiles: number; pendingFiles: number }>("/api/account/data", { method: "DELETE" });
+      setMsg({
+        ok: true,
+        text:
+          `Toutes vos missions ont été supprimées et ne sont plus accessibles (${res.deletedFiles} fichier(s) effacé(s)).` +
+          (res.pendingFiles ? ` ${res.pendingFiles} fichier(s) seront effacés lors du prochain traitement de la file de suppression.` : ""),
+      });
       router.refresh();
     } catch (e) {
       setMsg({ ok: false, text: (e as Error).message });

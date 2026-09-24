@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { appSettings, documents } from "@/db/schema";
 import { reconcileStorage } from "@/server/documents/reconcile";
 import { readDocumentFile, uploadDocument } from "@/server/documents/service";
+import { queueFileDeletions } from "@/server/documents/deletions";
 import { createStorageHealthCheck, HEALTHCHECK_DIR } from "@/server/documents/health";
 import {
   checkStorageDir,
@@ -125,6 +126,16 @@ describe("disk / database reconciliation", () => {
     expect(left).toContain(recent);
     expect(left).not.toContain(old);
     expect((await readDocumentFile(db, storage, user.id, kept.id)).data.toString()).toBe("Contenu du document");
+  });
+
+  it("does not treat files waiting in the deletion queue as unexplained orphans", async () => {
+    const user = await createTestUser();
+    const m = await createMission(db, user.id, "Mission");
+    await upload(user.id, m.id, "garde.txt");
+    const pending = await orphan(user.id, 48);
+    await queueFileDeletions(db, [pending]);
+    const r = await reconcileStorage(db, storage, { deleteOrphans: true });
+    expect(r).toMatchObject({ orphans: [], queued: 1, deletedOrphans: 0 });
   });
 
   it("refuses to delete when too many documents are missing (suspect volume)", async () => {

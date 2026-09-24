@@ -4,6 +4,7 @@ import { documents } from "@/db/schema";
 import { AppError, badRequest, conflict, notFound } from "@/server/errors";
 import { addMessage, getOwnedMission, hasActiveRun, uuidSchema } from "@/server/missions/service";
 import { detectFormat, extractText, sanitizeFileName, UnsupportedFileError } from "./extract";
+import { processFileDeletions, queueFileDeletions } from "./deletions";
 import { MissingFileError, type FileStorage } from "./storage";
 
 export type UploadLimits = { maxBytes: number; maxPerMission: number };
@@ -123,7 +124,11 @@ export async function readDocumentFile(db: Db, storage: FileStorage, userId: str
 export async function deleteDocument(db: Db, storage: FileStorage, userId: string, documentId: string) {
   const doc = await getOwnedDocument(db, userId, documentId);
   if (await hasActiveRun(db, doc.missionId)) throw conflict("Une exécution est en cours sur cette mission.");
-  await db.delete(documents).where(eq(documents.id, doc.id));
-  await storage.delete(doc.storageKey).catch(() => undefined);
+  // The row disappears (data inaccessible) and the file is queued in the same transaction.
+  await db.transaction(async (tx) => {
+    await tx.delete(documents).where(eq(documents.id, doc.id));
+    await queueFileDeletions(tx, [doc.storageKey]);
+  });
+  await processFileDeletions(db, storage, [doc.storageKey]);
   await addMessage(db, doc.missionId, "event", `Document supprimé : « ${doc.name} ».`, { kind: "document_deleted" });
 }

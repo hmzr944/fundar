@@ -378,3 +378,21 @@ export const appSettings = pgTable("app_settings", {
   value: text("value").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Files to erase from storage. A key is queued in the same transaction that
+ * removes the database rows referencing it, then deleted; failures stay queued
+ * (with the error) and are retried by the nightly purge. Nothing is lost silently.
+ */
+export const fileDeletions = pgTable(
+  "file_deletions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storageKey: text("storage_key").notNull(),
+    requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
+    attempts: integer("attempts").notNull().default(0),
+    lastAttemptAt: timestamp("last_attempt_at", { withTimezone: true }),
+    lastError: text("last_error"),
+  },
+  (t) => [uniqueIndex("file_deletions_key_unique").on(t.storageKey)],
+);
