@@ -31,6 +31,13 @@ describe("prompts", () => {
     expect(updateStep?.description).toContain("'done' exige TOUJOURS un 'result' concret");
   });
 
+  it("gives a cited, fixed structure for public tender files (DCE)", () => {
+    const p = executeSystemPrompt(caps);
+    expect(p).toContain("Dossier de consultation d'un appel d'offres public");
+    expect(p).toContain("Chaque exigence cite son document et son article ou sa page");
+    expect(p).toContain("jamais supposée");
+  });
+
   it("forbids asking for sensitive data such as an IBAN", () => {
     expect(analyzeSystemPrompt(caps)).toMatch(/Ne demande jamais de donnée sensible \(IBAN/);
   });

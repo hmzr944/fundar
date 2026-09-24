@@ -6,10 +6,10 @@ import { Button, Spinner } from "@/components/ui";
 import { api } from "@/lib/client/api";
 
 const suggestions = [
-  "Je déménage le mois prochain. Aide-moi à organiser mon déménagement, comparer les solutions de transport et préparer les démarches.",
-  "Compare les offres de box internet fibre à moins de 30 €/mois, sans engagement de préférence.",
-  "Prépare une réclamation pour obtenir le remboursement de mon billet de train annulé.",
-  "Organise ma semaine : dossier CAF urgent, courses, 3 séances de sport et un anniversaire samedi.",
+  "Analyse ce DCE : synthèse du marché, critères et pondération, dates limites, pièces à fournir, points de vigilance et questions à poser à l'acheteur. Dis-moi si nous devons y répondre.",
+  "À partir de ce DCE, prépare la liste de contrôle des pièces administratives et de l'offre à déposer, avec pour chacune le document et l'article qui l'exigent.",
+  "Rédige le mémoire technique de ce marché en suivant le plan et les critères imposés par le règlement de consultation, à partir des informations de notre entreprise.",
+  "Relis notre dossier de réponse et vérifie qu'il est complet et conforme au règlement de consultation avant le dépôt.",
 ];
 
 export function MissionComposer({ disabled }: { disabled?: boolean }) {

@@ -1,5 +1,7 @@
 # Atlas — agent personnel généraliste (MVP)
 
+> **Offre commerciale V1** : réponses aux appels d'offres publics pour TPE et PME, produites avec Atlas et relues par un humain, vendues au dossier (analyse de DCE, dossier complet, pack). Stratégie, prix, acquisition et critères de décision : [docs/STRATEGIE.md](docs/STRATEGIE.md). Mise en ligne : section [Mise en production](#mise-en-production).
+
 > « Dis-moi ce que tu veux accomplir. Atlas t'aide à le faire avancer, étape par étape, et te montre clairement ce qui a été réalisé. »
 
 Atlas transforme une demande libre en **mission structurée** : il reformule l'objectif, pose seulement les questions utiles, établit un plan d'étapes, exécute ce qu'il peut avec de vrais outils (recherche web, lecture de documents, rédaction de livrables), puis restitue les résultats avec leurs sources. Le statut de chaque mission est **calculé à partir de preuves**, jamais à partir des affirmations du modèle.
@@ -92,6 +94,15 @@ Toutes les variables sont documentées dans [`.env.example`](.env.example). Aucu
 - Pour un stockage objet (S3, R2…), implémenter l'interface `FileStorage` de `src/server/documents/storage.ts`.
 
 ---
+
+## Mise en production
+
+1. Serveur **Node.js persistant** (les exécutions tournent dans le processus : pas d'hébergement « serverless ») avec **PostgreSQL** et un **volume persistant**.
+2. Variables : `DATABASE_URL`, `ANTHROPIC_API_KEY` (dans les secrets de l'hébergeur, avec un plafond de dépense chez Anthropic), `ATLAS_MODEL`, `ATLAS_STORAGE_DIR` (chemin **absolu** sur le volume), `ATLAS_CONTACT_EMAIL`, `ATLAS_SEARCH_PROVIDER=none` si la recherche web n'est pas utilisée, `NODE_ENV=production`.
+3. `pnpm install && pnpm build`, puis `pnpm db:migrate` **avant** `pnpm start`.
+4. Surveillance : `GET /api/health` et `GET /api/health/storage`.
+5. Tâche planifiée quotidienne : `pnpm purge` avec le même environnement — la première fois avec `--dry-run`.
+6. Compléter la page de confidentialité avec la durée de conservation des sauvegardes de l'hébergeur.
 
 ## Architecture
 
