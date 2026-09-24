@@ -8,6 +8,9 @@ import { MissingFileError, type FileStorage } from "./storage";
 
 export type UploadLimits = { maxBytes: number; maxPerMission: number };
 
+const storageUnavailable = () =>
+  new AppError(503, "Le stockage des fichiers est momentanément indisponible. Réessayez dans quelques minutes.", "storage_unavailable");
+
 export async function uploadDocument(
   db: Db,
   storage: FileStorage,
@@ -32,7 +35,14 @@ export async function uploadDocument(
     throw e;
   }
 
-  const storageKey = await storage.put(userId, file.data);
+  let storageKey: string;
+  try {
+    storageKey = await storage.put(userId, file.data);
+  } catch (e) {
+    // Nothing is recorded: the upload can simply be retried.
+    console.error(`[atlas] storage write failed: ${e instanceof Error ? e.message : String(e)}`);
+    throw storageUnavailable();
+  }
   const [doc] = await db
     .insert(documents)
     .values({ missionId, userId, name, mimeType: format.mime, sizeBytes: file.data.length, storageKey, status: "PROCESSING" })
@@ -96,7 +106,10 @@ export async function readDocumentFile(db: Db, storage: FileStorage, userId: str
   try {
     return { doc, data: await storage.get(doc.storageKey) };
   } catch (e) {
-    if (!(e instanceof MissingFileError)) throw e;
+    if (!(e instanceof MissingFileError)) {
+      console.error(`[atlas] storage read failed for document ${doc.id}: ${e instanceof Error ? e.message : String(e)}`);
+      throw storageUnavailable();
+    }
     // Operator-side signal (ids only, no file name): the storage lost a file.
     console.error(`[atlas] stored file missing for document ${doc.id} (${doc.storageKey})`);
     throw new AppError(

@@ -30,7 +30,8 @@ export default defineConfig({
     { name: "mobile", use: { ...devices["Pixel 7"] }, grep: /@mobile/ },
   ],
   webServer: {
-    command: `pnpm exec next dev -p ${PORT}`,
+    // Migrations first: the server checks the storage volume identity in the database at startup.
+    command: `pnpm -s db:migrate && pnpm exec next dev -p ${PORT}`,
     url: `http://localhost:${PORT}/api/health`,
     reuseExistingServer: false,
     timeout: 180_000,

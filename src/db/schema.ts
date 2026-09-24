@@ -371,3 +371,10 @@ export const usageRecords = pgTable(
 );
 
 export type UsageRecord = typeof usageRecords.$inferSelect;
+
+/** Instance-wide settings (e.g. the identity of the storage volume). */
+export const appSettings = pgTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

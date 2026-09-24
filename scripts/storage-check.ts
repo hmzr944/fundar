@@ -7,13 +7,23 @@
 import "dotenv/config";
 import { closeDb, getDb } from "../src/db";
 import { reconcileStorage } from "../src/server/documents/reconcile";
-import { LocalFileStorage, resolveStorageDir } from "../src/server/documents/storage";
+import { LocalFileStorage, resolveMaintenanceStorageDir } from "../src/server/documents/storage";
+import { verifyVolumeIdentity } from "../src/server/documents/volume";
 
 async function main() {
-  const deleteOrphans = process.argv.includes("--delete-orphans");
-  const dir = resolveStorageDir();
-  const r = await reconcileStorage(getDb(), new LocalFileStorage(dir), { deleteOrphans });
+  const wantDelete = process.argv.includes("--delete-orphans");
+  const dir = resolveMaintenanceStorageDir();
   console.log(`Stockage : ${dir}`);
+  let identityOk = true;
+  try {
+    await verifyVolumeIdentity(getDb(), dir);
+  } catch (e) {
+    identityOk = false;
+    console.error(`IDENTITÉ DU VOLUME NON VÉRIFIÉE : ${(e as Error).message}`);
+    if (wantDelete) console.error("Aucune suppression ne sera effectuée.");
+  }
+  const deleteOrphans = wantDelete && identityOk;
+  const r = await reconcileStorage(getDb(), new LocalFileStorage(dir), { deleteOrphans });
   console.log(`Fichiers sur disque : ${r.filesOnDisk} — documents en base : ${r.documentsInDb}`);
   console.log(`Fichiers orphelins : ${r.orphans.length}${deleteOrphans ? ` (supprimés : ${r.deletedOrphans}, les plus récents que 24 h sont conservés)` : ""}`);
   for (const o of r.orphans) console.log(`  - ${o.key} (${o.ageHours} h)`);
@@ -23,7 +33,8 @@ async function main() {
   for (const f of r.failures) console.error(`ÉCHEC de suppression : ${f}`);
   await closeDb();
   const remainingOrphans = r.orphans.length - r.deletedOrphans;
-  process.exit(r.missing.length || r.failures.length || remainingOrphans ? 1 : 0);
+  if (r.blocked) console.error(`Suppression des orphelins bloquée : ${r.blocked}`);
+  process.exit(!identityOk || r.blocked || r.missing.length || r.failures.length || remainingOrphans ? 1 : 0);
 }
 
 main().catch(async (e) => {

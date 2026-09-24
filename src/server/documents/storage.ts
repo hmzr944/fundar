@@ -44,6 +44,21 @@ export function resolveStorageDir(env: NodeJS.ProcessEnv = process.env): string 
   return path.resolve(/*turbopackIgnore: true*/ dir || "./storage");
 }
 
+/**
+ * Storage directory for maintenance scripts (purge, storage:check), whatever
+ * NODE_ENV is: an absolute path is always required, so a script launched with
+ * an incomplete environment can never clean up another directory.
+ */
+export function resolveMaintenanceStorageDir(env: NodeJS.ProcessEnv = process.env): string {
+  const dir = env.ATLAS_STORAGE_DIR?.trim();
+  if (!dir || !path.isAbsolute(dir)) {
+    throw new StorageConfigError(
+      `Les scripts de maintenance exigent ATLAS_STORAGE_DIR en chemin absolu, identique à celui de l'application (reçu : « ${dir ?? ""} »).`,
+    );
+  }
+  return path.resolve(/*turbopackIgnore: true*/ dir);
+}
+
 /** Creates the directory if needed and checks that the server can write to it. */
 export async function checkStorageDir(dir: string) {
   try {

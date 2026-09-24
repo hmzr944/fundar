@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import type { Db } from "@/db";
 import { documents } from "@/db/schema";
 import type { LocalFileStorage } from "./storage";
@@ -14,7 +15,12 @@ export type ReconcileReport = {
   removedDirs: number;
   /** Deletions that failed: reported, never silently ignored. */
   failures: string[];
+  /** Why orphan deletion was refused (fail-safe), if it was. */
+  blocked: string | null;
 };
+
+/** Above this share of documents missing from disk, the volume is suspect: nothing is deleted. */
+export const MISSING_RATIO_LIMIT = 0.1;
 
 /**
  * Compares the files on disk with the documents in the database. Only reports
@@ -46,10 +52,24 @@ export async function reconcileStorage(
     deletedOrphans: 0,
     removedDirs: 0,
     failures: [],
+    blocked: null,
   };
 
+  // Fail-safe: when in doubt about the volume, delete nothing.
   if (opts.deleteOrphans) {
+    if (rows.length === 0 && onDisk.length > 0) {
+      report.blocked = "aucun document en base alors que le disque contient des fichiers (mauvaise base ou mauvais volume ?)";
+    } else if (rows.length > 0 && report.missing.length / rows.length > MISSING_RATIO_LIMIT) {
+      report.blocked = `${report.missing.length} document(s) sur ${rows.length} introuvable(s) sur le disque (plus de ${MISSING_RATIO_LIMIT * 100} %) : volume suspect`;
+    }
+  }
+  const deleting = Boolean(opts.deleteOrphans && !report.blocked);
+
+  if (deleting) {
     for (const o of onDisk.filter((f) => !referenced.has(f.key) && now.getTime() - f.modifiedAt.getTime() >= minAge)) {
+      // Re-check right before deleting: a document may have been created since the listing.
+      const [stillReferenced] = await db.select({ id: documents.id }).from(documents).where(eq(documents.storageKey, o.key)).limit(1);
+      if (stillReferenced) continue;
       try {
         await storage.delete(o.key);
         report.deletedOrphans++;
@@ -60,7 +80,7 @@ export async function reconcileStorage(
   }
 
   report.emptyUserDirs = await storage.emptyUserDirs();
-  if (opts.deleteOrphans) {
+  if (deleting) {
     for (const dir of report.emptyUserDirs) {
       try {
         await storage.removeEmptyUserDir(dir);
