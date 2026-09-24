@@ -49,6 +49,7 @@ Scripts utiles :
 | `pnpm db:generate` | Génère une migration après modification de `src/db/schema.ts` |
 | `pnpm db:migrate` | Applique les migrations |
 | `pnpm purge` | Politique de conservation : supprime les missions inactives depuis `ATLAS_RETENTION_DAYS` jours (à planifier en cron) |
+| `pnpm storage:check` | Compare les fichiers stockés et les documents en base (orphelins, fichiers manquants) ; `--delete-orphans` supprime les orphelins de plus de 24 h |
 | `pnpm test` | Tests unitaires et d'intégration (PostgreSQL requis) |
 | `pnpm test:e2e` | Tests de bout en bout dans Chromium |
 | `pnpm test:live` | Tests contre la vraie API Claude (nécessite `ANTHROPIC_API_KEY`, payant) |
@@ -79,7 +80,10 @@ Toutes les variables sont documentées dans [`.env.example`](.env.example). Aucu
 
 ### Stockage des fichiers
 
-- Disque local (`ATLAS_STORAGE_DIR`, défaut `./storage`), avec des fichiers en mode `0600`.
+- Disque local (`ATLAS_STORAGE_DIR`, défaut `./storage` en développement), avec des fichiers en mode `0600`.
+- **En production**, `ATLAS_STORAGE_DIR` doit être un **chemin absolu sur un volume persistant** (un disque éphémère perd les fichiers à chaque redéploiement). Au démarrage, le serveur vérifie ce chemin et la possibilité d'y écrire ; sinon il s'arrête avec un code d'erreur et un message explicite.
+- Si le fichier d'origine d'un document a disparu du stockage, son téléchargement renvoie une erreur explicite (410) ; le texte déjà extrait reste utilisé par Atlas. `pnpm storage:check` liste ces fichiers manquants et les fichiers orphelins.
+- Les sauvegardes du volume (instantanés) conservent les fichiers supprimés pendant leur propre durée de conservation : à préciser dans la politique de confidentialité.
 - Pour un stockage objet (S3, R2…), implémenter l'interface `FileStorage` de `src/server/documents/storage.ts`.
 
 ---

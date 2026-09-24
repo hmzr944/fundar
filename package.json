@@ -11,6 +11,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
     "purge": "tsx scripts/purge.ts",
+    "storage:check": "tsx scripts/storage-check.ts",
     "test": "vitest run --exclude tests/integration/live-llm.test.ts",
     "test:live": "vitest run tests/integration/live-llm.test.ts",
     "test:e2e": "playwright test",

@@ -49,9 +49,6 @@ export const config = {
   get model() {
     return process.env.ATLAS_MODEL || "claude-opus-5";
   },
-  get storageDir() {
-    return process.env.ATLAS_STORAGE_DIR || "./storage";
-  },
   get sessionDays() {
     return int("ATLAS_SESSION_DAYS", 30);
   },

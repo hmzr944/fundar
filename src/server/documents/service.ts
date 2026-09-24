@@ -4,7 +4,7 @@ import { documents } from "@/db/schema";
 import { AppError, badRequest, conflict, notFound } from "@/server/errors";
 import { addMessage, getOwnedMission, hasActiveRun, uuidSchema } from "@/server/missions/service";
 import { detectFormat, extractText, sanitizeFileName, UnsupportedFileError } from "./extract";
-import type { FileStorage } from "./storage";
+import { MissingFileError, type FileStorage } from "./storage";
 
 export type UploadLimits = { maxBytes: number; maxPerMission: number };
 
@@ -93,8 +93,18 @@ export async function getOwnedDocument(db: Db, userId: string, documentId: strin
 
 export async function readDocumentFile(db: Db, storage: FileStorage, userId: string, documentId: string) {
   const doc = await getOwnedDocument(db, userId, documentId);
-  const data = await storage.get(doc.storageKey);
-  return { doc, data };
+  try {
+    return { doc, data: await storage.get(doc.storageKey) };
+  } catch (e) {
+    if (!(e instanceof MissingFileError)) throw e;
+    // Operator-side signal (ids only, no file name): the storage lost a file.
+    console.error(`[atlas] stored file missing for document ${doc.id} (${doc.storageKey})`);
+    throw new AppError(
+      410,
+      "Le fichier d'origine n'est plus disponible sur le serveur. Le texte déjà extrait reste utilisé par Atlas ; réimportez le fichier si vous en avez besoin.",
+      "file_missing",
+    );
+  }
 }
 
 export async function deleteDocument(db: Db, storage: FileStorage, userId: string, documentId: string) {
