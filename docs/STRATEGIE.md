@@ -1,105 +1,101 @@
-# Stratégie de lancement d'Atlas — version 1
+# Stratégie d'Atlas — point d'entrée et modèle économique
 
-État au 24 septembre 2026. Tous les chiffres de marché viennent de sources publiques citées en fin de document. Les chiffres marqués **(hypothèse)** ne sont pas vérifiés et doivent être remplacés par les résultats réels dès les premières semaines.
+État au 24 septembre 2026. Ce document remplace la version « appels d'offres ». **Faits** = sources publiques citées en fin de document. **Hypothèses** = non vérifiées, à remplacer par les chiffres réels dès les premiers clients.
 
-## 1. Décision
+## 1. La décision
 
-**Atlas V1 = un service marchés publics complet pour TPE et PME, par abonnement mensuel sans engagement.** Le client n'achète pas « une analyse de dossier » : il achète un service appels d'offres externalisé, sans embauche.
+**Vision (inchangée)** : Atlas est un agent d'exécution généraliste qui fait aboutir le travail. Il comprend l'objectif, agit avec les autorisations de l'utilisateur, vérifie le résultat et signale ce qui bloque.
 
-- **Trouver** : veille hebdomadaire des appels d'offres correspondant au métier et à la zone du client, avec un avis « on y va / on passe » argumenté.
-- **Répondre** : analyse du dossier de consultation, pièces administratives, mémoire technique, relecture de conformité. Le tout est produit avec Atlas et relu par un humain.
-- **Tenir à jour** : dossier administratif du client (attestations, assurances) suivi et renouvelé avant expiration ; calendrier des échéances.
-- **Apprendre** : après chaque résultat, demande des motifs de rejet à l'acheteur (droit du candidat évincé) et corrections pour le dossier suivant ; bibliothèque de réponses enrichie à chaque dossier.
-- Le client valide, signe et dépose.
+**Point d'entrée commercial** : **Atlas fait rentrer l'argent qu'on vous doit.** Il prend en charge les factures impayées d'une TPE, d'une PME, d'un cabinet d'avocats ou d'un cabinet comptable. Il prépare et adapte chaque relance, lit les réponses des clients et agit en conséquence (facture perdue, contestation, promesse de paiement, échéancier). Il s'arrête quand l'argent est encaissé, ou il vous dit exactement ce qui bloque.
 
-Atlas (le logiciel) est l'outil de production interne. Ce qui se vend, c'est le service et son résultat.
+Ce n'est pas un outil d'administration de plus : c'est la première mission complète confiée à l'agent, avec un résultat que personne ne peut contester, **l'argent reçu**.
 
-## 2. Pourquoi ce marché, d'après les données publiques
+## 2. Pourquoi ce point d'entrée (faits)
 
-| Critère | Ce que disent les sources | Conséquence |
+| Constat | Source |
+| --- | --- |
+| Retard de paiement moyen en France : 14,1 jours en 2025 ; moins d'une entreprise sur deux (45 %) paie ses fournisseurs à l'heure | Altares, 2025 |
+| Les délais clients dégradent en moyenne de 17 jours la trésorerie des PME ; montée des retards de plus de 30 jours | Banque de France, Observatoire des délais de paiement ; synthèses sectorielles |
+| 30 % des TPE-PME jugent leur trésorerie difficile ; la faiblesse de la demande est la première difficulté citée (61 %) | Bpifrance Le Lab, baromètre TPE-PME |
+| La complexité administrative est un frein pour 62 % des dirigeants ; 28 % y passent au moins 2 jours par semaine | Synthèses publiées par Qonto et independant.io (sources secondaires) |
+| Les outils de relance existants coûtent de 69 €/mois (LeanPay, 2 utilisateurs) à 300–1 500 €/mois (Upflow) ; les logiciels de facturation proposent des relances automatiques simples | Pages et comparatifs éditeurs |
+
+**Pourquoi c'est le bon premier terrain pour un agent (déduction)** :
+
+- **Tout le monde est concerné** : artisans, PME, cabinets d'avocats (honoraires), cabinets comptables (honoraires et clients). Aucune spécialisation métier n'est nécessaire pour démarrer.
+- **La valeur se mesure en euros encaissés**, pas en « temps gagné » théorique.
+- **Le cycle d'exécution complet est présent** : comprendre la situation de chaque facture, agir (relancer), lire la réponse, adapter, **vérifier** (paiement reçu = preuve externe), gérer les blocages (litige, facture égarée, client injoignable). C'est exactement la vision.
+- **L'écart avec l'existant est précis** (hypothèse à vérifier chez les clients) : les outils actuels envoient des **séquences de modèles**. Ils ne lisent pas la réponse du client et n'agissent pas selon son contenu. C'est là que l'agent apporte quelque chose.
+
+**Ce qui n'est pas prouvé** : que les entreprises choisiront Atlas plutôt que la relance intégrée gratuite de leur outil de facturation ; la part de factures réellement encaissées grâce à Atlas. Le premier mois de clients le mesurera.
+
+## 3. Le produit, par paliers (chaque palier est vendable)
+
+| Palier | Ce qu'Atlas fait | État |
 | --- | --- | --- |
-| Volume | 223 383 marchés publics recensés en 2024, pour 233,3 Md€ ; les PME remportent 60 % des contrats (25 % des montants) | Des dizaines de milliers de TPE/PME répondent chaque année : le besoin est récurrent par nature |
-| Dépense déjà prouvée | Des consultants vendent l'accompagnement à la réponse (à partir d'environ 1 600 € HT pour un dossier standard, abonnements de 200 à 1 000 € HT/mois selon les résultats de recherche) | Les entreprises paient déjà pour ce travail : pas besoin de créer la demande |
-| Concurrence logicielle | Des outils IA spécialisés coûtent 39 à 199 €/mois, certains avec analyse de DCE gratuite | On ne se bat pas sur le logiciel en libre-service : on vend du « fait pour vous », moins cher et plus rapide qu'un consultant |
-| Données manipulées | Le DCE est un document public ; les informations d'entreprise (références, moyens) sont peu sensibles | Le principal frein identifié dans nos analyses (confier des données personnelles) disparaît en grande partie |
-| Adéquation avec Atlas | Lecture de longs documents texte, listes de contrôle, rédaction de livrables : ce qu'Atlas fait déjà | Lancement sans nouveau développement lourd |
-| Prospection | Les données essentielles de la commande publique (DECP, titulaires avec SIRET) et les avis du BOAMP sont en open data, réutilisables gratuitement | On peut cibler précisément les entreprises qui répondent déjà à des marchés, et les appels d'offres en cours |
+| 1. Préparer | L'utilisateur importe ses factures impayées (PDF ou export CSV de son logiciel). Atlas établit pour chaque client la situation, le bon ton et la séquence de relances (amiable, ferme, mise en demeure), rédige chaque message avec les références exactes de la facture, et prépare les réponses aux objections. L'utilisateur envoie, puis déclare le paiement reçu. | **Disponible** avec le moteur actuel (documents, livrables, étapes « à faire par vous », preuves) |
+| 2. Agir avec permission | Connexion à la boîte e-mail de l'utilisateur : Atlas envoie **depuis son adresse et en son nom**, après accord, lit les réponses et propose l'action suivante | À construire **dès que 10 clients paient** le palier 1 |
+| 3. Vérifier seul | Connexion au logiciel de facturation ou au relevé bancaire : Atlas constate le paiement et clôt la facture lui-même | Après le palier 2 |
+| 4. Élargir | Même boucle pour les devis sans réponse (réponse directe au problème n° 1, la demande), puis d'autres suivis « qui traînent » | Selon les demandes observées |
 
-**Ce qui n'est pas prouvé** : que ces entreprises achèteront à Atlas plutôt qu'à un consultant ou à un logiciel, ni à quel rythme. La première vente est le test.
+Chaque palier réutilise le même cœur (mission, plan, preuves, statut honnête), qui est le socle de l'agent généraliste.
 
-## 3. Offre et prix
+## 4. Le modèle économique : entrer bas, prouver, puis ajuster
 
-| Offre | Contenu | Prix |
+| Formule | Prix | Pour qui |
 | --- | --- | --- |
-| Essentiel | Veille hebdomadaire + 1 dossier complet par mois + dossier administratif tenu à jour + calendrier | 490 € HT/mois, sans engagement |
-| Croissance | Essentiel + 3 dossiers complets par mois + questions à l'acheteur + analyse des motifs de rejet + bibliothèque de réponses | 990 € HT/mois, sans engagement |
-| Dossier à l'unité | Analyse, pièces, mémoire technique, relecture de conformité | 890 € HT |
+| Découverte | **Gratuit** : 5 factures prises en charge, sans carte bancaire | Voir Atlas travailler sur ses vraies factures |
+| Solo | **19 € HT/mois**, sans engagement, jusqu'à 30 factures suivies par mois | Indépendants, TPE, petits cabinets |
+| Équipe | **49 € HT/mois**, sans engagement, jusqu'à 150 factures, 3 utilisateurs | PME, cabinets d'avocats et d'expertise comptable |
 
-- **Porte d'entrée** : premier échange et première analyse de marché offerts.
-- **Engagement fort** : délai garanti (dossier livré au plus tard 48 h avant la date limite) ou dossier remboursé, si le dossier de consultation est reçu au moins 7 jours avant la date limite. **C'est une promesse à tenir** : refuser un dossier plutôt que risquer le retard.
-- **Positionnement** : une embauche de chargé d'appels d'offres coûte bien plus qu'un abonnement ; les consultants facturent au dossier (environ 1 600 € HT selon les résultats de recherche) ; les logiciels à 39–199 €/mois laissent tout le travail au client. Atlas vend le travail fait, au prix d'un abonnement.
-- **Ce qui n'est pas vendu** : le dépôt de l'offre, la signature, une garantie de gain, un conseil juridique, la fixation des prix du client.
+- **Garantie de résultat** : si, après 60 jours, les factures suivies par Atlas n'ont pas rapporté au moins le montant de l'abonnement payé, il est remboursé. Le risque est pour Atlas, pas pour le client.
+- **Pourquoi c'est sain** :
+  - le coût d'IA par facture suivie est de l'ordre de quelques centimes par mois (hypothèse, à mesurer : environ 0,20 $ par mission en validation) ;
+  - l'hébergement est de quelques dizaines d'euros par mois ;
+  - la marge brute est donc très élevée dès les premiers clients, sans service humain à assurer.
+- **Positionnement prix** : sous LeanPay (69 €), très loin d'Upflow, au niveau d'un assistant IA grand public. **Le prix n'est pas l'argument** : l'argument, c'est l'argent encaissé, visible dans le tableau de bord.
+- **Pas de commission sur les sommes récupérées** : l'argent va directement du client débiteur à l'utilisateur, et Atlas reste un logiciel (voir risques).
+- **Revoir les prix après 3 mois**, sur la base mesurée : montant moyen encaissé par client et par mois. Une hausse ne se justifie que si ce montant la rend évidente.
 
-### Objectif de revenu (hypothèse de travail)
+Objectif de revenu (hypothèse) : 300 clients Solo et Équipe, soit environ 7 000 à 9 000 € HT de revenu mensuel récurrent. C'est plus long à atteindre qu'un service, mais c'est sain, sans heures humaines vendues, et chaque client améliore le produit.
 
-- 6 abonnements Croissance = **5 940 € HT/mois récurrents** (18 dossiers par mois), ou un mélange Essentiel/Croissance équivalent.
-- Contrainte réelle : **le temps du fondateur** (hypothèse : 3 à 5 h par dossier avec Atlas, plus environ 1 h de veille par client et par semaine). 18 dossiers × 4 h + veille ≈ 100 h/mois : c'est le plafond d'une personne seule. Au-delà, industrialiser (modèles, veille automatisée par l'API BOAMP, relecteur à temps partiel).
-- Coût d'IA : quelques euros par dossier (**à mesurer** sur les premiers dossiers).
+## 5. Acquisition
 
-## 4. Acquisition — les 30 premiers jours
+1. **Les cabinets comptables comme prescripteurs** : ils voient chaque jour les impayés de leurs clients et en ont eux-mêmes. Leur proposer l'offre Équipe gratuite pendant 3 mois contre la recommandation à leurs clients.
+2. **Contenu utile et vérifiable** : modèles de relance conformes (indemnité forfaitaire de 40 €, pénalités de retard pour les professionnels ; règles différentes pour les particuliers), publiés gratuitement, avec « faites-le faire par Atlas » en bas de page.
+3. **L'offre Découverte** comme seul appel à l'action : 5 factures, sans carte bancaire.
+4. **Mesure hebdomadaire** : inscriptions, factures importées, relances envoyées, montants déclarés encaissés, passage au payant, résiliations.
 
-Aucun entretien préalable : **la prospection est le test**.
-
-1. **Semaine 1 — préparation**
-   - Créer la structure juridique (micro-entreprise suffit pour démarrer), un compte bancaire, un outil de facturation.
-   - Déployer Atlas (voir « Mise en production » du README) et renseigner `ATLAS_CONTACT_EMAIL`.
-   - Préparer le questionnaire entreprise, un modèle de mémoire technique et un tableau de suivi des attestations clients.
-   - Choisir **deux secteurs** où les TPE répondent souvent : par exemple nettoyage, espaces verts, second œuvre du BTP, prestations informatiques, formation.
-   - Extraire des DECP la liste des entreprises de ces secteurs **ayant déjà remporté un marché** (elles savent ce qu'est un appel d'offres et en ont le besoin).
-2. **Semaines 2 à 4 — prospection**
-   - Chaque jour ouvré : repérer dans le BOAMP 3 à 5 appels d'offres ouverts dans ces secteurs ; écrire à 20 entreprises du secteur, avec un message personnalisé citant un marché en cours et proposant l'**analyse offerte** de ce marché.
-   - Relancer une fois après 4 jours ouvrés.
-   - Chaque analyse offerte se termine par un échange de 20 minutes pour proposer l'abonnement (Croissance en premier, Essentiel en repli, dossier à l'unité en dernier recours).
-3. **Calcul d'entonnoir (hypothèse, à remplacer par vos chiffres)**
-   - Taux de réponse d'un e-mail B2B personnalisé : environ 3 à 8 % selon les baromètres publics.
-   - Pour 400 e-mails : environ 12 à 30 réponses, dont une partie demande l'analyse offerte ; objectif : **2 abonnements ou 3 dossiers à l'unité** sur le premier mois.
-
-Règles : e-mails B2B uniquement à des adresses professionnelles, en lien avec l'activité de l'entreprise, avec un moyen simple de se désinscrire ; aucune liste achetée sans vérification de son origine.
-
-## 5. Critères de décision (sur des ventes, pas des opinions)
+## 6. Critères de décision (sur des comportements réels)
 
 | Au bout de | Continuer si | Sinon |
 | --- | --- | --- |
-| 30 jours | Au moins 2 clients payants (abonnement ou dossier) | Changer de secteurs cibles et de message pendant 30 jours de plus |
-| 60 jours | Au moins 3 abonnements actifs, et un temps moyen par dossier ≤ 5 h | Revoir le contenu des offres ou les prix |
-| 90 jours | Au moins 3 abonnés encore actifs après leur 2e mois | Si aucune vente après 90 jours de prospection régulière : arrêter ce marché et réutiliser le moteur sur un autre type de dossier |
+| 30 jours | Au moins 30 comptes Découverte ayant importé des factures | Revoir le message et le canal |
+| 60 jours | Au moins 10 clients payants, et des montants encaissés déclarés sur au moins la moitié d'entre eux | Revoir le produit (qualité des relances, simplicité de l'import) |
+| 90 jours | Résiliation mensuelle < 10 % et garantie de remboursement déclenchée chez moins de 1 client sur 5 | Si personne ne paie après 90 jours : conserver le moteur, changer de point d'entrée (devis sans réponse, demandes entrantes) |
 
-## 6. Risques principaux et parades
+## 7. Risques
 
 | Risque | Parade |
 | --- | --- |
-| Erreur dans une pièce ou un délai qui fait écarter la candidature | Relecture humaine systématique ; liste de contrôle finale ; le client valide et dépose ; conditions de vente limitant la responsabilité au prix du dossier |
-| Délais très courts, délai garanti | Condition des 7 jours ; refuser plutôt que livrer en retard ; plafonner le nombre de dossiers acceptés par semaine |
-| Promesses de veille et de suivi administratif tenues à la main | Au début, veille manuelle avec le site du BOAMP et tableau de suivi des attestations ; automatiser par l'API BOAMP dès 5 abonnés |
-| Qualité du mémoire technique | Questionnaire entreprise standard (références, moyens, méthodes) rempli une fois et réutilisé ; Atlas rédige, le fondateur adapte |
-| DCE en ZIP, tableurs (BPU, DPGF) | Atlas lit PDF, DOCX, TXT, CSV : décompresser les ZIP et convertir les tableurs en CSV avant import (limite connue de la V1) |
-| Documents scannés | Pas d'OCR en V1 : les signaler au client, les traiter manuellement |
-| Dépendance au temps du fondateur | Mesurer le temps par dossier dès le début ; au-delà de 10 dossiers/mois, industrialiser (modèles, sous-traitance de relecture) |
+| Réglementation du recouvrement pour le compte d'autrui (assurance, convention, compte dédié, contrôle du procureur : articles R124-1 à R124-7 du code des procédures civiles d'exécution) | Atlas reste un **logiciel** : messages envoyés au nom et depuis l'adresse de l'utilisateur, fonds versés directement à l'utilisateur, aucune commission sur les sommes récupérées. **À faire confirmer par un juriste avant le lancement.** |
+| Règles différentes selon que le débiteur est un professionnel ou un particulier | L'agent demande ou déduit la qualité du débiteur et n'applique l'indemnité forfaitaire et les pénalités professionnelles qu'aux professionnels ; aucune menace hors du cadre légal |
+| Concurrence des relances intégrées aux logiciels de facturation | Se différencier par la lecture des réponses et l'adaptation ; le mesurer (factures débloquées après une réponse du client) |
+| Erreur dans un montant ou une référence | Montants et numéros repris uniquement des documents importés, avec citation ; aucun envoi sans validation de l'utilisateur au palier 1 |
+| Données personnelles des débiteurs | Minimisation, purge automatique (180 jours), suppression à la demande (déjà en place) |
 
-## 7. Ce qui reste à faire par le fondateur (hors code)
+## 8. À faire par le fondateur
 
-- [ ] Révoquer la clé Claude collée dans la conversation et en créer une nouvelle dans les paramètres de l'hébergeur, avec un plafond de dépense.
-- [ ] Créer la structure juridique et rédiger des conditions générales de vente (prix, délais, responsabilité, confidentialité).
-- [ ] Déployer : serveur Node persistant, PostgreSQL, volume persistant, `pnpm db:migrate`, tâche planifiée `pnpm purge`.
-- [ ] Renseigner `ATLAS_CONTACT_EMAIL` et vérifier la page d'accueil.
-- [ ] Préparer le questionnaire entreprise et un modèle de mémoire technique.
-- [ ] Lancer la prospection (section 4) et tenir un tableau : e-mails envoyés, réponses, analyses offertes, ventes, temps passé par dossier.
+- [ ] Révoquer toute clé exposée ; configurer la nouvelle clé dans l'hébergeur avec un plafond de dépense.
+- [ ] Faire valider le cadre juridique (section 7) et rédiger conditions générales et politique de confidentialité.
+- [ ] Déployer (README, « Mise en production ») et renseigner `ATLAS_CONTACT_EMAIL`.
+- [ ] Tester une mission de relance réelle sur des factures fictives avant d'ouvrir les inscriptions.
+- [ ] Mettre en place le paiement des abonnements (outil de paiement en ligne) quand les premiers comptes Découverte arrivent.
 
 ## Sources
 
-- Recensement économique de la commande publique 2024 : [economie.gouv.fr](https://www.economie.gouv.fr/daj/commande-publique/observatoire-economique-de-la-commande-publique-oecp/le-recensement), [Weka](https://www.weka.fr/actualite/commande-publique/article/recensement-des-marches-publics-les-resultats-2024-sont-connus-212163/), [Le Moniteur](https://www.lemoniteur.fr/reglementation/commande-publique-bercy-publie-enfin-les-chiffres-pour-2024.M2H5HDSYPVHYTFZPNQU2P46XEA.html), [achat-logistique.info](https://achat-logistique.info/fonction-achat/commande-publique-2332-milliards-deuros-en-2024/)
-- Part des PME (60 % des contrats, 25 % des montants) : [Nextend](https://nextend.ai/actualites/actu-2026-04-21-pme-marches-publics-2024-collectivites-locales)
-- Prix des logiciels IA d'appels d'offres (39 à 199 €/mois, analyses gratuites) : [Olra](https://olra.fr/blog/meilleurs-logiciels-reponse-appel-offres-2026), [DossiersGagnants](https://dossiersgagnants.fr/blog/logiciel-appel-offres-comparatif-2026.html), [Maître AO](https://www.maitre-ao.fr/fr/meilleurs-logiciels-appel-offres), [Nextend](https://nextend.ai/blog/meilleurs-logiciels-reponse-appels-offres)
-- Prix de l'accompagnement par des consultants (relevés dans des résultats de recherche, pages non consultées directement : à vérifier) : [Simply AO](https://www.simply-ao.fr/blog/combien-coute-la-reponse-un-appel-doffres), [Marchés publics optimisés](https://www.marchespublicsoptimises.fr/assistance-appels-d-offres/), [Bakoé](https://bakoe.fr/marches-public/aide-reponse-marche-public/)
-- Données ouvertes : [DECP consolidées sur data.gouv.fr](https://www.data.gouv.fr/datasets/donnees-essentielles-de-la-commande-publique-consolidees-format-tabulaire), [API BOAMP](https://www.data.gouv.fr/dataservices/api-bulletin-officiel-des-annonces-des-marches-publics-boamp), [BOAMP — données ouvertes](https://www.boamp.fr/pages/donnees-ouvertes-et-api/)
-- Taux de réponse de la prospection B2B par e-mail : [Oplia](https://oplia.fr/fr/blog/cold-email-benchmarks-2025), [DataProspects](https://www.dataprospects.fr/barometre-de-la-prospection-b2b-en-france-2026/)
+- Retards de paiement 2025 : [Altares](https://www.altares.com/2025/09/17/retards-de-paiement-des-entreprises-en-france-une-degradation-record-en-2025/) ; [Banque de France, rapport de l'Observatoire des délais de paiement](https://www.banque-france.fr/fr/communiques-de-presse/le-rapport-annuel-de-lobservatoire-des-delais-de-paiement-appelle-maintenir-la-vigilance-quant-aux) ; [synthèse Affacturage.fr](https://www.affacturage.fr/guide/barometre-delais-paiement-france/)
+- Difficultés des TPE-PME : [Bpifrance Le Lab, baromètre TPE-PME](https://lelab.bpifrance.fr/barometre-tpe-pme-apres-une-annee-2025-difficile-lhorizon-seclaircit-timidement-pour-2026-2/) ; [Qonto](https://qonto.com/fr/blog/tpe-pme/croissance/statistiques-pme) ; [independant.io](https://independant.io/chiffres-statistiques-tpe-pme/)
+- Outils de relance et prix : [LeanPay](https://www.leanpay.io/entreprises/pme) ; [comparatif Plateya](https://www.plateya.fr/blog/detail/comparatif-logiciels-de-recouvrement-2026-le-guide-ultime) ; [comparatif Swim](https://www.swim.legal/blog/meilleur-logiciel-de-recouvrement-creances-2026-comparatif) ; [Libeo](https://libeo.io/fonctionnalites/factures-clients)
+- Prix des assistants e-mail IA (12 à 40 $/utilisateur/mois) : [Slashy](https://www.slashy.com/blog/compare/ai-email-clients-compared-2026-slashy-superhuman-shortwave-fyxer-gmail) ; [Dupple](https://dupple.com/learn/best-ai-email-writers)
+- Recouvrement amiable pour le compte d'autrui : [Légifrance, articles R124-1 à R124-7 du code des procédures civiles d'exécution](https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000025024948/LEGISCTA000025938360/)

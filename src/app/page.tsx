@@ -1,66 +1,46 @@
 import { currentUser } from "@/lib/http";
 import { LinkButton, Logo } from "@/components/ui";
 
-const offers = [
+const plans = [
   {
-    title: "Essentiel",
-    price: "490 € HT",
-    period: "par mois, sans engagement",
-    items: [
-      "Veille : chaque semaine, les appels d'offres qui correspondent à votre métier et à votre zone, avec notre avis « on y va / on passe »",
-      "1 dossier de réponse complet par mois",
-      "Votre dossier administratif tenu à jour : nous vous prévenons avant l'expiration de chaque attestation",
-      "Calendrier de vos échéances de dépôt",
-    ],
+    title: "Découverte",
+    price: "Gratuit",
+    period: "5 factures, sans carte bancaire",
+    items: ["Atlas prend en charge vos 5 premières factures impayées", "Toutes les fonctions, sans limite de durée pour ces 5 factures"],
   },
   {
-    title: "Croissance",
-    price: "990 € HT",
+    title: "Solo",
+    price: "19 € HT",
     period: "par mois, sans engagement",
     featured: true,
-    items: [
-      "Tout l'Essentiel",
-      "3 dossiers de réponse complets par mois",
-      "Questions à l'acheteur rédigées et suivies pendant la consultation",
-      "Après chaque résultat : demande des motifs de rejet et plan d'amélioration pour le marché suivant",
-      "Votre bibliothèque de réponses (références, moyens, méthodes) enrichie à chaque dossier",
-    ],
+    items: ["Jusqu'à 30 factures suivies par mois", "Pour les indépendants, les TPE et les petits cabinets"],
   },
   {
-    title: "Dossier à l'unité",
-    price: "890 € HT",
-    period: "par dossier",
-    items: [
-      "Analyse du dossier de consultation et avis argumenté",
-      "Pièces administratives préparées",
-      "Mémoire technique rédigé pour ce marché",
-      "Relecture de conformité avant votre dépôt",
-    ],
+    title: "Équipe",
+    price: "49 € HT",
+    period: "par mois, sans engagement",
+    items: ["Jusqu'à 150 factures suivies par mois", "Pour les PME, les cabinets d'avocats et d'expertise comptable"],
   },
 ];
 
-const outcomes = [
-  { title: "Vous ne ratez plus les bons marchés", text: "Nous surveillons les publications pour vous et vous signalons seulement celles qui valent la peine d'y répondre." },
-  { title: "Vous ne perdez plus de soirées sur les dossiers", text: "Vous répondez à nos questions sur votre entreprise ; nous rédigeons, vérifions et vous livrons un dossier prêt à signer." },
-  { title: "Vous n'êtes plus écarté pour une pièce manquante", text: "Chaque exigence du règlement est vérifiée, avec la référence de l'article concerné." },
-  { title: "Chaque réponse améliore la suivante", text: "Gagné ou perdu, nous demandons les motifs à l'acheteur et en tirons les corrections pour le prochain dossier." },
+const steps = [
+  { n: "1", title: "Vous importez vos impayés", text: "Vos factures en PDF, ou l'export de votre logiciel de facturation. Rien d'autre à configurer." },
+  { n: "2", title: "Atlas prépare chaque relance", text: "Le bon ton pour chaque client, les références exactes de la facture et la suite prévue si rien ne bouge." },
+  { n: "3", title: "Il répond à ce que dit votre client", text: "Facture égarée, contestation, promesse de paiement, demande d'échéancier : Atlas propose la bonne réponse et la suite." },
+  { n: "4", title: "Vous voyez l'argent rentrer", text: "Chaque facture a un statut clair. Elle n'est close que lorsque le paiement est confirmé." },
 ];
 
-const how = [
-  { n: "1", title: "Nous apprenons votre entreprise", text: "Un entretien et un questionnaire : métier, zone, références, moyens. Fait une fois, réutilisé à chaque dossier." },
-  { n: "2", title: "Nous choisissons les marchés avec vous", text: "Chaque semaine, une sélection argumentée. Vous décidez en un clic sur quels marchés répondre." },
-  { n: "3", title: "Nous préparons la réponse", text: "Analyse du dossier de consultation, pièces, mémoire technique : produits avec notre outil Atlas, relus par un humain." },
-  { n: "4", title: "Vous signez et déposez", text: "Le dossier arrive prêt, au plus tard 48 h avant la date limite. Après le résultat, nous analysons avec vous." },
+const promises = [
+  { title: "Vous restez aux commandes", text: "Rien ne part sans votre accord. Les messages partent de votre adresse, à votre nom." },
+  { title: "Aucune erreur de montant", text: "Montants, numéros et dates sont repris de vos factures, jamais inventés. Chaque relance cite la facture concernée." },
+  { title: "Le bon cadre légal", text: "Indemnité forfaitaire et pénalités de retard réservées aux clients professionnels ; jamais de menace hors du cadre légal." },
+  { title: "Garantie de résultat", text: "Si, après 60 jours, les factures suivies n'ont pas rapporté au moins le montant de votre abonnement, il vous est remboursé." },
 ];
 
 export default async function Landing() {
   const user = await currentUser();
   const contact = process.env.ATLAS_CONTACT_EMAIL?.trim();
-  const space = user ? { href: "/app", label: "Ouvrir mon espace" } : { href: "/signup", label: "Créer un espace client" };
-  // Main call to action: send a tender file by e-mail when a contact address is configured, otherwise the client space.
-  const primary = contact
-    ? { href: `mailto:${contact}?subject=${encodeURIComponent("Premier échange — service marchés publics")}`, label: "Parler de vos marchés" }
-    : { href: space.href, label: space.label };
+  const cta = user ? { href: "/app", label: "Ouvrir mon espace" } : { href: "/signup", label: "Essayer sur 5 factures" };
 
   return (
     <div className="min-h-dvh">
@@ -72,55 +52,70 @@ export default async function Landing() {
               Se connecter
             </LinkButton>
           )}
-          <LinkButton href={space.href} variant={contact ? "ghost" : "primary"}>
-            {space.label}
+          <LinkButton href={cta.href} variant="primary">
+            {cta.label}
           </LinkButton>
         </nav>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 sm:px-6">
         <section className="py-14 sm:py-24">
-          <p className="mb-4 text-sm font-medium text-accent">Service marchés publics — TPE et PME</p>
+          <p className="mb-4 text-sm font-medium text-accent">Factures impayées — entreprises, avocats, experts-comptables</p>
           <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-            Votre service appels d&apos;offres, sans embaucher.
+            Atlas fait rentrer l&apos;argent qu&apos;on vous doit.
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-muted">
-            Nous trouvons les marchés publics faits pour vous, préparons des réponses complètes et conformes, et apprenons de
-            chaque résultat pour la suivante. Vous gardez votre temps pour votre métier : vous validez, signez et déposez.
+            Confiez-lui vos factures impayées. Il prépare chaque relance, comprend ce que vous répondent vos clients et vous propose
+            la suite, jusqu&apos;au paiement. Vous gardez la main à chaque étape.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <LinkButton href={primary.href} variant="primary" className="px-5 py-2.5 text-base">
-              {primary.label}
+            <LinkButton href={cta.href} variant="primary" className="px-5 py-2.5 text-base">
+              {cta.label}
             </LinkButton>
-            <a href="#offres" className="inline-flex items-center px-3 py-2.5 text-sm text-muted hover:text-fg">
-              Voir les offres ↓
+            <a href="#fonctionnement" className="inline-flex items-center px-3 py-2.5 text-sm text-muted hover:text-fg">
+              Comment ça marche ↓
             </a>
           </div>
-          <p className="mt-4 text-sm text-faint">
-            Premier échange et première analyse de marché offerts. Délai de livraison garanti, ou le dossier est remboursé.
-          </p>
+          <p className="mt-4 text-sm text-faint">Gratuit pour vos 5 premières factures. Sans carte bancaire.</p>
         </section>
 
-        <section aria-labelledby="resultats-titre" className="pb-16">
-          <h2 id="resultats-titre" className="mb-5 text-sm font-semibold uppercase tracking-wide text-muted">
-            Ce qui change pour vous
+        <section id="fonctionnement" aria-labelledby="fonctionnement-titre" className="pb-16">
+          <h2 id="fonctionnement-titre" className="mb-5 text-sm font-semibold uppercase tracking-wide text-muted">
+            Fonctionnement
+          </h2>
+          <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {steps.map((h) => (
+              <li key={h.n} className="rounded-2xl border border-line bg-elev p-5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-sm font-semibold text-accent">
+                  {h.n}
+                </span>
+                <h3 className="mt-3 font-medium">{h.title}</h3>
+                <p className="mt-1.5 text-sm text-muted">{h.text}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section aria-labelledby="engagements-titre" className="pb-16">
+          <h2 id="engagements-titre" className="mb-5 text-sm font-semibold uppercase tracking-wide text-muted">
+            Nos engagements
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            {outcomes.map((o) => (
-              <article key={o.title} className="rounded-2xl border border-line bg-surface/60 p-5">
-                <h3 className="font-medium">{o.title}</h3>
-                <p className="mt-2 text-sm text-muted">{o.text}</p>
+            {promises.map((p) => (
+              <article key={p.title} className="rounded-2xl border border-line bg-surface/60 p-5">
+                <h3 className="font-medium">{p.title}</h3>
+                <p className="mt-2 text-sm text-muted">{p.text}</p>
               </article>
             ))}
           </div>
         </section>
 
-        <section id="offres" aria-labelledby="offres-titre" className="pb-16">
-          <h2 id="offres-titre" className="mb-5 text-sm font-semibold uppercase tracking-wide text-muted">
-            Offres
+        <section id="tarifs" aria-labelledby="tarifs-titre" className="pb-16">
+          <h2 id="tarifs-titre" className="mb-5 text-sm font-semibold uppercase tracking-wide text-muted">
+            Tarifs
           </h2>
           <div className="grid gap-4 lg:grid-cols-3">
-            {offers.map((o) => (
+            {plans.map((o) => (
               <article
                 key={o.title}
                 className={`rounded-2xl border p-5 ${o.featured ? "border-accent/50 bg-accent/5" : "border-line bg-surface/60"}`}
@@ -138,38 +133,21 @@ export default async function Landing() {
           </div>
         </section>
 
-        <section id="fonctionnement" aria-labelledby="fonctionnement-titre" className="pb-16">
-          <h2 id="fonctionnement-titre" className="mb-5 text-sm font-semibold uppercase tracking-wide text-muted">
-            Fonctionnement
-          </h2>
-          <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {how.map((h) => (
-              <li key={h.n} className="rounded-2xl border border-line bg-elev p-5">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/15 text-sm font-semibold text-accent">
-                  {h.n}
-                </span>
-                <h3 className="mt-3 font-medium">{h.title}</h3>
-                <p className="mt-1.5 text-sm text-muted">{h.text}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
         <section className="mb-20 rounded-2xl border border-line bg-surface/60 p-6 sm:p-8">
-          <h2 className="text-lg font-semibold">Ce que nous ne faisons pas</h2>
+          <h2 className="text-lg font-semibold">Ce qu&apos;Atlas ne fait pas</h2>
           <p className="mt-2 max-w-3xl text-sm text-muted">
-            Nous ne déposons pas votre offre, ne signons rien à votre place et ne garantissons pas l&apos;attribution d&apos;un
-            marché : personne ne peut le garantir honnêtement. Nous ne donnons pas de conseil juridique. Vos prix restent votre
-            décision. Pour garantir le délai, le dossier de consultation doit nous parvenir au moins 7 jours avant la date limite.
+            Atlas n&apos;encaisse jamais d&apos;argent à votre place : vos clients vous paient directement. Il ne saisit pas la
+            justice, ne donne pas de conseil juridique et n&apos;envoie rien sans votre accord. Pour l&apos;instant, c&apos;est vous qui
+            envoyez les messages qu&apos;il prépare et qui confirmez les paiements reçus.
           </p>
-          <LinkButton href={primary.href} variant="primary" className="mt-5">
-            {primary.label}
+          <LinkButton href={cta.href} variant="primary" className="mt-5">
+            {cta.label}
           </LinkButton>
         </section>
       </main>
 
       <footer className="border-t border-line py-6 text-center text-xs text-faint">
-        Atlas — service marchés publics pour TPE et PME{contact ? ` · ${contact}` : ""}
+        Atlas — l&apos;agent qui fait aboutir ce qui traîne{contact ? ` · ${contact}` : ""}
       </footer>
     </div>
   );

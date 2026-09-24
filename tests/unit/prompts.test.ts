@@ -31,11 +31,11 @@ describe("prompts", () => {
     expect(updateStep?.description).toContain("'done' exige TOUJOURS un 'result' concret");
   });
 
-  it("gives a cited, fixed structure for public tender files (DCE)", () => {
+  it("frames unpaid-invoice work: amounts from the documents, B2B-only penalties, payment only when confirmed", () => {
     const p = executeSystemPrompt(caps);
-    expect(p).toContain("Dossier de consultation d'un appel d'offres public");
-    expect(p).toContain("Chaque exigence cite son document et son article ou sa page");
-    expect(p).toContain("jamais supposée");
+    expect(p).toContain("ne complète jamais un montant, un numéro ou une date absents");
+    expect(p).toContain("ne s'appliquent qu'aux professionnels");
+    expect(p).toContain("jamais considérée comme payée sans confirmation de l'utilisateur");
   });
 
   it("forbids asking for sensitive data such as an IBAN", () => {

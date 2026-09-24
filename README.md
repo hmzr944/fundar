@@ -1,6 +1,6 @@
 # Atlas — agent personnel généraliste (MVP)
 
-> **Offre commerciale V1** : service marchés publics pour TPE et PME, par abonnement mensuel (veille, réponses complètes produites avec Atlas et relues par un humain, suivi administratif, retour d’expérience après chaque résultat). Stratégie, prix, acquisition et critères de décision : [docs/STRATEGIE.md](docs/STRATEGIE.md). Mise en ligne : section [Mise en production](#mise-en-production).
+> **Point d'entrée commercial** : Atlas fait rentrer l'argent qu'on vous doit (factures impayées des TPE, PME, cabinets d'avocats et d'expertise comptable), avec une offre gratuite puis 19 ou 49 € HT/mois. Stratégie, prix, paliers vers l'agent généraliste et critères de décision : [docs/STRATEGIE.md](docs/STRATEGIE.md). Mise en ligne : section [Mise en production](#mise-en-production).
 
 > « Dis-moi ce que tu veux accomplir. Atlas t'aide à le faire avancer, étape par étape, et te montre clairement ce qui a été réalisé. »
 

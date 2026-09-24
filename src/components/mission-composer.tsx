@@ -6,10 +6,10 @@ import { Button, Spinner } from "@/components/ui";
 import { api } from "@/lib/client/api";
 
 const suggestions = [
-  "Analyse ce DCE : synthèse du marché, critères et pondération, dates limites, pièces à fournir, points de vigilance et questions à poser à l'acheteur. Dis-moi si nous devons y répondre.",
-  "À partir de ce DCE, prépare la liste de contrôle des pièces administratives et de l'offre à déposer, avec pour chacune le document et l'article qui l'exigent.",
-  "Rédige le mémoire technique de ce marché en suivant le plan et les critères imposés par le règlement de consultation, à partir des informations de notre entreprise.",
-  "Relis notre dossier de réponse et vérifie qu'il est complet et conforme au règlement de consultation avant le dépôt.",
+  "Voici mes factures impayées. Pour chaque client, prépare la première relance adaptée et la suite prévue si rien ne bouge.",
+  "Mon client m'a répondu que la facture était perdue et qu'il paiera « bientôt ». Prépare la réponse et la suite à donner.",
+  "Cette facture est impayée depuis plus de 30 jours malgré deux relances. Prépare une mise en demeure conforme.",
+  "Mon client demande à payer en plusieurs fois. Propose un échéancier et le message pour le lui confirmer.",
 ];
 
 export function MissionComposer({ disabled }: { disabled?: boolean }) {
