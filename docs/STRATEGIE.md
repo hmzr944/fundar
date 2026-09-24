@@ -4,14 +4,15 @@
 
 ## 1. Décision
 
-**Atlas V1 = un service de réponse aux appels d'offres publics pour TPE et PME, produit avec l'IA, relu par un humain, vendu au dossier.**
+**Atlas V1 = un service marchés publics complet pour TPE et PME, par abonnement mensuel sans engagement.** Le client n'achète pas « une analyse de dossier » : il achète un service appels d'offres externalisé, sans embauche.
 
-- Le client envoie le dossier de consultation (DCE) d'un marché public.
-- Atlas analyse le DCE, liste les pièces à fournir, repère les pièges et prépare le dossier et le mémoire technique.
-- Le fondateur relit, complète avec les informations de l'entreprise et livre.
-- Le client signe et dépose lui-même sa réponse sur la plateforme de l'acheteur.
+- **Trouver** : veille hebdomadaire des appels d'offres correspondant au métier et à la zone du client, avec un avis « on y va / on passe » argumenté.
+- **Répondre** : analyse du dossier de consultation, pièces administratives, mémoire technique, relecture de conformité. Le tout est produit avec Atlas et relu par un humain.
+- **Tenir à jour** : dossier administratif du client (attestations, assurances) suivi et renouvelé avant expiration ; calendrier des échéances.
+- **Apprendre** : après chaque résultat, demande des motifs de rejet à l'acheteur (droit du candidat évincé) et corrections pour le dossier suivant ; bibliothèque de réponses enrichie à chaque dossier.
+- Le client valide, signe et dépose.
 
-Atlas (le logiciel) est l'outil de production interne. L'espace client reste disponible, mais **ce qui se vend, c'est le résultat livré**, pas un abonnement logiciel.
+Atlas (le logiciel) est l'outil de production interne. Ce qui se vend, c'est le service et son résultat.
 
 ## 2. Pourquoi ce marché, d'après les données publiques
 
@@ -28,22 +29,22 @@ Atlas (le logiciel) est l'outil de production interne. L'espace client reste dis
 
 ## 3. Offre et prix
 
-| Offre | Contenu | Délai | Prix |
-| --- | --- | --- | --- |
-| Analyse de DCE | Synthèse du marché, critères et pondération, dates limites, liste des pièces à fournir, points de vigilance, questions à poser à l'acheteur, avis « y aller / ne pas y aller » argumenté | 1 jour ouvré | 149 € HT |
-| Dossier complet | Analyse + liste des pièces administratives avec aide au remplissage + mémoire technique rédigé à partir des informations de l'entreprise + relecture de conformité finale | 3 jours ouvrés | 790 € HT |
-| Pack 3 dossiers | 3 dossiers complets, à utiliser sous 6 mois | 3 jours ouvrés par dossier | 1 990 € HT |
+| Offre | Contenu | Prix |
+| --- | --- | --- |
+| Essentiel | Veille hebdomadaire + 1 dossier complet par mois + dossier administratif tenu à jour + calendrier | 490 € HT/mois, sans engagement |
+| Croissance | Essentiel + 3 dossiers complets par mois + questions à l'acheteur + analyse des motifs de rejet + bibliothèque de réponses | 990 € HT/mois, sans engagement |
+| Dossier à l'unité | Analyse, pièces, mémoire technique, relecture de conformité | 890 € HT |
 
-- **Offre de lancement** : la première analyse de DCE est offerte (les concurrents logiciels offrent aussi une première analyse ; c'est la porte d'entrée).
-- **Positionnement prix** : environ deux fois moins cher qu'un accompagnement de consultant, plus cher qu'un logiciel mais sans travail de rédaction pour le client.
-- **Condition** : DCE reçu au moins 7 jours avant la date limite de remise des offres.
-- **Ce qui n'est pas vendu** : le dépôt de l'offre, la signature, une garantie de gain, un conseil juridique.
+- **Porte d'entrée** : premier échange et première analyse de marché offerts.
+- **Engagement fort** : délai garanti (dossier livré au plus tard 48 h avant la date limite) ou dossier remboursé, si le dossier de consultation est reçu au moins 7 jours avant la date limite. **C'est une promesse à tenir** : refuser un dossier plutôt que risquer le retard.
+- **Positionnement** : une embauche de chargé d'appels d'offres coûte bien plus qu'un abonnement ; les consultants facturent au dossier (environ 1 600 € HT selon les résultats de recherche) ; les logiciels à 39–199 €/mois laissent tout le travail au client. Atlas vend le travail fait, au prix d'un abonnement.
+- **Ce qui n'est pas vendu** : le dépôt de l'offre, la signature, une garantie de gain, un conseil juridique, la fixation des prix du client.
 
 ### Objectif de revenu (hypothèse de travail)
 
-- 8 dossiers complets par mois × 790 € = **6 320 € HT/mois**.
-- Coût d'IA : quelques euros par dossier (mesuré lors de la validation : environ 0,20 $ par mission ; un DCE complet en demandera plusieurs, **à mesurer**).
-- Contrainte réelle : **le temps de relecture et de rédaction du fondateur** (hypothèse : 3 à 5 h par dossier complet avec Atlas). À mesurer dès le premier dossier ; si ce temps dépasse 8 h, revoir le prix à la hausse.
+- 6 abonnements Croissance = **5 940 € HT/mois récurrents** (18 dossiers par mois), ou un mélange Essentiel/Croissance équivalent.
+- Contrainte réelle : **le temps du fondateur** (hypothèse : 3 à 5 h par dossier avec Atlas, plus environ 1 h de veille par client et par semaine). 18 dossiers × 4 h + veille ≈ 100 h/mois : c'est le plafond d'une personne seule. Au-delà, industrialiser (modèles, veille automatisée par l'API BOAMP, relecteur à temps partiel).
+- Coût d'IA : quelques euros par dossier (**à mesurer** sur les premiers dossiers).
 
 ## 4. Acquisition — les 30 premiers jours
 
@@ -52,15 +53,16 @@ Aucun entretien préalable : **la prospection est le test**.
 1. **Semaine 1 — préparation**
    - Créer la structure juridique (micro-entreprise suffit pour démarrer), un compte bancaire, un outil de facturation.
    - Déployer Atlas (voir « Mise en production » du README) et renseigner `ATLAS_CONTACT_EMAIL`.
+   - Préparer le questionnaire entreprise, un modèle de mémoire technique et un tableau de suivi des attestations clients.
    - Choisir **deux secteurs** où les TPE répondent souvent : par exemple nettoyage, espaces verts, second œuvre du BTP, prestations informatiques, formation.
    - Extraire des DECP la liste des entreprises de ces secteurs **ayant déjà remporté un marché** (elles savent ce qu'est un appel d'offres et en ont le besoin).
 2. **Semaines 2 à 4 — prospection**
-   - Chaque jour ouvré : repérer dans le BOAMP 3 à 5 appels d'offres ouverts dans ces secteurs ; écrire à 20 entreprises du secteur, avec un message personnalisé citant un marché en cours et proposant l'**analyse offerte** de ce DCE.
+   - Chaque jour ouvré : repérer dans le BOAMP 3 à 5 appels d'offres ouverts dans ces secteurs ; écrire à 20 entreprises du secteur, avec un message personnalisé citant un marché en cours et proposant l'**analyse offerte** de ce marché.
    - Relancer une fois après 4 jours ouvrés.
-   - Chaque analyse offerte livrée se termine par une proposition de dossier complet.
+   - Chaque analyse offerte se termine par un échange de 20 minutes pour proposer l'abonnement (Croissance en premier, Essentiel en repli, dossier à l'unité en dernier recours).
 3. **Calcul d'entonnoir (hypothèse, à remplacer par vos chiffres)**
    - Taux de réponse d'un e-mail B2B personnalisé : environ 3 à 8 % selon les baromètres publics.
-   - Pour 400 e-mails : environ 12 à 30 réponses, dont une partie demande l'analyse offerte ; objectif : **3 à 5 dossiers payants** sur le premier mois.
+   - Pour 400 e-mails : environ 12 à 30 réponses, dont une partie demande l'analyse offerte ; objectif : **2 abonnements ou 3 dossiers à l'unité** sur le premier mois.
 
 Règles : e-mails B2B uniquement à des adresses professionnelles, en lien avec l'activité de l'entreprise, avec un moyen simple de se désinscrire ; aucune liste achetée sans vérification de son origine.
 
@@ -68,16 +70,17 @@ Règles : e-mails B2B uniquement à des adresses professionnelles, en lien avec 
 
 | Au bout de | Continuer si | Sinon |
 | --- | --- | --- |
-| 30 jours | Au moins 2 dossiers payants | Changer de secteurs cibles et de message pendant 30 jours de plus |
-| 60 jours | Au moins 6 dossiers payants cumulés, et un temps moyen par dossier ≤ 5 h | Revoir le prix (hausse) ou l'offre (analyse seule, abonnement) |
-| 90 jours | Au moins un client qui revient pour un deuxième dossier | Si aucune vente après 90 jours de prospection régulière : arrêter ce marché et réutiliser le moteur sur un autre type de dossier |
+| 30 jours | Au moins 2 clients payants (abonnement ou dossier) | Changer de secteurs cibles et de message pendant 30 jours de plus |
+| 60 jours | Au moins 3 abonnements actifs, et un temps moyen par dossier ≤ 5 h | Revoir le contenu des offres ou les prix |
+| 90 jours | Au moins 3 abonnés encore actifs après leur 2e mois | Si aucune vente après 90 jours de prospection régulière : arrêter ce marché et réutiliser le moteur sur un autre type de dossier |
 
 ## 6. Risques principaux et parades
 
 | Risque | Parade |
 | --- | --- |
 | Erreur dans une pièce ou un délai qui fait écarter la candidature | Relecture humaine systématique ; liste de contrôle finale ; le client valide et dépose ; conditions de vente limitant la responsabilité au prix du dossier |
-| Délais très courts | Condition des 7 jours ; refuser plutôt que livrer en retard |
+| Délais très courts, délai garanti | Condition des 7 jours ; refuser plutôt que livrer en retard ; plafonner le nombre de dossiers acceptés par semaine |
+| Promesses de veille et de suivi administratif tenues à la main | Au début, veille manuelle avec le site du BOAMP et tableau de suivi des attestations ; automatiser par l'API BOAMP dès 5 abonnés |
 | Qualité du mémoire technique | Questionnaire entreprise standard (références, moyens, méthodes) rempli une fois et réutilisé ; Atlas rédige, le fondateur adapte |
 | DCE en ZIP, tableurs (BPU, DPGF) | Atlas lit PDF, DOCX, TXT, CSV : décompresser les ZIP et convertir les tableurs en CSV avant import (limite connue de la V1) |
 | Documents scannés | Pas d'OCR en V1 : les signaler au client, les traiter manuellement |

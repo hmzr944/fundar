@@ -46,10 +46,12 @@ test.describe("route protection", () => {
 
 test("landing page presents the tender offer with its prices and limits, without fake figures", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("appels d'offres");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("service appels d'offres");
+  await expect(page.getByRole("heading", { name: "Ce qui change pour vous" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Offres", exact: true })).toBeVisible();
-  await expect(page.getByText("149 € HT")).toBeVisible();
-  await expect(page.getByText("790 € HT")).toBeVisible();
+  await expect(page.getByText("490 € HT")).toBeVisible();
+  await expect(page.getByText("990 € HT")).toBeVisible();
+  await expect(page.getByText("890 € HT")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Ce que nous ne faisons pas" })).toBeVisible();
   // No contact address configured in tests: the call to action falls back to the client space.
   await expect(page.getByRole("link", { name: "Créer un espace client" }).first()).toBeVisible();

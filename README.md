@@ -1,6 +1,6 @@
 # Atlas — agent personnel généraliste (MVP)
 
-> **Offre commerciale V1** : réponses aux appels d'offres publics pour TPE et PME, produites avec Atlas et relues par un humain, vendues au dossier (analyse de DCE, dossier complet, pack). Stratégie, prix, acquisition et critères de décision : [docs/STRATEGIE.md](docs/STRATEGIE.md). Mise en ligne : section [Mise en production](#mise-en-production).
+> **Offre commerciale V1** : service marchés publics pour TPE et PME, par abonnement mensuel (veille, réponses complètes produites avec Atlas et relues par un humain, suivi administratif, retour d’expérience après chaque résultat). Stratégie, prix, acquisition et critères de décision : [docs/STRATEGIE.md](docs/STRATEGIE.md). Mise en ligne : section [Mise en production](#mise-en-production).
 
 > « Dis-moi ce que tu veux accomplir. Atlas t'aide à le faire avancer, étape par étape, et te montre clairement ce qui a été réalisé. »
 

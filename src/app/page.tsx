@@ -3,43 +3,54 @@ import { LinkButton, Logo } from "@/components/ui";
 
 const offers = [
   {
-    title: "Analyse de DCE",
-    price: "149 € HT",
-    delay: "1 jour ouvré",
+    title: "Essentiel",
+    price: "490 € HT",
+    period: "par mois, sans engagement",
     items: [
-      "Synthèse du marché, lots et durée",
-      "Critères de jugement et pondération",
-      "Dates limites et formalités de remise",
-      "Liste des pièces à fournir",
-      "Points de vigilance et questions à poser à l'acheteur",
-      "Avis argumenté : y aller ou non",
+      "Veille : chaque semaine, les appels d'offres qui correspondent à votre métier et à votre zone, avec notre avis « on y va / on passe »",
+      "1 dossier de réponse complet par mois",
+      "Votre dossier administratif tenu à jour : nous vous prévenons avant l'expiration de chaque attestation",
+      "Calendrier de vos échéances de dépôt",
     ],
   },
   {
-    title: "Dossier complet",
-    price: "790 € HT",
-    delay: "3 jours ouvrés",
+    title: "Croissance",
+    price: "990 € HT",
+    period: "par mois, sans engagement",
     featured: true,
     items: [
-      "Tout le contenu de l'analyse",
-      "Pièces administratives : liste et aide au remplissage",
-      "Mémoire technique rédigé à partir des informations de votre entreprise",
+      "Tout l'Essentiel",
+      "3 dossiers de réponse complets par mois",
+      "Questions à l'acheteur rédigées et suivies pendant la consultation",
+      "Après chaque résultat : demande des motifs de rejet et plan d'amélioration pour le marché suivant",
+      "Votre bibliothèque de réponses (références, moyens, méthodes) enrichie à chaque dossier",
+    ],
+  },
+  {
+    title: "Dossier à l'unité",
+    price: "890 € HT",
+    period: "par dossier",
+    items: [
+      "Analyse du dossier de consultation et avis argumenté",
+      "Pièces administratives préparées",
+      "Mémoire technique rédigé pour ce marché",
       "Relecture de conformité avant votre dépôt",
     ],
   },
-  {
-    title: "Pack 3 dossiers",
-    price: "1 990 € HT",
-    delay: "3 jours ouvrés par dossier",
-    items: ["3 dossiers complets", "À utiliser sous 6 mois", "Vos informations d'entreprise réutilisées d'un dossier à l'autre"],
-  },
+];
+
+const outcomes = [
+  { title: "Vous ne ratez plus les bons marchés", text: "Nous surveillons les publications pour vous et vous signalons seulement celles qui valent la peine d'y répondre." },
+  { title: "Vous ne perdez plus de soirées sur les dossiers", text: "Vous répondez à nos questions sur votre entreprise ; nous rédigeons, vérifions et vous livrons un dossier prêt à signer." },
+  { title: "Vous n'êtes plus écarté pour une pièce manquante", text: "Chaque exigence du règlement est vérifiée, avec la référence de l'article concerné." },
+  { title: "Chaque réponse améliore la suivante", text: "Gagné ou perdu, nous demandons les motifs à l'acheteur et en tirons les corrections pour le prochain dossier." },
 ];
 
 const how = [
-  { n: "1", title: "Vous envoyez le DCE", text: "Le dossier de consultation tel que publié par l'acheteur, au moins 7 jours avant la date limite." },
-  { n: "2", title: "Atlas l'analyse", text: "Règlement, cahiers des charges, pièces demandées, critères : tout est lu et relevé, avec la référence du document." },
-  { n: "3", title: "Un humain relit et complète", text: "Chaque livrable est vérifié et adapté à votre entreprise avant de vous être remis." },
-  { n: "4", title: "Vous déposez votre offre", text: "Vous recevez un dossier prêt à signer. Le dépôt sur la plateforme de l'acheteur reste entre vos mains." },
+  { n: "1", title: "Nous apprenons votre entreprise", text: "Un entretien et un questionnaire : métier, zone, références, moyens. Fait une fois, réutilisé à chaque dossier." },
+  { n: "2", title: "Nous choisissons les marchés avec vous", text: "Chaque semaine, une sélection argumentée. Vous décidez en un clic sur quels marchés répondre." },
+  { n: "3", title: "Nous préparons la réponse", text: "Analyse du dossier de consultation, pièces, mémoire technique : produits avec notre outil Atlas, relus par un humain." },
+  { n: "4", title: "Vous signez et déposez", text: "Le dossier arrive prêt, au plus tard 48 h avant la date limite. Après le résultat, nous analysons avec vous." },
 ];
 
 export default async function Landing() {
@@ -48,7 +59,7 @@ export default async function Landing() {
   const space = user ? { href: "/app", label: "Ouvrir mon espace" } : { href: "/signup", label: "Créer un espace client" };
   // Main call to action: send a tender file by e-mail when a contact address is configured, otherwise the client space.
   const primary = contact
-    ? { href: `mailto:${contact}?subject=${encodeURIComponent("Analyse de DCE offerte")}`, label: "Envoyer un DCE" }
+    ? { href: `mailto:${contact}?subject=${encodeURIComponent("Premier échange — service marchés publics")}`, label: "Parler de vos marchés" }
     : { href: space.href, label: space.label };
 
   return (
@@ -69,13 +80,13 @@ export default async function Landing() {
 
       <main className="mx-auto max-w-6xl px-4 sm:px-6">
         <section className="py-14 sm:py-24">
-          <p className="mb-4 text-sm font-medium text-accent">Appels d&apos;offres publics — TPE et PME</p>
+          <p className="mb-4 text-sm font-medium text-accent">Service marchés publics — TPE et PME</p>
           <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-            Répondez aux appels d&apos;offres sans y passer vos soirées.
+            Votre service appels d&apos;offres, sans embaucher.
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-muted">
-            Envoyez-nous le dossier de consultation. Vous recevez l&apos;analyse du marché, la liste des pièces à fournir et un
-            mémoire technique rédigé pour votre entreprise, relus par un humain. Vous signez et déposez.
+            Nous trouvons les marchés publics faits pour vous, préparons des réponses complètes et conformes, et apprenons de
+            chaque résultat pour la suivante. Vous gardez votre temps pour votre métier : vous validez, signez et déposez.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <LinkButton href={primary.href} variant="primary" className="px-5 py-2.5 text-base">
@@ -85,7 +96,23 @@ export default async function Landing() {
               Voir les offres ↓
             </a>
           </div>
-          <p className="mt-4 text-sm text-faint">Votre première analyse de DCE est offerte.</p>
+          <p className="mt-4 text-sm text-faint">
+            Premier échange et première analyse de marché offerts. Délai de livraison garanti, ou le dossier est remboursé.
+          </p>
+        </section>
+
+        <section aria-labelledby="resultats-titre" className="pb-16">
+          <h2 id="resultats-titre" className="mb-5 text-sm font-semibold uppercase tracking-wide text-muted">
+            Ce qui change pour vous
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {outcomes.map((o) => (
+              <article key={o.title} className="rounded-2xl border border-line bg-surface/60 p-5">
+                <h3 className="font-medium">{o.title}</h3>
+                <p className="mt-2 text-sm text-muted">{o.text}</p>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section id="offres" aria-labelledby="offres-titre" className="pb-16">
@@ -100,7 +127,7 @@ export default async function Landing() {
               >
                 <h3 className="font-medium">{o.title}</h3>
                 <p className="mt-2 text-2xl font-semibold">{o.price}</p>
-                <p className="text-sm text-muted">Livré en {o.delay}</p>
+                <p className="text-sm text-muted">{o.period}</p>
                 <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm text-muted">
                   {o.items.map((i) => (
                     <li key={i}>{i}</li>
@@ -131,9 +158,9 @@ export default async function Landing() {
         <section className="mb-20 rounded-2xl border border-line bg-surface/60 p-6 sm:p-8">
           <h2 className="text-lg font-semibold">Ce que nous ne faisons pas</h2>
           <p className="mt-2 max-w-3xl text-sm text-muted">
-            Nous ne déposons pas votre offre, ne signons rien à votre place et ne garantissons pas l&apos;attribution du marché.
-            Nous ne donnons pas de conseil juridique. Les documents scannés et les tableurs de prix sont traités à part : nous
-            vous le signalons dès la réception du DCE.
+            Nous ne déposons pas votre offre, ne signons rien à votre place et ne garantissons pas l&apos;attribution d&apos;un
+            marché : personne ne peut le garantir honnêtement. Nous ne donnons pas de conseil juridique. Vos prix restent votre
+            décision. Pour garantir le délai, le dossier de consultation doit nous parvenir au moins 7 jours avant la date limite.
           </p>
           <LinkButton href={primary.href} variant="primary" className="mt-5">
             {primary.label}
@@ -142,7 +169,7 @@ export default async function Landing() {
       </main>
 
       <footer className="border-t border-line py-6 text-center text-xs text-faint">
-        Atlas — réponses aux appels d&apos;offres publics{contact ? ` · ${contact}` : ""}
+        Atlas — service marchés publics pour TPE et PME{contact ? ` · ${contact}` : ""}
       </footer>
     </div>
   );
