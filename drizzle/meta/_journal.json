@@ -29,6 +29,13 @@
       "when": 1790258834429,
       "tag": "0003_file_deletions",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790259069720,
+      "tag": "0004_activity_tracking",
+      "breakpoints": true
     }
   ]
 }

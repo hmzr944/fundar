@@ -14,6 +14,7 @@ export default async function Settings() {
   const usage = await usageSummary(getDb(), user.id, 30);
   const integ = integrationStatus();
   const limits = config.limits;
+  const retention = config.retention;
   const cost = usage.estimatedCostUsd === null ? null : Number(usage.estimatedCostUsd);
   return (
     <div className="max-w-3xl space-y-6">
@@ -89,12 +90,26 @@ export default async function Settings() {
             Pour analyser une mission, son contenu (demande, conversation, extraits de documents lus) est transmis au fournisseur du modèle
             de langage configuré. Les requêtes de recherche sont transmises au fournisseur de recherche.
           </li>
-          <li>Les journaux techniques n&apos;enregistrent ni le contenu de vos documents ni vos messages.</li>
           <li>
-            Les missions inactives depuis plus de {config.retentionDays} jours peuvent être supprimées automatiquement par
-            l&apos;administrateur de l&apos;instance.
+            Les journaux techniques n&apos;enregistrent ni le contenu de vos documents ni vos messages. Les requêtes de recherche web y
+            figurent pour le diagnostic et sont supprimées avec la mission.
+          </li>
+          <li>
+            Un registre d&apos;utilisation (dates, volumes, coûts estimés, sans aucun contenu) est conservé {retention.usageRetentionMonths} mois
+            pour les quotas et le suivi des coûts. Il est anonymisé si vous supprimez votre compte.
+          </li>
+          <li>
+            Les missions sans activité depuis {retention.missionDays} jours (l&apos;ouverture d&apos;une mission compte comme une activité)
+            sont supprimées par la maintenance planifiée de l&apos;instance.
+            {retention.accountPurge
+              ? ` Les comptes sans activité depuis ${retention.accountInactiveDays} jours sont supprimés.`
+              : " Les comptes inactifs ne sont pas supprimés automatiquement."}
           </li>
           <li>Vous pouvez supprimer une mission, un document, toutes vos données ou votre compte à tout moment.</li>
+          <li>
+            Les données sont rendues inaccessibles dès la demande de suppression. Les fichiers sont supprimés lors du traitement de la
+            file de suppression. Les durées d&apos;effacement des sauvegardes sont précisées séparément.
+          </li>
         </ul>
       </Card>
 

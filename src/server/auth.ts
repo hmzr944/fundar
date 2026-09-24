@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
-import { and, eq, gt, lt } from "drizzle-orm";
+import { and, eq, gt, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/db";
 import { sessions, users, type User } from "@/db/schema";
@@ -55,6 +55,7 @@ export async function createSession(db: Db, userId: string, days: number) {
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + days * 86_400_000);
   await db.insert(sessions).values({ id: hashToken(token), userId, expiresAt });
+  await touchLastSeen(db, userId);
   // Opportunistic cleanup of this user's expired sessions.
   await db.delete(sessions).where(and(eq(sessions.userId, userId), lt(sessions.expiresAt, new Date())));
   return { token, expiresAt };
@@ -68,7 +69,14 @@ export async function validateSessionToken(db: Db, token: string | undefined | n
     .innerJoin(users, eq(users.id, sessions.userId))
     .where(and(eq(sessions.id, hashToken(token)), gt(sessions.expiresAt, new Date())))
     .limit(1);
-  return rows[0]?.user ?? null;
+  const user = rows[0]?.user ?? null;
+  // Authenticated activity for the inactive-account policy, refreshed at most once a day.
+  if (user && Date.now() - user.lastSeenAt.getTime() > 86_400_000) await touchLastSeen(db, user.id);
+  return user;
+}
+
+async function touchLastSeen(db: Db, userId: string) {
+  await db.execute(sql`update users set last_seen_at = now() where id = ${userId}`);
 }
 
 export async function destroySession(db: Db, token: string | undefined | null) {

@@ -279,6 +279,17 @@ export async function deleteMission(db: Db, storage: FileStorage, userId: string
   await processFileDeletions(db, storage, keys);
 }
 
+/**
+ * Opening a mission counts as activity for the retention policy. At most one
+ * write per hour (the workspace polls every few seconds), and raw SQL so that
+ * updated_at, which orders the mission list, is left untouched.
+ */
+export async function touchMissionActivity(db: Db, missionId: string) {
+  await db.execute(
+    sql`update missions set last_activity_at = now() where id = ${missionId} and last_activity_at < now() - interval '1 hour'`,
+  );
+}
+
 export async function renameMission(db: Db, userId: string, missionId: string, title: string) {
   const t = title.trim();
   if (!t || t.length > 120) throw badRequest("Titre invalide (1 à 120 caractères).");

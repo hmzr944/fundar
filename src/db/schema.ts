@@ -78,6 +78,8 @@ export const users = pgTable(
     email: text("email").notNull(),
     name: text("name"),
     passwordHash: text("password_hash").notNull(),
+    /** Last authenticated activity (refreshed at most daily), not the last login: sessions last 30 days. */
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
     ...timestamps,
   },
   (t) => [uniqueIndex("users_email_unique").on(t.email)],
@@ -130,6 +132,12 @@ export const missions = pgTable(
      * that ledger rows cannot be joined back to missions once they are deleted.
      */
     usageRef: uuid("usage_ref").notNull().defaultRandom(),
+    /**
+     * Last activity for the retention policy, opening the mission included.
+     * Separate from updated_at so that merely viewing a mission does not
+     * reorder the "recently updated" list.
+     */
+    lastActivityAt: timestamp("last_activity_at", { withTimezone: true }).notNull().defaultNow(),
     ...timestamps,
   },
   (t) => [

@@ -112,7 +112,7 @@ describe("usage ledger", () => {
     // Stale again, but the mission is purged before any recovery: totals are still recorded.
     await db.update(missionRuns).set({ status: "RUNNING", heartbeatAt: new Date(Date.now() - 600_000) }).where(eq(missionRuns.id, run.id));
     await db.update(usageRecords).set({ endedAt: null, outcome: null, llmCalls: 0 }).where(eq(usageRecords.runId, run.id));
-    await db.update(missions).set({ updatedAt: new Date(Date.now() - 400 * 86_400_000) }).where(eq(missions.id, m.id));
+    await db.update(missions).set({ updatedAt: new Date(Date.now() - 400 * 86_400_000), lastActivityAt: new Date(Date.now() - 400 * 86_400_000) }).where(eq(missions.id, m.id));
     expect((await purgeInactiveMissions(db, new MemoryStorage(), 365)).missions).toBe(1);
     expect((await ledger())[0]).toMatchObject({ outcome: "INTERRUPTED", llmCalls: 1 });
   });

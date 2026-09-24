@@ -179,7 +179,7 @@ describe("data deletion", () => {
     const v = await createTestUser();
     const old = await createMission(db, v.id, "Ancienne mission");
     await createMission(db, v.id, "Mission récente");
-    await db.execute(`update missions set updated_at = now() - interval '400 days' where id = '${old.id}'`);
+    await db.execute(`update missions set updated_at = now() - interval '400 days', last_activity_at = now() - interval '400 days' where id = '${old.id}'`);
     const purged = await purgeInactiveMissions(db, storage, 365);
     expect(purged.missions).toBe(1);
     const left = await listMissions(db, v.id);

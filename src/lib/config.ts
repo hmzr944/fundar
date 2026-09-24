@@ -1,4 +1,5 @@
 import "server-only";
+import { retentionSettings } from "@/server/maintenance/retention";
 
 /**
  * Central runtime configuration. Every tunable limit lives here and can be
@@ -52,8 +53,9 @@ export const config = {
   get sessionDays() {
     return int("ATLAS_SESSION_DAYS", 30);
   },
-  get retentionDays() {
-    return int("ATLAS_RETENTION_DAYS", 365);
+  /** Retention policy (missions, accounts, usage ledger): see src/server/maintenance/retention.ts. */
+  get retention() {
+    return retentionSettings();
   },
   uploads: {
     get maxBytes() {

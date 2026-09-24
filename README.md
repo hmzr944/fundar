@@ -48,7 +48,7 @@ Scripts utiles :
 |---|---|
 | `pnpm db:generate` | Génère une migration après modification de `src/db/schema.ts` |
 | `pnpm db:migrate` | Applique les migrations |
-| `pnpm purge` | Politique de conservation : supprime les missions inactives depuis `ATLAS_RETENTION_DAYS` jours (à planifier en cron) |
+| `pnpm purge` | Maintenance quotidienne (politique de conservation, voir « Conservation et purge ») ; `--dry-run` pour simuler |
 | `pnpm storage:check` | Compare les fichiers stockés et les documents en base (orphelins, fichiers manquants) ; `--delete-orphans` supprime les orphelins de plus de 24 h |
 | `pnpm test` | Tests unitaires et d'intégration (PostgreSQL requis) |
 | `pnpm test:e2e` | Tests de bout en bout dans Chromium |
@@ -220,7 +220,23 @@ Une étape marquée faite par l'utilisateur est enregistrée avec `completedBy =
 - **SSRF** : les adresses privées, locales et de métadonnées cloud sont refusées au moment de la résolution DNS, puis à chaque redirection.
 - **Rendu** : le Markdown est rendu sans HTML brut ; les liens non http(s) sont neutralisés ; l'export CSV neutralise les formules.
 - **Journaux** : aucune donnée de contenu (texte de documents, messages) ; seulement des métadonnées techniques (outil, durée, tokens, hôte consulté, codes d'erreur).
-- **Conservation et suppression** : on peut supprimer une mission (fichiers compris), toutes ses données ou son compte (après confirmation du mot de passe), et `pnpm purge` applique la durée de conservation.
+- **Conservation et suppression** : on peut supprimer une mission (fichiers compris), toutes ses données ou son compte (après confirmation du mot de passe). Les données sont rendues inaccessibles dès la demande ; les fichiers sont supprimés lors du traitement de la file de suppression (`file_deletions`), les échecs y restent et sont retentés. Les durées d'effacement des sauvegardes dépendent de l'hébergeur et doivent être précisées séparément.
+- **Registre d'usage** (`usage_records`) : une ligne par analyse ou exécution (dates, compteurs, coûts, aucun contenu), indépendante des missions pour les quotas et le suivi des coûts ; anonymisée à la suppression du compte.
+
+### Conservation et purge
+
+`pnpm purge` est à planifier **une fois par jour** (par exemple à 3 h) chez l'hébergeur, avec **le même environnement que l'application** (dont `ATLAS_STORAGE_DIR` absolu). **La première exécution en production doit se faire avec `--dry-run`.**
+
+| Étape | Règle (réglage) |
+|---|---|
+| Missions | sans activité depuis 180 jours (`ATLAS_RETENTION_DAYS`) ; l'ouverture d'une mission compte comme activité ; une mission en cours de traitement est ignorée |
+| Comptes | sans activité authentifiée depuis 365 jours (`ATLAS_ACCOUNT_INACTIVE_DAYS`) : **non supprimés** tant que `ATLAS_ACCOUNT_PURGE=off` (défaut), seulement comptés ; si activé, suppression complète avec anonymisation du registre |
+| Sessions | expirées |
+| Registre d'usage | lignes de plus de 24 mois (`ATLAS_USAGE_RETENTION_MONTHS`) |
+| File de suppression | nouvelles tentatives ; entrées en échec après 7 tentatives signalées |
+| Fichiers orphelins | plus de 24 h (`ATLAS_ORPHAN_MIN_AGE_HOURS`), avec les garde-fous du rapprochement |
+
+Un verrou empêche deux purges simultanées. Chaque étape est indépendante. Les étapes qui effacent des fichiers ne s'exécutent que si l'identité du volume est vérifiée ; sinon les fichiers restent en file d'attente. Code de sortie : 0 terminé, 1 point à vérifier, 2 exécution impossible.
 - **Confidentialité** : le contenu nécessaire à l'analyse est transmis au fournisseur du modèle, et les requêtes de recherche au fournisseur de recherche. La page Paramètres le précise.
 
 ---
