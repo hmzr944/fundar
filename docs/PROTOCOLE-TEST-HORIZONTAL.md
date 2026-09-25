@@ -1,7 +1,7 @@
 # Protocole expérimental — « Règle ça pour moi » (offre horizontale)
 
 > Date : 25 septembre 2026. Fait suite à [`EVALUATION-WEDGE-VOLS.md`](EVALUATION-WEDGE-VOLS.md).
-> Statut : **protocole à valider avant lancement.** Rien n'est développé. Les paramètres chiffrés (budgets, prix, seuils) sont des **choix proposés**, marqués ⚙. Ils doivent être confirmés, puis **gelés avant la première demande**.
+> Statut : **décisions de principe verrouillées** ([section 12](#12-décisions)). Rien n'est développé. Les paramètres chiffrés encore marqués ⚙ sont des propositions non contestées, à confirmer au moment du gel. **Tout est gelé avant la première demande.**
 
 ---
 
@@ -19,7 +19,7 @@
 9. [Seuils et verdicts](#9-seuils-et-verdicts-point-15)
 10. [Cadre juridique, transparence et limites de périmètre](#10-cadre-juridique-transparence-et-limites-de-périmètre)
 11. [Calendrier](#11-calendrier)
-12. [Décisions à confirmer avant le lancement](#12-décisions-à-confirmer-avant-le-lancement)
+12. [Décisions](#12-décisions)
 
 ---
 
@@ -38,6 +38,25 @@ Six questions, dans cet ordre de priorité :
 5. **Les gens reviennent-ils avec un autre problème ?**
 6. **Acceptent-ils de payer ?**
 
+Ces questions correspondent à cinq niveaux, chacun conditionnant le suivant :
+
+| Niveau | Question | Métriques |
+|---|---|---|
+| 1. Acquisition | Quelqu'un apporte-t-il spontanément un problème ? | Volume recevable, M1 |
+| 2. Délégation | Accepte-t-il réellement qu'Atlas s'en occupe, tarif connu ? | M3 |
+| 3. Exécution | Atlas obtient-il un résultat vérifiable ? | M2, M5, M11 |
+| 4. Économie | Ce résultat peut-il être produit à un coût compatible avec un modèle commercial ? | M8, M10 |
+| 5. Réutilisation | La personne revient-elle spontanément avec un autre problème ? | M9 |
+
+### Principe directeur : ne pas faire fonctionner Atlas artificiellement
+
+Le test doit pouvoir **échouer**. Tout ce qui le ferait réussir artificiellement est interdit :
+
+- **Pas de tri favorable des dossiers.** Les critères de traitabilité sont fixés à l'avance ([section 5](#5-déroulé-dun-dossier--manuel-ou-atlas-point-7)). Un dossier qui les remplit est proposé à la prise en charge, même s'il paraît difficile.
+- **Pas d'effort héroïque invisible.** Chaque minute est journalisée. Un dossier qui dépasse le plafond par dossier est clos « hors capacité », sans travail supplémentaire hors journal.
+- **Pas de sollicitation** d'un second problème, ni d'un paiement plus insistant que prévu.
+- **Chaque échec est une donnée** : problème non traitable, dossier bloqué, coût excessif, personne qui ne revient pas, paiement limité à certains types de problèmes. Tout est enregistré avec sa cause, rien n'est retiré de l'analyse.
+
 **Ce que le test ne cherche pas :** maximiser le nombre de prospects, optimiser une landing page, ou choisir un secteur. **Le nombre de demandes n'est jamais, à lui seul, un critère de succès.** Il sert seulement à vérifier que l'échantillon est suffisant pour conclure.
 
 ---
@@ -50,8 +69,10 @@ Six questions, dans cet ordre de priorité :
 | **H2 Traitabilité** | Une part suffisante de ces problèmes peut être prise en charge par écrit, sans identifiants, avec un résultat vérifiable | Taux de traitabilité (M2) |
 | **H3 Résolution** | Atlas, supervisé, obtient réellement le résultat | Taux de résolution prouvée (M5) |
 | **H4 Économie** | Le coût de résolution peut, après automatisation du travail mécanique, passer sous le revenu par dossier | Écart coût/revenu (M8) |
-| **H5 Récurrence** | Les utilisateurs reviennent avec un autre problème, sans qu'on les relance | Taux de second problème (M9) |
+| **H5 Horizontalité** (signal stratégique) | Les utilisateurs reviennent avec un autre problème, sans qu'on les relance | Taux de second problème (M9) |
 | **H6 Paiement** | Les utilisateurs paient réellement après un résultat | Taux de paiement (M10) |
+
+**H1, H3 et H4 sont les preuves principales de viabilité du service.** H5 indique si l'usage commence à devenir horizontal. C'est le meilleur signal de la vision généraliste, mais son absence sur un premier échantillon ne suffit pas à l'invalider (trop peu de recul, trop peu de dossiers résolus). Il est donc lu à part ([section 9](#9-seuils-et-verdicts-point-15)). H6 est lue comme un indicateur économique, sous réserve de la validation juridique.
 
 Les vols et les colis ne sont **pas** des offres séparées. Ce sont des **catégories comparatrices** observées dans le flux horizontal. Si le flux n'en contient pas assez, la comparaison se fait sur les catégories qui émergent réellement.
 
@@ -75,14 +96,16 @@ Les vols et les colis ne sont **pas** des offres séparées. Ce sont des **caté
 >
 > **[Décrire mon problème]**
 >
-> Service en phase de test, gratuit pendant cette phase. Aucun mot de passe ne vous sera demandé.
+> Atlas est en phase de test, avec une **tarification au résultat** : vous ne payez que si le résultat convenu ensemble est obtenu. Le montant vous est indiqué avant que vous ne confiiez votre dossier. Aucun mot de passe ne vous sera demandé.
 
 ### Règles de rédaction
 
 - **Les exemples sont dans un ordre tiré au hasard à chaque affichage**, pour ne pas orienter les dépôts vers la première catégorie citée.
 - **Aucune promesse de résultat**, ni de taux de succès (leçon DoNotPay).
-- **« Gratuit pendant cette phase »** : le test de paiement a lieu **après** le résultat ([section 8](#8-test-de-paiement-réel-point-14)). Annoncer la gratuité puis faire payer serait trompeur. On demandera donc une **contribution volontaire proposée à un prix donné**, pas un paiement dû. Voir la section 8 pour la manière d'en tirer un vrai signal.
-  - *Alternative ⚙ :* annoncer dès la page « paiement uniquement en cas de résultat, montant indiqué avant de commencer ». Le test de paiement est alors plus fort, mais l'acquisition plus faible. Choix à trancher ([section 12](#12-décisions-à-confirmer-avant-le-lancement)).
+- **Pas de prix sur la page.** Le but premier est d'apprendre quels problèmes les gens veulent déléguer. Un montant affiché filtrerait la demande avant qu'on l'observe.
+- **Mais le principe du paiement au résultat est annoncé dès la page**, et **le montant exact est communiqué avant la délégation** : dans la réponse sous 48 h et dans le mandat. Personne ne découvre un paiement au dernier moment.
+- **Le « résultat convenu » est écrit dans le mandat** : ce qui doit être obtenu pour que le paiement soit dû (par exemple « remboursement de 180 € de frais de résiliation »). Il sert à la fois de condition de paiement et de définition du succès pour M5.
+- **Le périmètre est décrit sans ambiguïté**, sans formule marketing qui contournerait la contrainte juridique : « Atlas analyse les informations que vous fournissez, prépare les démarches et exécute les actions que vous autorisez. » La page ne promet ni conseil ni avis juridique ([section 10](#10-cadre-juridique-transparence-et-limites-de-périmètre)).
 
 ---
 
@@ -103,7 +126,9 @@ Une annonce sur Google achetée sur « colis non reçu » ne produit que des pro
 
 **Plafond total d'acquisition : 2 000 €** ⚙. Aucun canal ne dépasse son plafond. Pas de réallocation en cours de test vers le canal qui « marche le mieux » : cela optimiserait le marketing, pas l'apprentissage.
 
-**Plafond de capacité humaine ⚙ : 120 heures** de traitement sur toute la durée. Si ce plafond est atteint, on arrête l'acquisition, sans baisser la qualité de traitement.
+**Plafond de capacité humaine : 120 heures** de traitement sur toute la durée (**verrouillé**). Si ce plafond est atteint, on arrête l'acquisition, sans baisser la qualité de traitement.
+
+Ce plafond protège contre l'illusion du concierge : « ça fonctionne », alors qu'un humain passe 2 h 30 derrière chaque dossier. **Plafond par dossier ⚙ : 5 heures humaines.** Au-delà, le dossier est clos « hors capacité » (M11), avec un compte rendu honnête à l'utilisateur et une orientation.
 
 ### Durée (point 4)
 
@@ -111,7 +136,7 @@ Une annonce sur Google achetée sur « colis non reçu » ne produit que des pro
 |---|---|---|
 | **P0 Préparation** | 2 semaines | Page, formulaire, mandat, mentions RGPD, journal, vérification juridique ([section 10](#10-cadre-juridique-transparence-et-limites-de-périmètre)), rodage sur 3 à 5 dossiers du réseau personnel (C4) |
 | **P1 Acquisition et traitement** | 4 semaines | Canaux C1 à C3 ouverts |
-| **P2 Suivi** | 8 semaines | Plus d'acquisition. Relances, escalades, résultats, fenêtre de second problème |
+| **P2 Suivi** | 8 semaines | Plus d'acquisition. Relances, escalades, résultats, paiements, fenêtre de second problème (56 jours, voir M9) |
 | **P3 Analyse et décision** | 1 semaine | Calcul des métriques, verdict selon les seuils gelés |
 
 **Durée totale : 15 semaines.** Les dossiers encore ouverts à la fin de P2 sont **suivis jusqu'à leur terme**, par engagement envers l'utilisateur. Ils sont comptés comme « en cours » dans le verdict, jamais comme des succès.
@@ -124,7 +149,7 @@ Une annonce sur Google achetée sur « colis non reçu » ne produit que des pro
 | Dossiers pris en charge avec mandat | **≥ 30** | Base de calcul des métriques de résolution, d'économie et de paiement |
 | Arrêt anticipé de l'acquisition | **150 demandes** ou plafond humain atteint | Protège la qualité de traitement |
 
-**Précision statistique :** avec 30 dossiers, l'intervalle de confiance à 95 % d'un pourcentage est d'environ ±18 points. Les seuils de la section 9 sont donc des **zones de décision**, pas des mesures précises. Un résultat proche d'une frontière est classé dans la zone la plus prudente.
+**Précision statistique :** avec 30 dossiers, l'intervalle de confiance à 95 % d'un pourcentage est d'environ ±18 points. Les seuils de la section 9 sont donc des **zones de décision**, pas des mesures précises. Un échec n'est retenu que s'il est **clair** au sens de la section 9. Une valeur proche d'une frontière donne un résultat intermédiaire, jamais un verdict définitif.
 
 ---
 
@@ -147,7 +172,7 @@ Une annonce sur Google achetée sur « colis non reçu » ne produit que des pro
 
 ### À la prise en charge
 
-- **Mandat signé** : actions autorisées, organisation visée, durée, possibilité de révocation. Signature électronique simple.
+- **Mandat signé** : actions autorisées, organisation visée, **résultat convenu**, **modalité et montant de paiement au résultat** (format A ou B, voir [section 8](#8-test-de-paiement-réel-point-14)), durée, possibilité de révocation. Signature électronique simple.
 - Pièces complémentaires si nécessaire.
 
 ### À la clôture
@@ -176,6 +201,18 @@ Mots de passe ou identifiants, codes bancaires, numéro de carte, pièce d'ident
 | 8. Vérification | Contrôle que la preuve correspond au résultat attendu | Valide | Fournit la preuve |
 | 9. Compte rendu | Rédige : obtenu, non obtenu, pourquoi, ce qui reste | Relit, envoie | — |
 
+**Critères de traitabilité, fixés avant le lancement.** Un dossier est traitable si et seulement si les cinq conditions sont réunies :
+
+1. une règle, un contrat ou une obligation écrite fonde la demande, ou l'organisation a un processus de réclamation identifiable ;
+2. les démarches peuvent être faites **par écrit** (e-mail, formulaire, courrier, médiateur), sans les identifiants de l'utilisateur ;
+3. le résultat attendu est **vérifiable par une preuve externe** ;
+4. le dossier est hors des exclusions de la [section 10](#10-cadre-juridique-transparence-et-limites-de-périmètre) ;
+5. les délais légaux ne sont pas manifestement dépassés.
+
+Un dossier non traitable reçoit une réponse motivée et, si possible, une orientation. Il reste une donnée de M1 et M2.
+
+**Messages de qualification :** ils décrivent ce qu'Atlas peut faire (« une réclamation peut être adressée à X sur la base de Y ; nous pouvons la préparer et l'envoyer »). Ils suivent des **modèles validés juridiquement** en P0. Tant que cette validation n'est pas obtenue, aucune formulation affirmant un droit (« ces frais sont injustifiés ») n'est envoyée.
+
 **Hors périmètre, orienté vers un professionnel ou un organisme gratuit :** toute procédure judiciaire, et les domaines listés en [section 10](#10-cadre-juridique-transparence-et-limites-de-périmètre).
 
 **Règle de résultat :** un dossier n'est « résolu » **que sur preuve externe**. « Réclamation envoyée », « l'entreprise a promis » ou « accord de principe » ne sont pas des résultats.
@@ -200,7 +237,7 @@ Un classeur partagé (tableur), avec quatre onglets. Aucun développement.
 
 ### Onglet `relation` (une ligne par utilisateur)
 
-`utilisateur_id` · `date_premier_depot` · `second_probleme` (oui/non) · `date_second` · `second_meme_categorie` (oui/non) · `sollicite` (**toujours non pour compter dans M9**) · `paiement_propose` · `format_paiement` · `paye` (oui/non) · `montant_paye` · `verbatim` (citation libre, avec accord)
+`utilisateur_id` · `date_premier_depot` · `second_probleme` (oui/non) · `date_second` · `second_meme_categorie` (oui/non) · `sollicite` (**toujours non pour compter dans M9**) · `format_paiement` (A/B, attribué à la qualification) · `montant_annonce` · `paiement_du` (oui si résultat convenu prouvé) · `paye` (oui/non) · `montant_paye` · `motif_non_paiement` · `verbatim` (citation libre, avec accord)
 
 **Règles :**
 - une action non journalisée n'a pas eu lieu ;
@@ -215,99 +252,126 @@ Un classeur partagé (tableur), avec quatre onglets. Aucun développement.
 |---|---|---|---|
 | **M1** | **Distribution naturelle** | Répartition des demandes des canaux non ciblés (C1, C2, C3) par catégorie codée après coup, sans grille imposée à l'utilisateur. Le tableau affiché pour chaque catégorie : demandes · traitables · pris en charge · résolus prouvés · coût médian · valeur médiane | — |
 | **M2** | Taux de traitabilité | Demandes jugées traitables / demandes recevables | 12 |
-| **M3** | Taux de délégation | Mandats signés / demandes traitables auxquelles Atlas a proposé une prise en charge | — |
+| **M3** | Taux de délégation | Mandats signés / demandes traitables auxquelles Atlas a proposé une prise en charge, **tarif annoncé**. Calculé aussi par format de paiement (A/B) | — |
 | **M4** | Autonomie d'Atlas | Part des minutes de travail produites par Atlas (rédaction, analyse) plutôt que par l'humain ; et part des dossiers **sans aucune correction de fond** par l'humain | — |
 | **M5** | **Taux de résolution prouvée** | Dossiers « résolu prouvé » ou « partiellement résolu prouvé » / dossiers pris en charge. Les dossiers en cours comptent comme **non résolus** au moment du verdict | 10 |
 | **M6** | Valeur obtenue | Montant récupéré, plus montant économisé ramené à 12 mois, par dossier résolu (médiane et total). Les résultats non monétaires sont décrits et comptés à part | 11 |
 | **M7** | Délai de résolution | Médiane entre le mandat et la preuve du résultat | — |
-| **M8** | **Coût complet par dossier** | (minutes humaines × taux horaire ⚙ **35 €/h**) + coût IA + frais d'envoi, par dossier pris en charge. Présenté aussi **hors minutes « mécaniques »**, pour estimer le coût après automatisation | 9 |
-| **M9** | **Taux de second problème** | Utilisateurs ayant déposé un **autre** problème **sans sollicitation**, dans les **60 jours** suivant leur premier dépôt / utilisateurs dont le premier dossier a été pris en charge. Également calculé pour un second problème **d'une autre catégorie** | 13 |
-| **M10** | Taux de paiement | Voir [section 8](#8-test-de-paiement-réel-point-14) | 14 |
+| **M8** | **Coût par dossier, en cascade** | Trois niveaux, par dossier pris en charge (médiane), avec le travail humain valorisé à ⚙ **35 €/h** :<br>**C0 — coût actuel** = toutes les minutes humaines + coût IA + frais d'envoi ;<br>**C1 — après automatisation du mécanique** = C0 moins les minutes « mécaniques » ;<br>**C2 — après automatisation du jugement** = C1 moins les minutes « jugement » (ne restent que la relation, l'IA et les frais).<br>C1 est jugé atteignable à court terme. C2 est un **plafond théorique** : automatiser le jugement est une hypothèse, pas un acquis | 9 |
+| **M9** | **Taux de second problème** | Utilisateurs ayant déposé un **autre** problème **sans sollicitation**, dans les **56 jours** (8 semaines) suivant leur premier dépôt / utilisateurs dont le premier dossier a été pris en charge. La fenêtre de 56 jours est la plus longue que **tous** les utilisateurs peuvent avoir, y compris ceux arrivés en fin de P1. Également calculé pour un second problème **d'une autre catégorie** | 13 |
+| **M10** | Taux de paiement | Paiements encaissés / dossiers où le paiement est dû (résultat convenu prouvé), par format. Voir [section 8](#8-test-de-paiement-réel-point-14) | 14 |
 | **M11** | Échecs et blocages | Nombre de dossiers bloqués, avec la cause, classée : Atlas s'est trompé / l'organisation refuse / l'utilisateur n'a pas fourni / hors capacité / droit défavorable | — |
 
-**Interdiction de solliciter un second problème :** aucun message du type « avez-vous un autre problème ? » pendant la fenêtre de 60 jours. Le compte rendu final peut seulement rappeler, en une ligne neutre, que le service reste ouvert. Sinon, M9 mesurerait l'effet de la relance, pas le comportement.
+**Interdiction de solliciter un second problème :** aucun message du type « avez-vous un autre problème ? » pendant la fenêtre de 56 jours. Le compte rendu final peut seulement rappeler, en une ligne neutre, que le service reste ouvert. Sinon, M9 mesurerait l'effet de la relance, pas le comportement.
 
 ---
 
 ## 8. Test de paiement réel (point 14)
 
-**Moment :** juste après l'envoi du compte rendu d'un dossier **résolu avec preuve**.
+**Principe verrouillé : le prix est présenté avant la délégation, le paiement a lieu après un résultat prouvé.**
 
-**Formats**, attribués **en alternance** (dossier pair : A ; impair : B) ⚙ :
+**Attribution du format :** à la qualification, **avant** la réponse sous 48 h, en alternance selon l'ordre d'arrivée des dossiers traitables (1er : A, 2e : B, 3e : A…). Le format et le montant figurent dans la réponse et dans le mandat.
 
 | Format | Proposition | Prix ⚙ (paramètres de test, **pas des prix validés**) |
 |---|---|---|
 | **A. Commission** | Un pourcentage de la valeur obtenue | 20 % de la valeur, minimum 10 € |
 | **B. Forfait** | Un montant fixe par dossier résolu | 19 € |
 
-Pour les résultats non monétaires, seul le format B s'applique.
+Pour un résultat non monétaire (résiliation obtenue, service rétabli), seul le format B s'applique. Les dossiers concernés sont donc attribués au format B hors alternance, et comptés à part.
 
-**Mécanique :** un lien de paiement réel (prestataire de paiement standard), avec le montant pré-rempli. Le message indique honnêtement : « Ce service était gratuit pendant le test. Si vous voulez soutenir Atlas, voici ce que nous facturerions. » **Seul un paiement effectivement encaissé compte.** Une intention déclarée (« oui je paierais ») est notée à part et n'entre pas dans M10.
+**Mécanique :** quand le résultat convenu est prouvé, on envoie le compte rendu et un lien de paiement réel, avec le montant prévu au mandat. On fait **une seule relance** de paiement, à J+7. **Seul un paiement encaissé compte** dans M10. Les raisons de non-paiement sont notées (`motif_non_paiement`).
 
-**Limite assumée :** un paiement volontaire après un service gratuit **sous-estime** probablement le vrai consentement à payer. Un paiement dû, annoncé avant, le mesurerait mieux. D'où les seuils prudents de la section 9, et l'alternative proposée en section 2.
+**Pas de paiement si le résultat n'est pas obtenu**, y compris quand beaucoup de travail a été fourni. Un résultat partiel donne lieu à un paiement proportionnel **seulement si le mandat le prévoyait**.
 
-**M10** = paiements encaissés / comptes rendus de résolution envoyés avec proposition de paiement, par format.
+**Condition préalable :** la validation juridique de la [section 10](#10-cadre-juridique-transparence-et-limites-de-périmètre). Comme le tarif est annoncé avant la délégation, cette validation doit être obtenue **avant l'ouverture de P1**, pas seulement avant le premier encaissement. Si elle ne l'est pas à la fin de P0, deux options ⚙ :
+- **reporter** le lancement ;
+- **lancer sans paiement**, avec la page modifiée en conséquence. M10 est alors déclaré **non mesuré**, et M3 mesure une délégation gratuite. Cet écart est noté dans le rapport.
+
+**Ce que M10 peut montrer :** « les gens paient, mais seulement pour certains types de problèmes » est un résultat utile. M10 est donc aussi présenté **par catégorie** (M1) dès qu'une catégorie compte au moins 5 paiements dus.
 
 ---
 
 ## 9. Seuils et verdicts (point 15)
 
-**Tous les seuils ci-dessous sont gelés avant le lancement.** Ils ne sont plus modifiés après la première demande. Les valeurs sont des propositions ⚙, fondées sur un jugement et non sur un historique (aucune référence publique n'existe pour ce type de service).
+**Tous les seuils ci-dessous sont gelés avant le lancement.** Ils ne sont plus modifiés après la première demande. Les valeurs sont des propositions ⚙ fondées sur un jugement, pas sur un historique : il n'existe aucune référence publique pour ce type de service.
+
+**Précaution d'interprétation.** Avec environ 30 dossiers, un pourcentage mesuré est incertain d'environ ±18 points. Un seuil n'est donc **jamais une lame de couteau** : « 28 % au lieu de 30 % » ne décide rien. Aucun résultat de ce test n'est présenté comme une certitude statistique. Il indique **quelle expérience faire ensuite**.
 
 ### Préalable : l'échantillon est-il suffisant ?
 
-Si moins de 60 demandes recevables **ou** moins de 30 dossiers pris en charge après épuisement du budget et de la durée, le verdict est :
+Si le test compte moins de 60 demandes recevables **ou** moins de 30 dossiers pris en charge après épuisement du budget et de la durée, le verdict est :
 
 > **« Non concluant — la promesse ou l'acquisition ne fonctionne pas. »**
 
-Ce n'est pas une invalidation du comportement « Règle ça pour moi ». Cela signifie que la promesse ou le canal ne convertissent pas. On retravaille la proposition, et non le produit, avant tout nouveau test.
+Ce n'est pas une invalidation du comportement « Règle ça pour moi ». Cela signifie que la promesse ou le canal n'attirent pas assez de dossiers. On retravaille la proposition, pas le produit, avant tout nouveau test.
 
-### Zones par métrique
+### Trois zones par indicateur
 
-| Métrique | ✅ Zone validée | 🟡 Zone prometteuse | ❌ Zone invalidante | Critique ? |
+| Indicateur | 🟢 Favorable | 🟡 Intermédiaire | 🔴 Défavorable **clair** (voir la règle ci-dessous) | Rôle |
 |---|---|---|---|---|
-| M2 Traitabilité | ≥ 50 % | 30 à 49 % | < 30 % | Non |
-| M3 Délégation | ≥ 60 % | 40 à 59 % | < 40 % | **Oui** |
-| M5 Résolution prouvée | ≥ 50 % | 30 à 49 % | < 30 % | **Oui** |
-| M8 Coût hors travail mécanique, comparé au revenu potentiel médian par dossier résolu | Coût ≤ revenu | Coût entre 1 et 2 fois le revenu | Coût > 2 fois le revenu | **Oui** |
-| M9 Second problème (60 jours, non sollicité) | ≥ 20 % | 10 à 19 % | < 10 % | **Oui** |
-| M10 Paiement effectif | ≥ 40 % | 20 à 39 % | < 20 % | Oui |
-| Concentration M1 : part de la première catégorie parmi les dossiers traitables | ≤ 60 % | — | — | Non (oriente la suite, voir ci-dessous) |
+| **M3 Délégation** | ≥ 60 % | ni favorable, ni défavorable clair | < 40 % **et** borne haute de l'intervalle de confiance < 60 % | **Essentiel** |
+| **M5 Résolution prouvée** | ≥ 50 % | idem | < 30 % **et** borne haute de l'intervalle < 50 % | **Essentiel** |
+| **M8 Économie** (médiane, comparée au revenu médian par dossier résolu) | C1 ≤ revenu | idem | C1 > 2 × revenu **et** C2 > revenu | **Essentiel** |
+| M2 Traitabilité | ≥ 50 % | 30 à 49 % | < 30 % | Diagnostic |
+| M10 Paiement | ≥ 40 % | 20 à 39 % | < 20 % | Économique, lu à part |
+| M9 Second problème | voir [lecture de l'horizontalité](#lecture-de-lhorizontalité-m9) | | | **Signal stratégique**, lu à part |
 
-« Revenu potentiel » = valeur obtenue × format A, ou forfait B, selon ce qui a été le mieux accepté.
+**Définition d'un résultat « défavorable clair ».** Il faut **à la fois** que la valeur mesurée soit dans la zone d'échec **et** que la borne haute de son intervalle de confiance à 95 % (méthode de Wilson) reste **sous le seuil favorable**. Autrement dit, même dans l'hypothèse la plus optimiste compatible avec les données, l'indicateur n'atteindrait pas la zone favorable. Une valeur dans la zone d'échec qui ne remplit pas cette condition est classée **intermédiaire**, avec la mention « faible ».
 
-### Définition des trois verdicts
+Nombres de dossiers correspondants, calculés à l'avance pour éviter tout débat après coup :
 
-**✅ Hypothèse validée.** Toutes les métriques critiques (M3, M5, M8, M9) sont en zone validée, M10 est au moins en zone prometteuse, et M2 au moins en zone prometteuse.
+| Nombre de dossiers au dénominateur | M5 défavorable clair si ≤ … résolus | M3 défavorable clair si ≤ … mandats |
+|---|---|---|
+| 20 | 1 | 3 |
+| 25 | 3 | 5 |
+| 30 | 4 | 6 |
+| 40 | 6 | 9 |
+| 50 | 8 | 13 |
+| 60 | 11 | 16 |
 
-> Sens : des particuliers confient spontanément des problèmes variés à Atlas, Atlas les résout avec preuve, une partie revient avec un autre problème, et l'économie devient tenable une fois le travail mécanique automatisé.
+Pour M8, « clair » signifie que **même en automatisant le jugement** (C2), le coût dépasserait le revenu. Si C1 > 2 × revenu mais C2 ≤ revenu, le résultat est **intermédiaire** : la viabilité dépend alors de l'automatisation du jugement, qui devient l'hypothèse à tester.
+
+### Les trois résultats possibles
+
+**🟢 Résultat favorable.** M3, M5 et M8 sont tous trois en zone favorable.
+
+> Sens : des particuliers délèguent réellement des problèmes à Atlas, tarif connu ; Atlas obtient des résultats prouvés ; l'économie devient tenable une fois le travail mécanique automatisé. C'est **un signal suffisant pour passer au test suivant**, pas une preuve définitive.
 >
-> Suite : automatiser **en priorité les étapes qui consomment le plus de minutes « mécaniques »** d'après le journal. Puis un second test, payant dès le départ, sur un volume plus grand.
+> Suite : automatiser **en priorité les étapes qui consomment le plus de minutes « mécaniques »** d'après le journal, puis refaire un test sur un volume plus grand. La lecture de M9 et M10 oriente ce test suivant : périmètre horizontal ou non, modèle de prix.
 
-**🟡 Hypothèse prometteuse mais insuffisamment démontrée.** Aucune métrique critique en zone invalidante, mais au moins une en zone prometteuse. Ou bien : tout est validé sauf M10.
+**🟡 Résultat intermédiaire.** Aucun indicateur essentiel n'est défavorable clair, mais au moins un n'est pas favorable.
 
-> Sens : le comportement existe, mais un maillon reste faible ou mal mesuré.
+> Sens : le comportement existe peut-être, mais un maillon est faible ou mal mesuré.
 >
-> Suite : un seul test ciblé sur le maillon faible, par exemple un paiement annoncé dès la page si M10 est faible, ou un périmètre restreint aux catégories les plus traitables si M5 est faible. **Pas de développement produit avant.**
+> Suite : **isoler la faiblesse** et refaire une expérience ciblée sur elle seule. Par exemple : restreindre le périmètre aux catégories les plus traitables si M5 est faible, tester une autre présentation de la prise en charge si M3 est faible, mesurer séparément le temps de jugement si M8 est faible. **Pas de développement produit avant.**
 
-**❌ Hypothèse invalidée.** Au moins une métrique critique en zone invalidante.
+**🔴 Résultat défavorable.** Au moins un indicateur essentiel est défavorable clair.
 
-> Lecture selon la métrique qui échoue :
+> On abandonne ou on modifie **l'hypothèse qui correspond précisément à cet échec**, pas l'ensemble du projet par défaut :
 >
-> | Échec | Signification | Suite |
+> | Échec clair | Signification | Suite |
 > |---|---|---|
-> | M3 (délégation) | Les gens décrivent leurs problèmes mais ne délèguent pas | Revoir la promesse ou la confiance. **Atlas « Règle ça pour moi » n'est pas adopté tel quel** |
-> | M5 (résolution) | Atlas ne sait pas obtenir les résultats, même supervisé | Restreindre à un vertical où le taux de résolution est bon, ou revoir la capacité d'exécution |
-> | M8 (économie) | Le coût de jugement humain reste trop élevé même après automatisation du mécanique | Un modèle généraliste n'est pas tenable en l'état : se replier sur les catégories les moins coûteuses d'après M1 |
-> | M9 (récurrence) | Les gens utilisent Atlas comme un service ponctuel, pas comme l'endroit où déposer leurs problèmes | **Le comportement central de la vision n'est pas observé.** Un vertical rentable reste possible, mais ce ne serait plus Atlas tel que conçu |
+> | M3 (délégation) | Les gens décrivent leurs problèmes mais ne délèguent pas, tarif connu | Revoir la promesse, la confiance ou le tarif. **« Règle ça pour moi » n'est pas adopté sous cette forme** |
+> | M5 (résolution) | Atlas ne sait pas obtenir les résultats, même supervisé | Restreindre aux catégories où la résolution fonctionne (M1), ou revoir la capacité d'exécution |
+> | M8 (économie) | Même en automatisant le jugement, le coût dépasse le revenu | Un service généraliste n'est pas tenable en l'état. Se replier sur les catégories les moins coûteuses (M1), ou revoir le modèle de prix |
+
+### Lecture de l'horizontalité (M9)
+
+M9 ne déclenche **jamais** à lui seul un résultat défavorable. Son absence sur un premier échantillon peut s'expliquer par le manque de recul ou le petit nombre de dossiers résolus. Il répond à une autre question : **l'usage commence-t-il à devenir horizontal ?**
+
+| Lecture | Condition ⚙ | Conséquence |
+|---|---|---|
+| **Horizontalité observée** | M9 ≥ 20 %, **dont** au moins 3 seconds problèmes d'une autre catégorie | On peut commencer à dire « Atlas = l'endroit où je dépose mes problèmes ». Le test suivant reste horizontal |
+| **Horizontalité émergente** | M9 entre 10 et 19 %, **ou** au moins 3 seconds problèmes d'une autre catégorie | Signal encourageant, non démontré. Le test suivant prévoit une fenêtre d'observation plus longue |
+| **Horizontalité non observée** | M9 < 10 % et moins de 3 seconds problèmes d'une autre catégorie | **On ne peut pas affirmer** que l'usage est horizontal. Ce n'est pas une invalidation du service. Le test suivant doit tester l'horizontalité explicitement (fenêtre plus longue, cohorte suivie) avant que la vision généraliste serve d'argument |
 
 ### Règle complémentaire : la concentration
 
-Si une catégorie représente **plus de 60 %** des dossiers traitables, l'offre horizontale fonctionne **en pratique comme un vertical**. Le verdict reste valable, mais la suite doit en tenir compte : entrer par cette catégorie **sans** la présenter comme l'identité d'Atlas, et vérifier que M9 (second problème d'une autre catégorie) reste au-dessus de 10 %.
+Si une catégorie représente **plus de 60 %** des dossiers traitables, l'offre horizontale fonctionne **en pratique comme un vertical**. Le résultat reste valable, mais la suite doit en tenir compte : entrer par cette catégorie **sans** la présenter comme l'identité d'Atlas, et regarder de près les seconds problèmes d'une autre catégorie.
 
 ### Comparateurs (vols, colis)
 
-Pour chaque catégorie comparatrice ayant au moins 5 dossiers pris en charge, on présente M5, M8 et M9 à côté de la moyenne horizontale. **Aucune décision n'est prise sur une catégorie de moins de 5 dossiers.**
+Pour chaque catégorie comparatrice ayant au moins 5 dossiers pris en charge, on présente M5, M8, M9 et M10 à côté de la moyenne horizontale. **Aucune décision n'est prise sur une catégorie de moins de 5 dossiers.**
 
 ---
 
@@ -319,8 +383,16 @@ Points à vérifier en phase P0, idéalement avec un avocat. **Ce sont des risqu
 
 La consultation juridique à titre habituel et rémunéré est réservée à certaines professions (loi n° 71-1130 du 31 décembre 1971, art. 54 et suivants). Demander Justice a été jugé licite parce qu'il ne fournissait **ni représentation ni consultation personnalisée** (Cass. crim., 21 mars 2017).
 
-- **Pendant la phase gratuite, le risque est plus faible.** Mais la qualification d'un dossier (« vos frais sont injustifiés ») ressemble à une consultation.
-- **Avant le test de paiement, faire valider la formulation.** Atlas « prend en charge des démarches de réclamation » ; il ne « donne pas un avis juridique ». L'orientation vers un avocat se fait dès qu'un dossier l'exige.
+**Décision verrouillée : ce point est résolu avant tout paiement, et puisque le tarif est annoncé avant la délégation, avant l'ouverture de P1.** On ne le contourne pas par une formulation marketing ambiguë.
+
+- **Périmètre déclaré pour ce test :** « Atlas analyse les informations fournies, prépare des démarches et exécute les actions autorisées. »
+- **À faire valider par un avocat en P0 :**
+  - ce périmètre et sa rémunération au résultat ;
+  - les modèles de messages de qualification, là où une analyse juridique individualisée intervient ;
+  - le modèle de mandat ;
+  - les conditions générales.
+- **Tant que ces validations ne sont pas obtenues :** aucune formulation affirmant un droit n'est envoyée à un utilisateur, et aucun paiement n'est demandé ([section 8](#8-test-de-paiement-réel-point-14)).
+- Un dossier qui exige un avis juridique personnalisé est **orienté** vers un avocat ou une association. Il n'est pas traité.
 
 ### Mandat et fonds
 
@@ -362,27 +434,42 @@ Menace de poursuites contre l'utilisateur, demande qui excède le mandat, ou ris
 
 | Semaine | Phase | Livrables |
 |---|---|---|
-| S1–S2 | P0 | Page, formulaire, modèle de mandat, mentions RGPD, classeur de journal, validation juridique, 3 à 5 dossiers de rodage (C4). **Gel des paramètres ⚙ et des seuils** |
+| S1–S2 | P0 | Page, formulaire, modèle de mandat, mentions RGPD, classeur de journal, critères de traitabilité, **validation juridique (condition de lancement)**, 3 à 5 dossiers de rodage (C4). **Gel des paramètres ⚙ et des seuils** |
 | S3–S6 | P1 | Acquisition C1 à C3 ; qualification sous 48 h ; traitement |
-| S7–S14 | P2 | Suivi, relances, escalades, résultats, tests de paiement, fin de la fenêtre de 60 jours pour les derniers dépôts |
+| S7–S14 | P2 | Suivi, relances, escalades, résultats, paiements dus, fin de la fenêtre de 56 jours pour les derniers dépôts |
 | S15 | P3 | Calcul des métriques, tableau M1, verdict, rapport |
 
 Point d'étape hebdomadaire pendant P1 et P2 : on vérifie les plafonds, on classe les blocages, et **on ne modifie aucun seuil**.
 
 ---
 
-## 12. Décisions à confirmer avant le lancement
+## 12. Décisions
 
-| # | Décision | Proposition ⚙ |
+### Verrouillées
+
+| # | Décision |
+|---|---|
+| 1 | L'offre horizontale « Règle ça pour moi » est l'hypothèse principale. Les vols et les colis sont des comparateurs, pas des produits distincts |
+| 2 | **Aucun nouveau développement** avant la fin du test. L'application Atlas actuelle sert d'outil interne, sans modification |
+| 3 | Pas de prix sur la page. **Principe du paiement au résultat annoncé sur la page ; montant présenté avant la délégation ; paiement après résultat prouvé** |
+| 4 | **120 heures humaines maximum** au total. Journal obligatoire, avec la répartition mécanique, jugement et relation. Coût présenté en cascade (C0, C1, C2) |
+| 5 | **60 demandes recevables et 30 dossiers pris en charge minimum** pour un premier signal |
+| 6 | Aucun résultat présenté comme une certitude statistique. Trois résultats possibles (favorable, intermédiaire, défavorable), avec la règle du « défavorable clair » |
+| 7 | Indicateurs essentiels : délégation (M3), résolution prouvée (M5), économie (M8). **Le second problème (M9) est un signal stratégique de l'horizontalité**, jamais une condition d'invalidation à lui seul |
+| 8 | **Validation juridique** du périmètre, des formulations et du mandat **avant l'ouverture de P1** et avant tout paiement |
+| 9 | Ne pas faire fonctionner Atlas artificiellement : critères de traitabilité fixés à l'avance, plafond par dossier, aucune sollicitation, tous les échecs conservés comme données |
+
+### Paramètres proposés, à confirmer au moment du gel
+
+| # | Paramètre | Proposition ⚙ |
 |---|---|---|
-| 1 | Paiement annoncé dès la page, ou contribution proposée après le résultat | Contribution après le résultat (meilleure acquisition, signal de paiement plus faible) |
-| 2 | Budget d'acquisition total et répartition | 2 000 € : 1 500 € réseaux sociaux, 500 € recherche payante |
-| 3 | Plafond d'heures humaines | 120 h |
-| 4 | Taux horaire pour valoriser le travail humain | 35 €/h |
-| 5 | Prix testés | 20 % de la valeur (minimum 10 €) ou 19 € par dossier |
-| 6 | Seuils de la section 9 | Tels que proposés |
-| 7 | Cautions : inclure les bailleurs particuliers ? | Oui, avec prudence (mise en demeure et commission de conciliation uniquement) |
-| 8 | Validation juridique avant le test de paiement | Oui, obligatoire |
-| 9 | Durée de conservation des données | 6 mois après clôture |
+| a | Budget d'acquisition total et répartition | 2 000 € : 1 500 € réseaux sociaux, 500 € recherche payante |
+| b | Taux horaire pour valoriser le travail humain | 35 €/h |
+| c | Plafond par dossier | 5 h humaines |
+| d | Prix testés | 20 % de la valeur (minimum 10 €) ou 19 € par dossier |
+| e | Si la validation juridique n'est pas obtenue en P0 | Reporter le lancement plutôt que lancer sans paiement |
+| f | Cautions : inclure les bailleurs particuliers ? | Oui, avec prudence (mise en demeure et commission de conciliation uniquement) |
+| g | Durée de conservation des données | 6 mois après clôture |
+| h | Seuils de lecture de M9 | ≥ 20 % pour « observée », 10 à 19 % pour « émergente », avec au moins 3 seconds problèmes d'une autre catégorie |
 
-Une fois ces décisions prises, le protocole est **gelé**. Toute modification ultérieure est consignée avec sa date et sa raison dans le rapport final.
+Une fois ces paramètres confirmés, le protocole est **gelé**. Toute modification ultérieure est consignée, avec sa date et sa raison, dans le rapport final.
