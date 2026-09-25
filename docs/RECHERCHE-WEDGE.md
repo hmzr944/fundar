@@ -3,6 +3,8 @@
 > Recherche de *wedge* menée à partir de la vision originelle d'Atlas (agent d'exécution autonome pour particuliers).
 > Date : 25 septembre 2026 (révisé le même jour : score composite retiré, droit applicable séparé de la réforme 2026, chiffres AirHelp déclassés, protocole de test détaillé). Périmètre principal : France / Union européenne, avec des repères américains quand ils éclairent le marché.
 
+> **Mise à jour :** l'évaluation détaillée du cas des vols, et sa comparaison avec d'autres points d'entrée, est dans [`EVALUATION-WEDGE-VOLS.md`](EVALUATION-WEDGE-VOLS.md). Conclusion : les vols deviennent **un cas témoin**, pas le premier wedge. Elle corrige aussi la description des concurrents (voir ci-dessous).
+
 ---
 
 ## Sommaire
@@ -61,7 +63,7 @@ Le deuxième fait est la preuve la plus solide : des consommateurs **paient déj
 
 > AirHelp résout votre problème d'**indemnisation**. Atlas prend en charge **l'incident**.
 
-Pour un vol annulé, Atlas vérifierait à la fois le remboursement du billet et l'indemnité, retrouverait les frais engagés (hôtel, repas, transport), préparerait et enverrait chaque demande, relancerait, et vérifierait chaque paiement. Il conclurait : « C'est réglé. Vous avez récupéré 684 €. » Cette différence est une HYPOTHÈSE : le test doit montrer si elle compte pour les clients.
+Pour un vol annulé, Atlas vérifierait à la fois le remboursement du billet et l'indemnité, retrouverait les frais engagés (hôtel, repas, transport), préparerait et enverrait chaque demande, relancerait, et vérifierait chaque paiement. Il conclurait : « C'est réglé. Vous avez récupéré 684 €. » Cette différence est une HYPOTHÈSE, **plus étroite que prévu** : les concurrents couvrent déjà une grande partie de l'incident. Voir [`EVALUATION-WEDGE-VOLS.md`](EVALUATION-WEDGE-VOLS.md).
 
 ### Le téléphone n'est pas nécessaire pour ce premier cas
 
@@ -167,8 +169,8 @@ Atlas pourrait un jour prendre des décisions juridiques automatiquement. La dis
   - Flightright : 20 à 30 % + TVA (27 % en standard), plus 14 % en cas de procédure judiciaire, soit jusqu'à environ 50 % TVA comprise selon des sources secondaires.
   - Autres : ClaimCompass, Skycop…
   - Toutes fonctionnent en « sans succès, pas de frais ».
-- **Ce qu'elles font réellement :** elles traitent **l'indemnité forfaitaire** et portent les dossiers en justice, via mandat ou cession de créance.
-- **Ce qui reste manuel (INTERPRÉTATION, à vérifier service par service) :** le réacheminement, le remboursement du billet quand un avoir est imposé, les frais annexes, le bagage, et **la vérification que chaque somme est bien arrivée**.
+- **Ce qu'elles font réellement :** l'indemnité forfaitaire et le contentieux, via mandat ou cession de créance. **Corrigé :** Flightright traite aussi le remboursement du billet et le réacheminement ; AirHelp+ (abonnement) couvre les frais annexes et les bagages ; l'application AirHelp détecte les vols via Gmail et le calendrier. Détail : [`EVALUATION-WEDGE-VOLS.md` §3](EVALUATION-WEDGE-VOLS.md#3-q2--ce-quairhelp-et-flightright-prennent-réellement-en-charge).
+- **Ce qui reste manuel (INTERPRÉTATION, à vérifier) :** le remboursement via une agence en ligne, la conversion d'un avoir imposé et les problèmes hors avion du même voyage. Les frais annexes et les bagages ne sont couverts que par l'abonnement AirHelp+.
 
 **Faisabilité pour Atlas (Q12–Q15)**
 
@@ -334,7 +336,7 @@ Atlas pourrait un jour prendre des décisions juridiques automatiquement. La dis
 
 | Acteur | Ce qu'il exécute vraiment | Ce qu'il ne fait pas | Modèle | Leçon pour Atlas |
 |---|---|---|---|---|
-| **AirHelp / Flightright** (UE) | Réclamation de l'indemnité EU261, contentieux | Billet, frais, bagage, suivi global de l'incident | 20 à 30 % + TVA (Flightright) ; 35 % (AirHelp) ; supplément en cas de procédure | Les gens **paient cher** pour déléguer quand l'argent est au bout. Mais c'est mono-tâche |
+| **AirHelp / Flightright** (UE) | Indemnité EU261, contentieux ; billet et réacheminement (Flightright) ; frais annexes et bagages (AirHelp+) ; détection des vols (application AirHelp) | Agences en ligne, avoirs imposés (à vérifier), problèmes hors avion | 20 à 30 % + TVA (Flightright) ; 35 % (AirHelp) ; supplément en cas de procédure | Les gens **paient cher** pour déléguer quand l'argent est au bout. Elles évoluent déjà vers l'incident complet |
 | **Rocket Money** (US) | Négociation de factures, résiliations | Litiges, réclamations complexes | 35 à 60 % des économies de la 1re année, choisi par l'utilisateur | Modèle au résultat viable à grande échelle |
 | **Trim** (US) | Négociation de factures | — | Commission | **Service grand public arrêté en 2022** après rachat par OneMain. Le modèle seul n'a pas suffi |
 | **DoNotPay** (US) | Lettres, formulaires | Qualité juridique non testée | Abonnement | **FTC, janvier 2025** : 193 000 $ d'amende et interdiction de prétendre remplacer un avocat sans preuve. Leçon : **ne jamais revendiquer un résultat non démontré**, ce qu'Atlas applique déjà avec ses statuts dérivés des preuves |
