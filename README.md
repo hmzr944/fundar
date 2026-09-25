@@ -148,12 +148,14 @@ Chaque outil renvoie `{ ok, content, error? }`. Une erreur n'arrête pas la miss
 Chaque livrable est relu **dès qu'Atlas le rédige** (`src/server/agent/review.ts`), en deux couches :
 
 1. **Règles fixes**, toujours appliquées et gratuites : promesse de résultat (« vous allez obtenir », « remboursement garanti »), affirmation d'un droit (« vous avez droit »), demande de mot de passe ou de code, et décompte des champs `[À COMPLÉTER]`.
+   **Contrôle des chiffres**, sans modèle : chaque montant (180 €, 1 200,50 EUR…) et chaque date (03/09/2026, 3 septembre 2026…) du livrable doit se retrouver dans les documents, les sources ou les messages de l'utilisateur, quel que soit son format. Sinon, il est signalé « à corriger ». Seule la date du jour est tolérée. Un montant calculé (total, pourcentage) est signalé aussi, pour être confirmé.
 2. **Un second passage du modèle**, avec un rôle de relecteur. Il compare le livrable aux documents de la mission, à ses sources et aux messages de l'utilisateur. Il signale les montants, dates et références incohérents ou non étayés, les références juridiques absentes des sources, les promesses, les données sensibles, les informations manquantes et le ton. Documents et livrable lui sont transmis comme données non fiables (`<untrusted_content>`).
 
 Le verdict (`ok`, `à vérifier`, `bloquant`) et la liste des problèmes sont renvoyés **au modèle qui rédige**, qui peut corriger avec `revise_deliverable`, puis stockés avec le livrable (`artifacts.metadata.review`) et affichés dans l'onglet Résultats.
 
 - Si le second passage échoue (erreur, réponse illisible, pas de modèle), la relecture est marquée **partielle** et seules les règles fixes s'appliquent. L'exécution n'est jamais bloquée.
 - Si l'utilisateur modifie un livrable, sa relecture est marquée **à refaire**. Le bouton « Relire » (`POST /api/artifacts/[id]/review`) relance la relecture sur le texte actuel, dans la limite de `ATLAS_ANALYSES_PER_DAY` relectures à la demande par jour.
+- Un livrable est **« Prêt à envoyer »** seulement si la relecture est complète (les deux couches), qu'elle ne signale rien, que le texte n'a pas changé depuis, et qu'il ne reste aucun champ `[À COMPLÉTER]`. Sinon : « À vérifier avant envoi ».
 - La relecture **aide** à repérer des erreurs. Elle ne remplace pas la vérification humaine avant envoi, et l'interface le dit.
 
 ---

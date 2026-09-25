@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildReviewMessage, reviewDeliverable, ruleChecks, verdictOf } from "@/server/agent/review";
+import { buildReviewMessage, factChecks, isReadyToSend, reviewDeliverable, ruleChecks, verdictOf } from "@/server/agent/review";
 import { ScriptedProvider, textResult } from "@/server/llm/scripted";
 import { LlmError } from "@/server/llm/types";
 
@@ -77,6 +77,8 @@ describe("second-reader model", () => {
     expect(review.verdict).toBe("blocking");
     expect(review.issues.map((i) => [i.origin, i.category])).toEqual([
       ["rule", "promise"],
+      // 250 € appears nowhere in the file: caught without the model too.
+      ["rule", "unsupported_fact"],
       ["model", "inconsistency"],
     ]);
     expect(usage).not.toBeNull();
@@ -103,5 +105,49 @@ describe("second-reader model", () => {
   it("runs the rules alone when no model is configured", async () => {
     const { review } = await reviewDeliverable(null, input("Je demande 180 €."));
     expect(review).toMatchObject({ status: "partial", verdict: "ok", model: null });
+  });
+});
+
+describe("figures checked against the file", () => {
+  const material = "Facture du 03/09/2026 : frais de résiliation 180,00 €. Total TTC 1 200,50 €.";
+  const today = new Date(2026, 8, 25);
+
+  it("accepts amounts and dates that appear in the file, whatever their format", () => {
+    const letter = "Le 3 septembre 2026, vous avez prélevé 180 € (facture de 1.200,50 EUR). Fait le 25/09/2026.";
+    expect(factChecks(letter, material, today)).toEqual([]);
+  });
+
+  it("flags an amount that appears nowhere in the file", () => {
+    const issues = factChecks("Je vous demande de rembourser 250 €.", material, today);
+    expect(issues).toEqual([expect.objectContaining({ severity: "to_fix", category: "unsupported_fact", origin: "rule" })]);
+    expect(issues[0].problem).toContain("250 €");
+  });
+
+  it("flags a date that appears nowhere in the file, but not today's date", () => {
+    const issues = factChecks("Prélèvement du 12 août 2026. Fait le 25 septembre 2026.", material, today);
+    expect(issues).toHaveLength(1);
+    expect(issues[0].problem).toContain("12 août 2026");
+  });
+
+  it("ignores [À COMPLÉTER] fields", () => {
+    expect(factChecks("Montant : [À COMPLÉTER : 99 €]", material, today)).toEqual([]);
+  });
+
+  it("is applied by the review, with the mission's material", async () => {
+    const { review } = await reviewDeliverable(null, input("Je demande 999 €."));
+    expect(review.issues).toEqual([expect.objectContaining({ category: "unsupported_fact" })]);
+    expect(review.verdict).toBe("to_fix");
+  });
+});
+
+describe("ready to send", () => {
+  const done = { status: "done" as const, verdict: "ok" as const, issues: [], checkedAt: "", model: "m" };
+  it("requires a complete, clean, current review and no field left to complete", () => {
+    expect(isReadyToSend(done, "Texte final.")).toBe(true);
+    expect(isReadyToSend(null, "Texte final.")).toBe(false);
+    expect(isReadyToSend({ ...done, status: "partial" }, "Texte final.")).toBe(false);
+    expect(isReadyToSend({ ...done, verdict: "to_fix" }, "Texte final.")).toBe(false);
+    expect(isReadyToSend({ ...done, stale: true }, "Texte final.")).toBe(false);
+    expect(isReadyToSend(done, "Référence : [À COMPLÉTER]")).toBe(false);
   });
 });

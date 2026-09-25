@@ -21,7 +21,7 @@ export type MissionDTO = Jsonify<Mission> & {
 };
 export type StepDTO = Jsonify<MissionStep>;
 export type MessageDTO = Jsonify<Message>;
-export type ArtifactDTO = Jsonify<Omit<Artifact, "missionId" | "metadata">> & { review: ReviewDTO | null };
+export type ArtifactDTO = Jsonify<Omit<Artifact, "missionId" | "metadata">> & { review: ReviewDTO | null; readyToSend: boolean };
 export type ReviewDTO = Review & { stale?: boolean };
 export type SourceDTO = Jsonify<Source>;
 export type RunDTO = Jsonify<MissionRun>;

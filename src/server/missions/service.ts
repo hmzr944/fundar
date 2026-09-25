@@ -1,7 +1,7 @@
 import { and, desc, eq, ilike, inArray, or, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/db";
-import { reviewFromMetadata } from "@/server/agent/review";
+import { isReadyToSend, reviewFromMetadata } from "@/server/agent/review";
 import {
   artifacts,
   documents,
@@ -121,7 +121,10 @@ export async function getMissionDetail(db: Db, userId: string, missionId: string
     db.select().from(missionRuns).where(eq(missionRuns.missionId, missionId)).orderBy(desc(missionRuns.startedAt)).limit(10),
   ]);
   // Only the review is exposed from the artifact metadata.
-  const artifactsOut = arts.map(({ metadata, ...a }) => ({ ...a, review: reviewFromMetadata(metadata) }));
+  const artifactsOut = arts.map(({ metadata, ...a }) => {
+    const review = reviewFromMetadata(metadata);
+    return { ...a, review, readyToSend: isReadyToSend(review, a.content) };
+  });
   return { mission, steps, messages: msgs, artifacts: artifactsOut, sources: srcs, documents: docs, runs };
 }
 

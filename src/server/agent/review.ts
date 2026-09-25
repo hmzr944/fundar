@@ -110,6 +110,112 @@ export function ruleChecks(content: string): ReviewIssue[] {
   return issues;
 }
 
+// ─── Layer 1b: figures checked against the file (no model involved) ─────────
+
+const AMOUNT = /(\d{1,3}(?:[ \u00a0\u202f.]\d{3})+|\d+)(?:[.,](\d{1,2}))?\s*(?:€|euros?\b|EUR\b)/gi;
+const NUMBER = /\d{1,3}(?:[ \u00a0\u202f.]\d{3})+(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?/g;
+const MONTHS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+const NUMERIC_DATE = /\b(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})\b/g;
+const WORD_DATE = new RegExp(`\\b(\\d{1,2})(?:er)?\\s+(${MONTHS.join("|")})\\s+(\\d{4})\\b`, "gi");
+const ISO_DATE = /\b(\d{4})-(\d{2})-(\d{2})\b/g;
+
+/** "1 200,50" / "1.200" / "180" → value in cents. */
+function toCents(intPart: string, decimals?: string) {
+  const whole = Number(intPart.replace(/[ \u00a0\u202f.]/g, ""));
+  const cents = decimals ? Number(decimals.padEnd(2, "0")) : 0;
+  return whole * 100 + cents;
+}
+
+function numbersIn(text: string) {
+  const out = new Set<number>();
+  for (const m of text.matchAll(NUMBER)) {
+    const [intPart, dec] = m[0].split(/[.,](?=\d{1,2}$)/);
+    out.add(toCents(intPart, dec));
+  }
+  return out;
+}
+
+function isoDate(d: number, m: number, y: number) {
+  if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+function datesIn(text: string) {
+  const out = new Map<string, string>();
+  for (const m of text.matchAll(NUMERIC_DATE)) {
+    const iso = isoDate(Number(m[1]), Number(m[2]), Number(m[3]));
+    if (iso) out.set(iso, m[0]);
+  }
+  for (const m of text.matchAll(WORD_DATE)) {
+    const iso = isoDate(Number(m[1]), MONTHS.indexOf(m[2].toLowerCase()) + 1, Number(m[3]));
+    if (iso) out.set(iso, m[0]);
+  }
+  for (const m of text.matchAll(ISO_DATE)) {
+    const iso = isoDate(Number(m[3]), Number(m[2]), Number(m[1]));
+    if (iso) out.set(iso, m[0]);
+  }
+  return out;
+}
+
+/**
+ * Every amount and dated event in the deliverable must be traceable to the
+ * file (documents, sources, the user's own messages). Deterministic: it
+ * cannot "hallucinate" a confirmation. An amount computed from others (a
+ * total, a percentage) is flagged too, for a human or the writer to confirm.
+ */
+export function factChecks(content: string, material: string, today = new Date()): ReviewIssue[] {
+  const text = content.replace(PLACEHOLDER, " ");
+  const known = numbersIn(material);
+  const knownDates = datesIn(material);
+  const todayIso = isoDate(today.getDate(), today.getMonth() + 1, today.getFullYear());
+  const issues: ReviewIssue[] = [];
+  const seen = new Set<string>();
+  for (const m of text.matchAll(AMOUNT)) {
+    const cents = toCents(m[1], m[2]);
+    if (cents === 0 || known.has(cents) || seen.has(`a${cents}`)) continue;
+    seen.add(`a${cents}`);
+    issues.push({
+      severity: "to_fix",
+      category: "unsupported_fact",
+      excerpt: quoteAround(text, m.index ?? 0, m[0].length),
+      problem: `Le montant « ${m[0].trim()} » ne figure dans aucune pièce du dossier (documents, sources, messages du client).`,
+      suggestion: "S'il résulte d'un calcul, vérifier le calcul ; sinon, le corriger ou le remplacer par [À COMPLÉTER].",
+      origin: "rule",
+    });
+  }
+  for (const [iso, raw] of datesIn(text)) {
+    if (iso === todayIso || knownDates.has(iso) || seen.has(iso)) continue;
+    seen.add(iso);
+    const at = text.indexOf(raw);
+    issues.push({
+      severity: "to_fix",
+      category: "unsupported_fact",
+      excerpt: quoteAround(text, at, raw.length),
+      problem: `La date « ${raw} » ne figure dans aucune pièce du dossier.`,
+      suggestion: "Vérifier la date dans les documents ; sinon, la remplacer par [À COMPLÉTER].",
+      origin: "rule",
+    });
+  }
+  return issues;
+}
+
+/** The text the figures are checked against. */
+export function materialText(input: Pick<ReviewInput, "missionContext" | "documents" | "sources">) {
+  return [
+    input.missionContext,
+    ...input.documents.map((d) => d.text),
+    ...input.sources.map((s) => `${s.title ?? ""} ${s.excerpt ?? ""}`),
+  ].join("\n");
+}
+
+/**
+ * "Ready to send": a complete review (both layers) found nothing to fix, the
+ * text has not changed since, and no [À COMPLÉTER] field is left.
+ */
+export function isReadyToSend(review: (Review & { stale?: boolean }) | null, content: string) {
+  return Boolean(review && review.status === "done" && review.verdict === "ok" && !review.stale && !new RegExp(PLACEHOLDER.source, "i").test(content));
+}
+
 function quoteAround(text: string, index: number, length: number) {
   const start = Math.max(0, index - 40);
   const end = Math.min(text.length, index + length + 40);
@@ -216,7 +322,7 @@ export type ReviewResult = { review: Review; usage: LlmUsage | null; model: stri
 
 /** Runs both layers. Never throws: a failing model reader degrades to rules only. */
 export async function reviewDeliverable(llm: LlmProvider | null, input: ReviewInput, signal?: AbortSignal): Promise<ReviewResult> {
-  const issues = ruleChecks(input.content);
+  const issues = [...ruleChecks(input.content), ...factChecks(input.content, materialText(input))];
   const base = { checkedAt: new Date().toISOString() };
   if (!llm) {
     return {

@@ -119,7 +119,7 @@ function ArtifactCard({ artifact, locked, onChanged }: { artifact: ArtifactDTO; 
         <span className="rounded-md bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">{TYPE_LABELS[artifact.type]}</span>
         <span className="min-w-0 flex-1 truncate font-medium">{artifact.name}</span>
         {artifact.editedByUser && <span className="text-[11px] text-faint">modifié par vous</span>}
-        {artifact.review && <ReviewBadge review={artifact.review} />}
+        <ReadinessBadge ready={artifact.readyToSend} />
         <span className="hidden text-xs text-faint sm:inline">{formatDate(artifact.updatedAt)}</span>
         <span className="text-faint" aria-hidden>
           {open ? "▴" : "▾"}
@@ -157,7 +157,7 @@ function ArtifactCard({ artifact, locked, onChanged }: { artifact: ArtifactDTO; 
           ) : (
             <Markdown>{artifact.content}</Markdown>
           )}
-          <ReviewDetails artifactId={artifact.id} review={artifact.review} locked={locked} onChanged={onChanged} />
+          <ReviewDetails artifactId={artifact.id} review={artifact.review} ready={artifact.readyToSend} locked={locked} onChanged={onChanged} />
           <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-3">
             <Button className="px-2.5 py-1 text-xs" onClick={copy}>
               Copier
@@ -219,14 +219,28 @@ function ReviewBadge({ review }: { review: ReviewDTO }) {
   );
 }
 
+function ReadinessBadge({ ready }: { ready: boolean }) {
+  return (
+    <span
+      className={`rounded-md border px-2 py-0.5 text-[11px] font-medium ${ready ? "border-success/40 bg-success/5 text-success" : "border-warning/40 bg-warning/5 text-warning"}`}
+      data-testid="readiness"
+      data-ready={ready}
+    >
+      {ready ? "Prêt à envoyer" : "À vérifier avant envoi"}
+    </span>
+  );
+}
+
 function ReviewDetails({
   artifactId,
   review,
+  ready,
   locked,
   onChanged,
 }: {
   artifactId: string;
   review: ReviewDTO | null;
+  ready: boolean;
   locked: boolean;
   onChanged: () => void;
 }) {
@@ -257,6 +271,11 @@ function ReviewDetails({
           </Button>
         )}
       </div>
+      <p className="mt-2 text-xs text-muted">
+        {ready
+          ? "Relecture complète sans problème, aucun champ à compléter : ce texte peut être envoyé tel quel."
+          : "Pas encore prêt : corrigez les points ci-dessous, complétez les champs [À COMPLÉTER] ou relancez la relecture."}
+      </p>
       {review?.stale && <p className="mt-2 text-xs text-faint">Le texte a été modifié après cette relecture : relancez-la pour vérifier la nouvelle version.</p>}
       {review?.note && <p className="mt-2 text-xs text-warning">{review.note}</p>}
       {review && review.issues.length > 0 && (

@@ -86,8 +86,11 @@ test("main journey: create, clarify, plan, execute, results, resume, complete", 
   await expect(page.getByText("Dernier compte rendu d'Atlas")).toBeVisible();
   await page.getByTestId("artifact").getByRole("button").first().click();
   await expect(page.getByTestId("artifact")).toContainText("Première action");
-  // The deliverable was proofread automatically right after it was written.
-  await expect(page.getByTestId("review-details")).toContainText("Relu : rien à signaler");
+  // The deliverable was proofread automatically right after it was written: its
+  // prices (10 €, 12 €) appear in no document of the file, so it is not ready to send.
+  await expect(page.getByTestId("review-details")).toContainText("Relu : à vérifier");
+  await expect(page.getByTestId("review-details")).toContainText("ne figure dans aucune pièce");
+  await expect(page.getByTestId("readiness")).toHaveAttribute("data-ready", "false");
   const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("link", { name: "Télécharger .docx" }).click()]);
   expect(download.suggestedFilename()).toMatch(/\.docx$/);
   const csv = await page.request.get(await page.getByRole("link", { name: ".csv" }).getAttribute("href").then((h) => h!));
@@ -103,6 +106,7 @@ test("main journey: create, clarify, plan, execute, results, resume, complete", 
   await expect(page.getByTestId("review-details")).toContainText("Relecture à refaire");
   await page.getByRole("button", { name: "Relire à nouveau" }).click();
   await expect(page.getByTestId("review-details")).toContainText("Relu : rien à signaler");
+  await expect(page.getByTestId("readiness")).toHaveText("Prêt à envoyer");
 
   // Resume later from the history.
   await page.goto("/app/history");
