@@ -1,6 +1,7 @@
 # Protocole expérimental — « Règle ça pour moi » (offre horizontale)
 
 > Date : 25 septembre 2026. Fait suite à [`EVALUATION-WEDGE-VOLS.md`](EVALUATION-WEDGE-VOLS.md).
+> **Version simple, à lire d'abord :** [`FEUILLE-DE-ROUTE.md`](FEUILLE-DE-ROUTE.md).
 > Statut : **décisions et paramètres verrouillés** ([section 12](#12-décisions)). Rien n'est développé. Restent à faire avant le premier euro dépensé : validation juridique, test synthétique des règles de verdict, gel formel ([section 12](#étapes-avant-le-premier-euro-dépensé)). La page d'accueil, le mandat et les modèles de messages peuvent encore être ajustés **à la suite de l'avis de l'avocat** ; les règles de la section 9, non.
 
 ---
