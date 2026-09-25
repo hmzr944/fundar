@@ -4,6 +4,8 @@
 > Mêmes conventions : **FAIT** · **SOURCE** (acteur intéressé ou source secondaire) · **INTERPRÉTATION** · **HYPOTHÈSE** · **MANQUANT**.
 > Même limite de collecte : la plupart des pages ont été lues via des extraits de moteur de recherche. Les chiffres doivent être revérifiés avant toute décision.
 
+> **Suite :** l'offre horizontale est retenue comme hypothèse principale. Les vols et les colis deviennent des catégories de comparaison. Protocole détaillé : [`PROTOCOLE-TEST-HORIZONTAL.md`](PROTOCOLE-TEST-HORIZONTAL.md).
+
 ---
 
 ## Sommaire
