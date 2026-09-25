@@ -9,6 +9,7 @@ import type {
   Source,
   UnsupportedRequest,
 } from "@/db/schema";
+import type { Review } from "@/server/agent/review";
 
 /** JSON shapes returned by GET /api/missions/[id] (dates serialised as strings). */
 type Jsonify<T> = { [K in keyof T]: T[K] extends Date ? string : T[K] extends Date | null ? string | null : T[K] };
@@ -20,7 +21,8 @@ export type MissionDTO = Jsonify<Mission> & {
 };
 export type StepDTO = Jsonify<MissionStep>;
 export type MessageDTO = Jsonify<Message>;
-export type ArtifactDTO = Jsonify<Omit<Artifact, "missionId" | "metadata">>;
+export type ArtifactDTO = Jsonify<Omit<Artifact, "missionId" | "metadata">> & { review: ReviewDTO | null };
+export type ReviewDTO = Review & { stale?: boolean };
 export type SourceDTO = Jsonify<Source>;
 export type RunDTO = Jsonify<MissionRun>;
 export type DocumentDTO = {

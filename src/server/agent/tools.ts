@@ -6,6 +6,10 @@ import type { LlmTool } from "@/server/llm/types";
 import type { PageFetcher } from "@/server/search/fetch-page";
 import { FetchPageError } from "@/server/search/fetch-page";
 import { SearchError, type SearchProvider } from "@/server/search/providers";
+import { reviewForModel, type Review, type ReviewInput } from "./review";
+
+/** Maximum number of times the model may revise the same deliverable in a run. */
+export const MAX_REVISIONS = 2;
 
 /**
  * Removes tool-call markup the model sometimes leaks at the end of a long
@@ -38,6 +42,11 @@ export type ToolContext = {
   signal?: AbortSignal;
   /** Documents actually read during this run (evidence for document_analysis steps). */
   readDocumentIds: Set<string>;
+  /**
+   * Automatic proofreading of deliverables. When set, every deliverable the
+   * model writes or revises is reviewed and the findings are returned to it.
+   */
+  review?: (input: Omit<ReviewInput, "missionContext" | "documents" | "sources">) => Promise<Review>;
 };
 
 const fail = (code: string, message: string, logDetails?: Record<string, unknown>): ToolResult => ({
@@ -68,6 +77,11 @@ const inputs = {
     content_markdown: z.string().min(1).max(100_000),
     step_id: z.string().uuid().optional(),
   }),
+  revise_deliverable: z.object({
+    artifact_id: z.string().uuid(),
+    content_markdown: z.string().min(1).max(100_000),
+    change_note: z.string().trim().min(1).max(500),
+  }),
   update_step: z.object({
     step_id: z.string().uuid(),
     status: z.enum(["in_progress", "done", "waiting_user", "blocked", "failed"]),
@@ -89,7 +103,7 @@ export type ToolName = keyof typeof inputs;
 
 // ─── Definitions exposed to the model ───────────────────────────────────────
 
-export function toolDefinitions(opts: { webSearch: boolean }): LlmTool[] {
+export function toolDefinitions(opts: { webSearch: boolean; review?: boolean }): LlmTool[] {
   const defs: LlmTool[] = [];
   if (opts.webSearch) {
     defs.push({
@@ -146,6 +160,24 @@ export function toolDefinitions(opts: { webSearch: boolean }): LlmTool[] {
         },
       },
     },
+    ...(opts.review
+      ? [
+          {
+            name: "revise_deliverable",
+            description: `Corrige un livrable que tu as créé, après la relecture automatique. Remplace tout son contenu ; la nouvelle version est relue à son tour. Au plus ${MAX_REVISIONS} corrections par livrable. Impossible si l'utilisateur l'a modifié.`,
+            input_schema: {
+              type: "object" as const,
+              additionalProperties: false,
+              required: ["artifact_id", "content_markdown", "change_note"],
+              properties: {
+                artifact_id: { type: "string" },
+                content_markdown: { type: "string", description: "Contenu complet corrigé." },
+                change_note: { type: "string", description: "Ce qui a été corrigé, en une phrase." },
+              },
+            },
+          },
+        ]
+      : []),
     {
       name: "update_step",
       description:
@@ -361,6 +393,7 @@ const handlers: { [K in ToolName]: (ctx: ToolContext, input: z.infer<(typeof inp
         };
       }
     }
+    const content = stripToolMarkup(input.content_markdown);
     const [art] = await ctx.db
       .insert(artifacts)
       .values({
@@ -368,14 +401,48 @@ const handlers: { [K in ToolName]: (ctx: ToolContext, input: z.infer<(typeof inp
         stepId,
         type: input.type,
         name: input.title,
-        content: stripToolMarkup(input.content_markdown),
+        content,
         metadata: { generatedBy: "atlas" },
       })
       .returning({ id: artifacts.id });
+    const review = await runReview(ctx, art.id, { type: input.type, title: input.title, content }, { generatedBy: "atlas" });
     return {
       ok: true,
-      content: { ok: true, artifact_id: art.id, title: input.title },
-      logDetails: { artifactId: art.id, type: input.type, chars: input.content_markdown.length },
+      content: { ok: true, artifact_id: art.id, title: input.title, ...(review ? reviewPayload(review, 0) : {}) },
+      logDetails: {
+        artifactId: art.id,
+        type: input.type,
+        chars: input.content_markdown.length,
+        ...(review ? { review: review.verdict, reviewIssues: review.issues.length } : {}),
+      },
+    };
+  },
+
+  async revise_deliverable(ctx, input) {
+    if (!ctx.review) return fail("unavailable", "La relecture automatique n'est pas active sur cette instance.");
+    const art = await ctx.db.query.artifacts.findFirst({
+      where: and(eq(artifacts.id, input.artifact_id), eq(artifacts.missionId, ctx.missionId)),
+    });
+    if (!art) return fail("not_found", "Livrable introuvable dans cette mission.");
+    if (art.editedByUser) {
+      return fail("edited_by_user", "L'utilisateur a modifié ce livrable : ne l'écrase pas. Signale le problème dans ton compte rendu.");
+    }
+    const revisions = typeof art.metadata.revisions === "number" ? art.metadata.revisions : 0;
+    if (revisions >= MAX_REVISIONS) {
+      return fail(
+        "revision_limit",
+        `Ce livrable a déjà été corrigé ${MAX_REVISIONS} fois. Signale les problèmes restants dans ton compte rendu pour que l'utilisateur les vérifie.`,
+      );
+    }
+    const content = stripToolMarkup(input.content_markdown);
+    const history = Array.isArray(art.metadata.revisionNotes) ? (art.metadata.revisionNotes as string[]) : [];
+    const metadata = { ...art.metadata, revisions: revisions + 1, revisionNotes: [...history, input.change_note] };
+    await ctx.db.update(artifacts).set({ content, metadata }).where(eq(artifacts.id, art.id));
+    const review = await runReview(ctx, art.id, { type: art.type, title: art.name, content }, metadata);
+    return {
+      ok: true,
+      content: { ok: true, artifact_id: art.id, revision: revisions + 1, ...(review ? reviewPayload(review, revisions + 1) : {}) },
+      logDetails: { artifactId: art.id, revision: revisions + 1, ...(review ? { review: review.verdict, reviewIssues: review.issues.length } : {}) },
     };
   },
 
@@ -485,6 +552,35 @@ const handlers: { [K in ToolName]: (ctx: ToolContext, input: z.infer<(typeof inp
     };
   },
 };
+
+/** Reviews a deliverable (when enabled) and stores the result on the artifact. */
+async function runReview(
+  ctx: ToolContext,
+  artifactId: string,
+  draft: { type: string; title: string; content: string },
+  metadata: Record<string, unknown>,
+): Promise<Review | null> {
+  if (!ctx.review) return null;
+  const review = await ctx.review(draft);
+  await ctx.db
+    .update(artifacts)
+    .set({ metadata: { ...metadata, review } })
+    .where(eq(artifacts.id, artifactId));
+  return review;
+}
+
+function reviewPayload(review: Review, revision: number) {
+  const left = MAX_REVISIONS - revision;
+  return {
+    review: reviewForModel(review),
+    review_instructions:
+      review.verdict === "ok"
+        ? "Relecture sans problème à corriger."
+        : left > 0
+          ? `Corrige les problèmes signalés avec revise_deliverable (${left} correction(s) possible(s)). Si un problème est une fausse alerte, ou s'il ne peut être corrigé qu'avec une information de l'utilisateur, ne corrige pas : signale-le dans ton compte rendu.`
+          : "Plus de correction possible : signale les problèmes restants dans ton compte rendu pour que l'utilisateur les vérifie avant envoi.",
+  };
+}
 
 function safeHost(url: string) {
   try {

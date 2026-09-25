@@ -16,7 +16,7 @@ export type LlmRequest = {
   maxTokens?: number;
   signal?: AbortSignal;
   /** Free-form label used by test providers to pick a script. */
-  purpose: "analyze" | "execute";
+  purpose: "analyze" | "execute" | "review";
 };
 
 export type LlmToolCall = { id: string; name: string; input: unknown };

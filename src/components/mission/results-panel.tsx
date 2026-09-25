@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Markdown } from "@/components/markdown";
 import { Button, EmptyState, formatDate } from "@/components/ui";
 import { api } from "@/lib/client/api";
-import type { ArtifactDTO, MissionDTO } from "@/lib/client/types";
+import type { ArtifactDTO, MissionDTO, ReviewDTO } from "@/lib/client/types";
 
 const TYPE_LABELS: Record<ArtifactDTO["type"], string> = {
   letter: "Courrier",
@@ -119,6 +119,7 @@ function ArtifactCard({ artifact, locked, onChanged }: { artifact: ArtifactDTO; 
         <span className="rounded-md bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">{TYPE_LABELS[artifact.type]}</span>
         <span className="min-w-0 flex-1 truncate font-medium">{artifact.name}</span>
         {artifact.editedByUser && <span className="text-[11px] text-faint">modifié par vous</span>}
+        {artifact.review && <ReviewBadge review={artifact.review} />}
         <span className="hidden text-xs text-faint sm:inline">{formatDate(artifact.updatedAt)}</span>
         <span className="text-faint" aria-hidden>
           {open ? "▴" : "▾"}
@@ -156,6 +157,7 @@ function ArtifactCard({ artifact, locked, onChanged }: { artifact: ArtifactDTO; 
           ) : (
             <Markdown>{artifact.content}</Markdown>
           )}
+          <ReviewDetails artifactId={artifact.id} review={artifact.review} locked={locked} onChanged={onChanged} />
           <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-3">
             <Button className="px-2.5 py-1 text-xs" onClick={copy}>
               Copier
@@ -182,5 +184,103 @@ function ArtifactCard({ artifact, locked, onChanged }: { artifact: ArtifactDTO; 
         </div>
       )}
     </article>
+  );
+}
+
+const VERDICT: Record<ReviewDTO["verdict"], { label: string; tone: string }> = {
+  ok: { label: "Relu : rien à signaler", tone: "text-success border-success/40 bg-success/5" },
+  to_fix: { label: "Relu : à vérifier", tone: "text-warning border-warning/40 bg-warning/5" },
+  blocking: { label: "Relu : problème bloquant", tone: "text-danger border-danger/40 bg-danger/5" },
+};
+
+const SEVERITY_LABELS: Record<ReviewDTO["issues"][number]["severity"], string> = {
+  blocking: "Bloquant",
+  to_fix: "À corriger",
+  note: "Remarque",
+};
+
+const CATEGORY_LABELS: Record<ReviewDTO["issues"][number]["category"], string> = {
+  promise: "Promesse ou avis",
+  unsupported_fact: "Fait non étayé",
+  inconsistency: "Incohérence avec les pièces",
+  legal_reference: "Référence juridique à vérifier",
+  sensitive_data: "Donnée sensible",
+  missing_info: "Information manquante",
+  tone: "Ton",
+  other: "Autre",
+};
+
+function ReviewBadge({ review }: { review: ReviewDTO }) {
+  const v = VERDICT[review.verdict];
+  return (
+    <span className={`rounded-md border px-2 py-0.5 text-[11px] font-medium ${review.stale ? "border-line-strong text-faint" : v.tone}`} data-testid="review-badge">
+      {review.stale ? "Relecture à refaire" : v.label}
+    </span>
+  );
+}
+
+function ReviewDetails({
+  artifactId,
+  review,
+  locked,
+  onChanged,
+}: {
+  artifactId: string;
+  review: ReviewDTO | null;
+  locked: boolean;
+  onChanged: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function rerun() {
+    setBusy(true);
+    setError(null);
+    try {
+      await api(`/api/artifacts/${artifactId}/review`, { method: "POST" });
+      onChanged();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="mt-4 rounded-lg border border-line bg-bg/40 p-3" aria-label="Relecture automatique" data-testid="review-details">
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-sm font-semibold text-muted">Relecture automatique</p>
+        {review ? <ReviewBadge review={review} /> : <span className="text-xs text-faint">pas encore relu</span>}
+        {!locked && (
+          <Button className="ml-auto px-2.5 py-1 text-xs" onClick={rerun} disabled={busy}>
+            {busy ? "Relecture…" : review ? "Relire à nouveau" : "Relire"}
+          </Button>
+        )}
+      </div>
+      {review?.stale && <p className="mt-2 text-xs text-faint">Le texte a été modifié après cette relecture : relancez-la pour vérifier la nouvelle version.</p>}
+      {review?.note && <p className="mt-2 text-xs text-warning">{review.note}</p>}
+      {review && review.issues.length > 0 && (
+        <ul className="mt-3 space-y-2">
+          {review.issues.map((i, n) => (
+            <li key={n} className="text-sm">
+              <span className="font-medium">
+                {SEVERITY_LABELS[i.severity]} · {CATEGORY_LABELS[i.category]}
+              </span>
+              {i.excerpt && <span className="block text-xs italic text-faint">« {i.excerpt} »</span>}
+              <span className="block">{i.problem}</span>
+              {i.suggestion && <span className="block text-xs text-muted">Suggestion : {i.suggestion}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="mt-2 text-[11px] text-faint">
+        Relecture par règles fixes et par un second passage du modèle. Elle aide à repérer les erreurs, mais ne remplace pas votre vérification avant envoi.
+      </p>
+      {error && (
+        <p role="alert" className="mt-2 text-xs text-danger">
+          {error}
+        </p>
+      )}
+    </section>
   );
 }

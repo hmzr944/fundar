@@ -135,12 +135,26 @@ L'interface interroge `GET /api/missions/:id` toutes les 2 s pendant qu'Atlas tr
 | `web_search` | Recherche réelle (Tavily/Brave) ; chaque résultat devient une `Source` | Proposé seulement si un fournisseur est configuré |
 | `fetch_page` | Lit le texte d'une page | URL limitées à celles trouvées par la recherche ou écrites par l'utilisateur (anti-exfiltration) ; blocage SSRF à la résolution DNS ; http(s) et ports standard uniquement ; 2 Mo, 15 s, 4 redirections revalidées ; une page coupée à 2 Mo ou à 60 000 caractères est signalée comme **lue partiellement** (au modèle et dans l'onglet Sources) |
 | `read_document` | Lit le texte extrait d'un document importé, par tranches | Limité aux documents de la mission et de son propriétaire |
-| `create_deliverable` | Crée un livrable Markdown (courrier, e-mail, checklist, tableau…) | Taille bornée |
+| `create_deliverable` | Crée un livrable Markdown (courrier, e-mail, checklist, tableau…) | Taille bornée ; **relu automatiquement** dès sa création (voir ci-dessous) |
+| `revise_deliverable` | Corrige un livrable après la relecture | Proposé seulement si la relecture est active ; 2 corrections au plus par livrable ; refusé si l'utilisateur a modifié le livrable ; la nouvelle version est relue à son tour |
 | `update_step` | Change le statut d'une étape | `done` exige une preuve selon le type (voir ci-dessous) |
 | `list_history` | Consulte les autres missions de l'utilisateur | Métadonnées uniquement, jamais celles d'autres utilisateurs |
 | `finish_mission` | Clôt l'exécution avec un compte rendu honnête | Ne fixe pas le statut |
 
 Chaque outil renvoie `{ ok, content, error? }`. Une erreur n'arrête pas la mission : le modèle la voit et adapte sa suite, et elle est journalisée.
+
+### Relecture automatique des livrables
+
+Chaque livrable est relu **dès qu'Atlas le rédige** (`src/server/agent/review.ts`), en deux couches :
+
+1. **Règles fixes**, toujours appliquées et gratuites : promesse de résultat (« vous allez obtenir », « remboursement garanti »), affirmation d'un droit (« vous avez droit »), demande de mot de passe ou de code, et décompte des champs `[À COMPLÉTER]`.
+2. **Un second passage du modèle**, avec un rôle de relecteur. Il compare le livrable aux documents de la mission, à ses sources et aux messages de l'utilisateur. Il signale les montants, dates et références incohérents ou non étayés, les références juridiques absentes des sources, les promesses, les données sensibles, les informations manquantes et le ton. Documents et livrable lui sont transmis comme données non fiables (`<untrusted_content>`).
+
+Le verdict (`ok`, `à vérifier`, `bloquant`) et la liste des problèmes sont renvoyés **au modèle qui rédige**, qui peut corriger avec `revise_deliverable`, puis stockés avec le livrable (`artifacts.metadata.review`) et affichés dans l'onglet Résultats.
+
+- Si le second passage échoue (erreur, réponse illisible, pas de modèle), la relecture est marquée **partielle** et seules les règles fixes s'appliquent. L'exécution n'est jamais bloquée.
+- Si l'utilisateur modifie un livrable, sa relecture est marquée **à refaire**. Le bouton « Relire » (`POST /api/artifacts/[id]/review`) relance la relecture sur le texte actuel, dans la limite de `ATLAS_ANALYSES_PER_DAY` relectures à la demande par jour.
+- La relecture **aide** à repérer des erreurs. Elle ne remplace pas la vérification humaine avant envoi, et l'interface le dit.
 
 ---
 
@@ -237,6 +251,7 @@ Limites ajustables par variables d'environnement (`src/lib/config.ts`) :
 | `ATLAS_MAX_CONSECUTIVE_ERRORS` | 5 | Échecs d'outils consécutifs avant arrêt |
 | `ATLAS_RUNS_PER_DAY` / `ATLAS_ANALYSES_PER_DAY` | 40 / 150 | Quotas par utilisateur sur 24 h glissantes |
 | `ATLAS_STALE_RUN_SECONDS` | 180 | Délai sans *heartbeat* avant de considérer une exécution comme interrompue |
+| `ATLAS_REVIEW` | `on` | Relecture automatique des livrables (`off` pour la désactiver). Chaque livrable, et chaque correction, coûte **un appel au modèle** de plus, compté dans le budget de l'exécution et journalisé (`llm:review`) |
 
 Quand une limite est atteinte, l'exécution s'arrête proprement : le travail fait est conservé, la raison est affichée et la mission peut être reprise.
 
@@ -284,6 +299,7 @@ La procédure de validation avec les vraies clés (connexions, `test:live`, 12 m
 - Statuts dérivés des preuves ; étapes déclarées par l'utilisateur distinguées de celles exécutées par Atlas
 - Import de documents (PDF texte, DOCX, TXT, MD, CSV) avec extraction réelle et erreurs affichées
 - Livrables consultables, copiables, modifiables et **réellement téléchargeables** (.docx, .md, .csv si tableau)
+- Relecture automatique de chaque livrable (règles fixes + second passage du modèle), correction par Atlas, relecture à la demande après modification. Vérifiée avec le modèle scripté ; **la qualité de la relecture par le vrai modèle n'a pas encore été évaluée**
 - Sources affichées, en distinguant les pages lues des simples résultats de recherche
 - Isolation des données entre utilisateurs ; suppression (mission, document, données, compte) ; purge de conservation
 - Interface responsive sombre : landing, authentification, tableau de bord, espace de mission, historique, paramètres

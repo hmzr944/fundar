@@ -59,6 +59,7 @@ export function getAgentDeps(): AgentDeps {
       analysesPerDay: l.analysesPerDay,
       staleRunSeconds: l.staleRunSeconds,
     },
+    reviewDeliverables: config.reviewDeliverables,
   };
 }
 

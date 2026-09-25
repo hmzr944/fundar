@@ -49,6 +49,10 @@ export const config = {
   get model() {
     return process.env.ATLAS_MODEL || "claude-opus-5";
   },
+  /** Automatic proofreading of every deliverable (ATLAS_REVIEW=off disables it). */
+  get reviewDeliverables() {
+    return process.env.ATLAS_REVIEW?.trim().toLowerCase() !== "off";
+  },
   get storageDir() {
     return process.env.ATLAS_STORAGE_DIR || "./storage";
   },

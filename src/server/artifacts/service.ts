@@ -30,7 +30,14 @@ export async function editArtifact(db: Db, userId: string, artifactId: string, i
     .update(artifacts)
     .set({
       ...(input.name ? { name: input.name } : {}),
-      ...(input.content !== undefined ? { content: input.content, editedByUser: true } : {}),
+      ...(input.content !== undefined
+        ? {
+            content: input.content,
+            editedByUser: true,
+            // The stored review applied to the previous text.
+            ...(art.metadata.review ? { metadata: { ...art.metadata, review: { ...(art.metadata.review as object), stale: true } } } : {}),
+          }
+        : {}),
     })
     .where(eq(artifacts.id, art.id))
     .returning();

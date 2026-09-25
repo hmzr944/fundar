@@ -4,9 +4,11 @@ import { artifacts, documents, messages, missionRuns, missions, missionSteps, so
 import { LlmError, estimateCostUsd, type LlmMessage, type LlmProvider } from "@/server/llm/types";
 import type { PageFetcher } from "@/server/search/fetch-page";
 import type { SearchProvider } from "@/server/search/providers";
+import { reviewMaterial } from "@/server/artifacts/review";
 import { addMessage, refreshMissionStatus } from "@/server/missions/service";
 import { logExecution } from "./log";
 import { executeSystemPrompt, type Capabilities } from "./prompts";
+import { reviewDeliverable, type Review } from "./review";
 import { executeTool, toolDefinitions, type ToolContext } from "./tools";
 
 export type RunLimits = {
@@ -25,6 +27,8 @@ export type ExecuteDeps = {
   fetchPage: PageFetcher;
   capabilities: Capabilities;
   limits: RunLimits;
+  /** Proofread every deliverable right after it is written (see review.ts). */
+  review?: boolean;
 };
 
 export type RunOutcome = {
@@ -119,8 +123,8 @@ export async function executeMission(
   const { db, limits } = deps;
   const { runId, missionId, userId, signal } = params;
   const startedAt = Date.now();
-  const system = executeSystemPrompt(deps.capabilities);
-  const tools = toolDefinitions({ webSearch: deps.capabilities.webSearch });
+  const system = executeSystemPrompt(deps.capabilities, { review: Boolean(deps.review) });
+  const tools = toolDefinitions({ webSearch: deps.capabilities.webSearch, review: Boolean(deps.review) });
   const history: LlmMessage[] = [{ role: "user", content: await buildExecutionBriefing(db, missionId) }];
   const ctx: ToolContext = {
     db,
@@ -138,6 +142,39 @@ export async function executeMission(
   let tokens = 0;
   let cost = 0;
   let costKnown = true;
+
+  if (deps.review) {
+    ctx.review = async (draft): Promise<Review> => {
+      const t0 = Date.now();
+      const material = await reviewMaterial(db, missionId);
+      const { review, usage, model } = await reviewDeliverable(deps.llm, { ...draft, ...material }, signal);
+      const reviewCost = await logExecution(db, {
+        missionId,
+        runId,
+        kind: "llm:review",
+        status: review.status === "done" ? "ok" : "error",
+        durationMs: Date.now() - t0,
+        model: model ?? undefined,
+        usage: usage ?? undefined,
+        details: { verdict: review.verdict, issues: review.issues.length, ...(review.note ? { note: review.note.slice(0, 300) } : {}) },
+      });
+      if (usage) {
+        // The review is part of this run's budget, like any other model call.
+        tokens += usage.inputTokens + usage.outputTokens + usage.cacheReadTokens + usage.cacheWriteTokens;
+        if (reviewCost === null) costKnown = false;
+        else cost += reviewCost;
+        const current = await db.query.missionRuns.findFirst({ where: eq(missionRuns.id, runId) });
+        await db
+          .update(missionRuns)
+          .set({
+            inputTokens: sqlAdd(current?.inputTokens, usage.inputTokens + usage.cacheReadTokens + usage.cacheWriteTokens),
+            outputTokens: sqlAdd(current?.outputTokens, usage.outputTokens),
+          })
+          .where(eq(missionRuns.id, runId));
+      }
+      return review;
+    };
+  }
   let consecutiveErrors = 0;
   let nudged = false;
   const seen = new Map<string, number>();

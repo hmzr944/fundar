@@ -16,6 +16,8 @@ export type AgentDeps = {
   search: SearchProvider | null;
   fetchPage: PageFetcher;
   limits: RunLimits & { runsPerDay: number; analysesPerDay: number; staleRunSeconds: number };
+  /** Automatic proofreading of deliverables (off unless set). */
+  reviewDeliverables?: boolean;
 };
 
 export function capabilitiesOf(deps: AgentDeps): Capabilities {
@@ -191,7 +193,15 @@ export async function startExecution(deps: AgentDeps, userId: string, missionId:
     }, 20_000);
     try {
       await executeMission(
-        { db: deps.db, llm, search: deps.search, fetchPage: deps.fetchPage, capabilities: capabilitiesOf(deps), limits: deps.limits },
+        {
+          db: deps.db,
+          llm,
+          search: deps.search,
+          fetchPage: deps.fetchPage,
+          capabilities: capabilitiesOf(deps),
+          limits: deps.limits,
+          review: Boolean(deps.reviewDeliverables),
+        },
         { runId: run.id, missionId, userId, signal: ctrl.signal },
       );
     } catch (e) {

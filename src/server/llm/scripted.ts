@@ -191,5 +191,7 @@ function executeDemo(req: LlmRequest): LlmResult {
 }
 
 export function createDemoScriptProvider() {
-  return new ScriptedProvider((req) => (req.purpose === "analyze" ? analyzeDemo(req) : executeDemo(req)));
+  return new ScriptedProvider((req) =>
+    req.purpose === "analyze" ? analyzeDemo(req) : req.purpose === "review" ? textResult(JSON.stringify({ issues: [] })) : executeDemo(req),
+  );
 }

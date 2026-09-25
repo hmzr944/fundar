@@ -1,6 +1,7 @@
 import { and, desc, eq, ilike, inArray, or, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/db";
+import { reviewFromMetadata } from "@/server/agent/review";
 import {
   artifacts,
   documents,
@@ -95,6 +96,7 @@ export async function getMissionDetail(db: Db, userId: string, missionId: string
         name: artifacts.name,
         content: artifacts.content,
         editedByUser: artifacts.editedByUser,
+        metadata: artifacts.metadata,
         createdAt: artifacts.createdAt,
         updatedAt: artifacts.updatedAt,
       })
@@ -118,7 +120,9 @@ export async function getMissionDetail(db: Db, userId: string, missionId: string
       .orderBy(documents.createdAt),
     db.select().from(missionRuns).where(eq(missionRuns.missionId, missionId)).orderBy(desc(missionRuns.startedAt)).limit(10),
   ]);
-  return { mission, steps, messages: msgs, artifacts: arts, sources: srcs, documents: docs, runs };
+  // Only the review is exposed from the artifact metadata.
+  const artifactsOut = arts.map(({ metadata, ...a }) => ({ ...a, review: reviewFromMetadata(metadata) }));
+  return { mission, steps, messages: msgs, artifacts: artifactsOut, sources: srcs, documents: docs, runs };
 }
 
 export async function createMission(db: Db, userId: string, request: string) {
