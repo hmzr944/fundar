@@ -1,7 +1,7 @@
 # Atlas — « Règle ça pour moi » : quel premier problème prendre entièrement en charge ?
 
 > Recherche de *wedge* menée à partir de la vision originelle d'Atlas (agent d'exécution autonome pour particuliers).
-> Date : 25 septembre 2026. Périmètre principal : France / Union européenne, avec des repères américains quand ils éclairent le marché.
+> Date : 25 septembre 2026 (révisé le même jour : score composite retiré, droit applicable séparé de la réforme 2026, chiffres AirHelp déclassés, protocole de test détaillé). Périmètre principal : France / Union européenne, avec des repères américains quand ils éclairent le marché.
 
 ---
 
@@ -14,8 +14,8 @@
 4. [Ce que font réellement les solutions existantes](#4-ce-que-font-réellement-les-solutions-existantes)
 5. [Contraintes juridiques et de sécurité communes](#5-contraintes-juridiques-et-de-sécurité-communes)
 6. [Comparaison des problèmes](#6-comparaison-des-problèmes)
-7. [Recommandation de wedge](#7-recommandation-de-wedge)
-8. [Protocole de test MVP](#8-protocole-de-test-mvp)
+7. [Recommandation : ce qu'il faut tester](#7-recommandation--ce-quil-faut-tester)
+8. [Protocole de test concierge](#8-protocole-de-test-concierge)
 9. [Écart avec le code actuel d'Atlas](#9-écart-avec-le-code-actuel-datlas)
 10. [Informations manquantes prioritaires](#10-informations-manquantes-prioritaires)
 11. [Sources](#11-sources)
@@ -26,26 +26,52 @@
 
 **Question posée :** existe-t-il un problème que les gens seraient heureux de ne plus résoudre eux-mêmes, et qu'Atlas peut raisonnablement prendre **entièrement** en charge ?
 
-**Réponse (INTERPRÉTATION) : oui, une famille de problèmes coche toutes les cases :**
+**Ce que la recherche établit :** elle **ne valide pas Atlas**. Elle identifie un **type de problème** qui correspond à la vision, et un **premier cas à tester**. Elle ne démontre pas que ce cas est le bon.
 
-> **« Une entreprise me doit de l'argent après un incident, j'y ai droit, mais je ne vais pas me battre pour l'obtenir. »**
+### Le type de problème
 
-Ce sont les incidents de consommation où **le droit est écrit**, où **le canal de réclamation est écrit** (formulaire web, e-mail, courrier, médiateur en ligne) et où **le résultat est vérifiable de l'extérieur** : l'argent arrive, ou pas.
+> **« J'ai potentiellement droit à quelque chose, mais l'obtenir demande une succession de démarches que je n'ai pas envie de faire. »**
 
-Premier cas à tester : **la perturbation aérienne (vol annulé ou retardé)**, traitée de bout en bout. Ce n'est pas parce que c'est l'exemple fondateur d'Atlas. C'est le cas où les traces publiques sont les plus nettes :
+C'est un problème **d'exécution**, pas d'information. L'utilisateur dit « Règle ça pour moi », et Atlas doit enchaîner :
 
-| Critère | Ce que disent les données |
+> déterminer l'éligibilité → préparer → envoyer → attendre → relancer → escalader → vérifier le paiement.
+
+On retrouve cette même suite dans les vols, les colis, les factures d'énergie et les cautions de location ([section 6](#6-comparaison-des-problèmes)). Le droit y est écrit, le canal de réclamation aussi (formulaire web, e-mail, médiateur en ligne), et le résultat se vérifie de l'extérieur : l'argent arrive, ou pas.
+
+### Le premier cas à tester (HYPOTHÈSE, pas conclusion)
+
+**La perturbation aérienne (vol annulé ou retardé).** Les faits qui en font un bon candidat, sans score composite :
+
+| Fait | Statut |
 |---|---|
-| Le droit est clair | 250 / 400 / 600 € selon la distance, dès 3 h de retard, confirmé par la réforme adoptée en juillet 2026 (FAIT) |
-| Les gens ne vont pas au bout seuls | Seuls 55 % des passagers éligibles réclament. Les compagnies rejettent 58 % des demandes jugées éligibles par AirHelp et 31 % restent sans réponse (SOURCE : AirHelp, donc partiale) |
-| Les gens délèguent déjà et paient pour ça | Commissions de 27 % + TVA (Flightright) à 35 % TTC (AirHelp), jusqu'à 50 % en cas de procédure (FAIT : tarifs publics) |
-| Le résultat est vérifiable | Un virement arrive sur le compte de l'utilisateur, ou il n'arrive pas |
-| Tout passe par écrit | Formulaire de la compagnie, puis médiateur, puis juge. Aucun appel téléphonique n'est indispensable |
+| Indemnité forfaitaire de 250 / 400 / 600 € selon la distance, dès 3 h de retard à l'arrivée | **FAIT, droit applicable aujourd'hui** (règlement 261/2004 et jurisprudence CJUE). Les montants sont maintenus par la réforme adoptée en juillet 2026, qui n'est **pas encore applicable** ([section 3, P1](#p1-vol-annulé-ou-retardé--indemnisation-remboursement-frais)) |
+| Un marché de délégation « sans succès, pas de frais » existe déjà | **FAIT** (tarifs publics) : AirHelp prend 35 % de l'indemnité ; Flightright 20 à 30 % + TVA (27 % en standard), avec un supplément possible en cas de procédure. AirHelp revendique plus de 3,3 millions de passagers aidés (SOURCE : AirHelp) |
+| Le processus est structuré et passe par écrit | **FAIT** : formulaire de la compagnie, médiateur, juge. Aucun appel n'est indispensable |
+| Le résultat final est vérifiable | **FAIT** : un virement arrive, ou n'arrive pas |
 
-**Deux réserves importantes :**
+Le deuxième fait est la preuve la plus solide : des consommateurs **paient déjà** une part importante de leur indemnité pour ne pas s'en occuper. C'est un comportement observé, pas une intention déclarée.
 
-1. **Ce marché est concurrentiel.** Atlas ne gagnera pas en étant « un AirHelp de plus ». La différence possible est de traiter **tout l'incident** : rebooking, remboursement du billet, frais d'hôtel et de repas, indemnité, bagage, suivi jusqu'au virement. Puis de réutiliser la même mécanique sur d'autres incidents : colis, énergie, caution, abonnement. C'est cette **capacité transversale** qui mène vers la vision. Le cas aérien n'est que la porte d'entrée.
-2. **Le téléphone n'est pas nécessaire pour ce wedge.** C'est une conclusion forte de cette recherche (INTERPRÉTATION) : pour la plupart des problèmes documentés, la loi impose un canal écrit (résiliation « en 3 clics », médiateurs en ligne, formulaires des compagnies). L'agent vocal et le *smart routing* restent des hypothèses d'architecture à tester **plus tard**. Ils ne conditionnent pas l'entrée sur le marché.
+**Ce que la recherche ne démontre pas :**
+
+- **Que les vols soient meilleurs que les colis, l'énergie ou les cautions comme premier cas.** La grille de la section 6 est descriptive, pas un classement.
+- **L'ampleur du non-recours.** Le chiffre « seuls 55 % des passagers éligibles réclament » vient d'AirHelp, sans méthodologie trouvée. **Il ne doit pas servir de preuve de marché** tant que la source primaire n'est pas retrouvée.
+- **Qu'un client préfère Atlas à AirHelp ou Flightright.** C'est la question centrale du test ([section 8](#8-protocole-de-test-concierge)).
+
+### La différenciation à tester
+
+> AirHelp résout votre problème d'**indemnisation**. Atlas prend en charge **l'incident**.
+
+Pour un vol annulé, Atlas vérifierait à la fois le remboursement du billet et l'indemnité, retrouverait les frais engagés (hôtel, repas, transport), préparerait et enverrait chaque demande, relancerait, et vérifierait chaque paiement. Il conclurait : « C'est réglé. Vous avez récupéré 684 €. » Cette différence est une HYPOTHÈSE : le test doit montrer si elle compte pour les clients.
+
+### Le téléphone n'est pas nécessaire pour ce premier cas
+
+INTERPRÉTATION : pour la plupart des problèmes documentés, la loi impose un canal écrit. L'agent vocal et le *smart routing* restent des hypothèses d'architecture à tester **plus tard**.
+
+### La suite proposée : tester avant de développer
+
+> recherche publique → cas voyage → **20 à 30 dossiers concierge** → coût réel → taux de résolution → test de paiement → **décision**
+
+Seulement si les chiffres sont bons : concierge → automatisation → intégrations → produit Atlas.
 
 ---
 
@@ -66,7 +92,7 @@ Chaque affirmation importante porte l'un de ces marqueurs :
 ### Limites de la collecte (à lire avant de s'appuyer sur les chiffres)
 
 - **La plupart des pages primaires étaient inaccessibles depuis l'environnement de recherche** (proxy réseau) : ftc.gov, forum Que Choisir, energie-mediateur.fr, Reddit, TechCrunch, etc. Les chiffres proviennent donc **des extraits de résultats de moteur de recherche**, pas d'une lecture intégrale des rapports. Tout chiffre destiné à une décision ou à un pitch doit être **revérifié sur le document source** (liens en [section 11](#11-sources)).
-- **Reddit et les forums n'ont pas pu être lus directement.** Les « traces réelles » viennent donc surtout de sources institutionnelles : rapports des médiateurs, DGCCRF, DREES, enquêtes d'associations. Elles sont plus solides en volume, mais plus pauvres en verbatim. **Recueillir des verbatims fait partie du test MVP** ([section 8](#8-protocole-de-test-mvp)).
+- **Reddit et les forums n'ont pas pu être lus directement.** Les « traces réelles » viennent donc surtout de sources institutionnelles : rapports des médiateurs, DGCCRF, DREES, enquêtes d'associations. Elles sont plus solides en volume, mais plus pauvres en verbatim. **Recueillir des verbatims fait partie du test MVP** ([section 8](#8-protocole-de-test-concierge)).
 - Certains chiffres « grand public » (abonnements oubliés notamment) viennent de blogs qui citent des études sans lien. Ils sont marqués comme peu fiables.
 
 ---
@@ -75,7 +101,7 @@ Chaque affirmation importante porte l'un de ces marqueurs :
 
 **Vision (inchangée) :** Atlas est un agent d'exécution personnel qui, progressivement, règle des problèmes réels à la place de l'utilisateur, dans le périmètre de son mandat.
 
-**Wedge :** le premier problème qui permet de commencer à construire cette vision. On ne le choisit pas parce qu'il ressemble au produit final. Voici les critères retenus pour l'évaluer ; chacun est noté en [section 6](#6-comparaison-des-problèmes).
+**Wedge :** le premier problème qui permet de commencer à construire cette vision. On ne le choisit pas parce qu'il ressemble au produit final. Voici les critères retenus pour l'évaluer. La [section 6](#6-comparaison-des-problèmes) présente les faits derrière chacun, sans les additionner en un score.
 
 | # | Critère | Pourquoi il compte pour *cette* vision |
 |---|---|---|
@@ -98,35 +124,58 @@ Chaque fiche répond aux 15 questions du cahier des charges. Pour la lisibilité
 
 ### P1. Vol annulé ou retardé : indemnisation, remboursement, frais
 
+**Cadre juridique : ce qui s'applique aujourd'hui et ce qui s'appliquera plus tard**
+
+Atlas pourrait un jour prendre des décisions juridiques automatiquement. La distinction entre droit en vigueur et droit futur est donc indispensable.
+
+| | **Droit applicable aujourd'hui** | **Réforme adoptée, pas encore applicable** |
+|---|---|---|
+| Texte | Règlement (CE) 261/2004 et jurisprudence de la CJUE | Révision du règlement : feu vert final du Conseil de l'UE le **13 juillet 2026** (FAIT, communiqué du Conseil) |
+| Entrée en application | En vigueur | **12 mois et 20 jours après publication au Journal officiel** (FAIT, Conseil). Date de publication non trouvée (MANQUANT), donc application **au plus tôt vers l'été 2027** (INTERPRÉTATION) |
+| Montants | 250 / 400 / 600 € | Inchangés (FAIT) |
+| Seuil de retard | 3 h à l'arrivée (jurisprudence CJUE) | 3 h maintenues. Le Conseil voulait 4 à 6 h, ce qui a été rejeté (SOURCE secondaire : DLA Piper, Euronews) |
+| Délai pour réclamer | Fixé par le droit national. En France, la prescription généralement retenue est de 5 ans (HYPOTHÈSE juridique **à confirmer**) | 9 mois selon des sources secondaires (**à vérifier dans le texte publié**) |
+| Délai de réponse de la compagnie | Pas de délai uniforme dans le règlement actuel | 30 jours pour payer ou motiver un refus (SOURCE secondaire, à vérifier) |
+| Définition de l'annulation, circonstances extraordinaires | Jurisprudence CJUE | Codifiées, avec une liste non exhaustive (SOURCE secondaire) |
+
+**Règle pour Atlas :** tout calcul d'éligibilité doit indiquer le régime appliqué, selon la **date du vol**, et ne jamais appliquer la réforme avant sa date d'application.
+
 **Tâche (Q1–Q5)**
 
-- **Tâche exacte :** vérifier l'éligibilité (distance, retard à l'arrivée, cause), réclamer l'indemnité forfaitaire, le remboursement du billet ou le réacheminement, et le remboursement des frais engagés (repas, hôtel). Relancer, saisir le médiateur (MTV en France), puis éventuellement le juge.
+- **Tâche exacte :** vérifier l'éligibilité (distance, retard à l'arrivée, cause), réclamer l'indemnité forfaitaire, le remboursement du billet ou le réacheminement, et le remboursement des frais engagés (repas, hôtel). Relancer, saisir le médiateur (Médiation Tourisme et Voyage en France), puis éventuellement le juge.
 - **Fréquence :**
-  - FAIT/SOURCE : AirHelp estime qu'environ 13 millions de passagers par an laissent plus de 6 milliards de dollars d'indemnités non réclamées dans le monde. Chiffre d'un acteur intéressé, périmètre mondial.
-  - MANQUANT : le volume France des vols éligibles par an. La DGAC ne publie pas de total de saisines facilement trouvable.
+  - SOURCE (AirHelp, acteur intéressé, périmètre mondial, méthodologie non trouvée) : environ 13 millions de passagers par an laisseraient plus de 6 milliards de dollars d'indemnités non réclamées.
+  - MANQUANT : le volume France des vols éligibles par an.
   - INTERPRÉTATION : pour un individu, c'est un événement **rare** (quelques fois par décennie pour un voyageur occasionnel). Les pics arrivent avec les grèves et l'été.
-- **Étapes :** 6 à 12 selon l'escalade. Collecte des preuves (carte d'embarquement, e-mail d'annulation), calcul, formulaire compagnie, attente (30 jours maximum pour répondre avec la réforme, FAIT), relance, médiateur, procédure.
-- **Temps :** MANQUANT (pas de mesure publique du temps passé par un particulier). HYPOTHÈSE : 1 à 3 h actives, étalées sur 1 à 12 mois. Le témoignage « AirHelp m'a payé 6 ans plus tard » (TravelUpdate) montre que la durée peut être extrême.
-- **Acteurs :** compagnie, agence ou OTA si le billet a été acheté par un intermédiaire, médiateur, DGAC (régulateur, qui ne résout pas les cas individuels, FAIT), tribunal.
+- **Étapes :** 6 à 12 selon l'escalade. Collecte des preuves (carte d'embarquement, e-mail d'annulation), calcul, formulaire compagnie, attente, relance, médiateur, procédure.
+- **Temps :** MANQUANT (aucune mesure publique du temps passé par un particulier). HYPOTHÈSE : 1 à 3 h actives, étalées sur 1 à 12 mois. Le témoignage « AirHelp m'a payé 6 ans plus tard » (TravelUpdate) montre que la durée peut être extrême.
+- **Acteurs :** compagnie ; agence ou OTA si le billet a été acheté par un intermédiaire ; médiateur ; DGAC (régulateur, qui ne résout pas les cas individuels, FAIT) ; tribunal.
 
 **Enjeux (Q6–Q7)**
 
-- **Si l'on ne fait rien :** perte sèche de 250 à 600 € par passager (FAIT, montants maintenus par la réforme 2026), multipliée par le nombre de passagers du foyer.
-- **Valeur :** élevée par cas. Une famille de 4 sur un long-courrier peut récupérer 2 400 €. Le délai de réclamation passe à 9 mois avec la réforme (SOURCE secondaire, à vérifier dans le texte final).
+- **Si l'on ne fait rien :** perte de 250 à 600 € par passager éligible (FAIT), multipliée par le nombre de passagers du foyer, plus le billet et les frais non remboursés.
+- **Valeur :** élevée par cas. Une famille de 4 sur un long-courrier peut récupérer 2 400 € d'indemnités.
 
 **Existant (Q8–Q11)**
 
-- **Comment les gens font aujourd'hui :** ils ne réclament pas (45 %, SOURCE AirHelp), réclament seuls, ou passent par une société de réclamation. Principales raisons du non-recours selon AirHelp : méconnaissance des droits (63 %), croyance de ne pas être éligible (47 %), ne pas savoir comment faire (42 %).
-- **Solutions :** AirHelp (35 % TTC, jusqu'à 50 % en justice), Flightright (27 % + TVA), ClaimCompass, Skycop… (FAIT : tarifs publics).
-- **Ce qu'elles font réellement :** elles traitent **l'indemnité forfaitaire** et portent les dossiers en justice, souvent via mandat ou cession de créance.
-- **Ce qui reste manuel (INTERPRÉTATION) :** le réacheminement le jour J, le remboursement du billet quand l'avoir est imposé, les frais annexes, le bagage, la coordination avec l'hôtel et la location de voiture, et **la vérification que l'argent est bien arrivé**. Les sociétés de réclamation ne traitent qu'**une ligne** de l'incident.
+- **Comment les gens font aujourd'hui :** ils ne réclament pas, réclament seuls, ou passent par une société de réclamation.
+  - SOURCE fragile (AirHelp, sondage sans méthodologie trouvée) : 55 % des passagers réclameraient. Raisons du non-recours : méconnaissance des droits (63 %), croyance de ne pas être éligible (47 %), ne pas savoir comment faire (42 %).
+  - SOURCE (AirHelp, 2025) : les compagnies rejetteraient 58 % des demandes jugées éligibles par AirHelp, et 31 % resteraient sans réponse.
+  - **Aucun de ces chiffres ne doit servir de preuve centrale** avant vérification de la source primaire.
+- **Solutions et tarifs (FAIT, pages tarifaires publiques) :**
+  - AirHelp : 35 % de l'indemnité, davantage en cas de procédure.
+  - Flightright : 20 à 30 % + TVA (27 % en standard), plus 14 % en cas de procédure judiciaire, soit jusqu'à environ 50 % TVA comprise selon des sources secondaires.
+  - Autres : ClaimCompass, Skycop…
+  - Toutes fonctionnent en « sans succès, pas de frais ».
+- **Ce qu'elles font réellement :** elles traitent **l'indemnité forfaitaire** et portent les dossiers en justice, via mandat ou cession de créance.
+- **Ce qui reste manuel (INTERPRÉTATION, à vérifier service par service) :** le réacheminement, le remboursement du billet quand un avoir est imposé, les frais annexes, le bagage, et **la vérification que chaque somme est bien arrivée**.
 
 **Faisabilité pour Atlas (Q12–Q15)**
 
-- **Exécution réelle possible ?** Oui, pour tout ce qui est écrit : lecture de l'e-mail d'annulation, calcul d'éligibilité, remplissage du formulaire web de la compagnie (navigateur piloté), e-mail de relance, saisine du médiateur en ligne. Le contentieux nécessite un partenaire juridique.
-- **Intégrations :** lecture de la boîte e-mail (ou simple transfert de l'e-mail par l'utilisateur au départ), navigateur automatisé pour les formulaires, donnée de vol (API de statut de vol), preuve de paiement (capture d'écran du relevé au départ, agrégation bancaire DSP2 plus tard).
-- **Contraintes :** mandat écrit de l'utilisateur. Certaines compagnies refusent les demandes venant d'intermédiaires ; Ryanair a mené une bataille publique contre les « claim chasers » (SOURCE : dépôt SEC Ryanair 2017). Données personnelles (RGPD).
-- **MVP minimal :** voir [section 8](#8-protocole-de-test-mvp).
+- **Exécution réelle possible ?** Oui, pour tout ce qui est écrit : lecture de l'e-mail d'annulation, calcul d'éligibilité, remplissage du formulaire web de la compagnie, e-mail de relance, saisine du médiateur en ligne. Le contentieux nécessite un partenaire juridique.
+- **Intégrations :** au départ, transfert de l'e-mail par l'utilisateur ; navigateur pour les formulaires ; données de statut de vol ; preuve de paiement fournie par l'utilisateur. L'agrégation bancaire DSP2 viendra plus tard.
+- **Contraintes :** mandat écrit de l'utilisateur. Certaines compagnies résistent aux intermédiaires ; Ryanair a mené une bataille publique contre les « claim chasers » (SOURCE : dépôt SEC Ryanair 2017). Données personnelles (RGPD).
+- **MVP minimal :** voir [section 8](#8-protocole-de-test-concierge).
 
 ---
 
@@ -285,7 +334,7 @@ Chaque fiche répond aux 15 questions du cahier des charges. Pour la lisibilité
 
 | Acteur | Ce qu'il exécute vraiment | Ce qu'il ne fait pas | Modèle | Leçon pour Atlas |
 |---|---|---|---|---|
-| **AirHelp / Flightright** (UE) | Réclamation de l'indemnité EU261, contentieux | Billet, frais, bagage, suivi global de l'incident | 27 % + TVA à 35 % TTC, jusqu'à 50 % en justice | Les gens **paient cher** pour déléguer quand l'argent est au bout. Mais c'est mono-tâche |
+| **AirHelp / Flightright** (UE) | Réclamation de l'indemnité EU261, contentieux | Billet, frais, bagage, suivi global de l'incident | 20 à 30 % + TVA (Flightright) ; 35 % (AirHelp) ; supplément en cas de procédure | Les gens **paient cher** pour déléguer quand l'argent est au bout. Mais c'est mono-tâche |
 | **Rocket Money** (US) | Négociation de factures, résiliations | Litiges, réclamations complexes | 35 à 60 % des économies de la 1re année, choisi par l'utilisateur | Modèle au résultat viable à grande échelle |
 | **Trim** (US) | Négociation de factures | — | Commission | **Service grand public arrêté en 2022** après rachat par OneMain. Le modèle seul n'a pas suffi |
 | **DoNotPay** (US) | Lettres, formulaires | Qualité juridique non testée | Abonnement | **FTC, janvier 2025** : 193 000 $ d'amende et interdiction de prétendre remplacer un avocat sans preuve. Leçon : **ne jamais revendiquer un résultat non démontré**, ce qu'Atlas applique déjà avec ses statuts dérivés des preuves |
@@ -315,41 +364,52 @@ Chaque fiche répond aux 15 questions du cahier des charges. Pour la lisibilité
 
 ## 6. Comparaison des problèmes
 
-Notes de 1 à 5 (INTERPRÉTATION, fondée sur les fiches ci-dessus). Pour C6 et C8, 5 = favorable (risque faible, concurrence faible).
+> **Pourquoi il n'y a plus de score sur 40.** Une première version notait chaque problème de 1 à 5 sur 8 critères, puis additionnait les notes. Ces notes étaient des interprétations. Les additionner donnait une **fausse précision** : un point d'écart entre deux problèmes ne voulait rien dire. Le tableau ci-dessous montre à la place **les faits derrière chaque critère** et **leur solidité**.
 
-| Problème | C1 Délégation | C2 Valeur / cas | C3 Fréquence | C4 Exécutable | C5 Vérifiable | C6 Risque | C7 Vers la vision | C8 Concurrence | **Total /40** |
-|---|---|---|---|---|---|---|---|---|---|
-| P1 Vol perturbé (incident complet) | 5 | 5 | 2 | 4 | 5 | 4 | 4 | 2 | **31** |
-| P5 Colis / e-commerce | 4 | 2 | 5 | 4 | 5 | 4 | 4 | 4 | **32** |
-| P3 Facture d'énergie | 4 | 5 | 2 | 4 | 4 | 3 | 4 | 4 | **30** |
-| P6 Dépôt de garantie | 4 | 4 | 2 | 4 | 5 | 3 | 4 | 4 | **30** |
-| P2 Abonnements / prélèvements | 3 | 2 | 4 | 3 | 5 | 3 | 4 | 3 | **27** |
-| P4 Télécom | 3 | 3 | 3 | 3 | 4 | 4 | 3 | 3 | **26** |
-| P9 Déménagement | 4 | 2 | 2 | 3 | 4 | 4 | 4 | 2 | **25** |
-| P7 Assurance | 4 | 4 | 3 | 2 | 3 | 2 | 3 | 4 | **25** |
-| P8 Train | 2 | 1 | 3 | 5 | 4 | 5 | 2 | 3 | **25** |
-| P10 Droits sociaux | 3 | 5 | 3 | 1 | 3 | 1 | 4 | 3 | **23** |
-| P11 Appel « générique » | 4 | 2 | 4 | 3 | 2 | 2 | 5 | 1 | **23** |
+Solidité de la preuve : **●** fait vérifiable · **◐** source intéressée ou secondaire · **○** interprétation ou manquant.
 
-**Lecture (INTERPRÉTATION) :** quatre problèmes forment un groupe de tête très serré (P1, P5, P3, P6). **Ils partagent la même structure** :
+| Problème | Valeur par cas | Délégation déjà payée ? | Canal écrit | Résultat vérifiable | Principal obstacle |
+|---|---|---|---|---|---|
+| **P1 Vol perturbé** | 250 à 600 €/passager ● | Oui : commissions de 20 à 35 % ● | Oui ● | Paiement ● | Concurrence installée ; rareté par personne ○ |
+| **P5 Colis / e-commerce** | 20 à 100 € environ ○ | Non identifiée ○ | Oui ● | Remboursement ● | Valeur faible pour financer un dossier supervisé ○ |
+| **P3 Facture d'énergie** | > 2 000 € en moyenne sur les rattrapages longs ● | Non identifiée ○ | Oui, médiateur en ligne ● | Avoir ou facture corrigée ● | Rare ; analyse juridique fine ○ |
+| **P6 Dépôt de garantie** | 1 à 2 mois de loyer ● | Partielle (Demander Justice) ◐ | Oui ● | Virement ● | Bailleur particulier ; données anciennes (2010) ◐ |
+| **P2 Abonnements** | 5 à 50 €/mois ◐ | Faible (lettres payantes) ◐ | Souvent via le compte client ● | Arrêt du prélèvement ● | Identifiants de l'utilisateur ○ |
+| **P4 Télécom** | Moyenne ○ | Gratuit via Papernest, médiateur ● | Oui ● | Facture ● | Peu de valeur à capter ○ |
+| **P7 Assurance** | Très variable ● | Non ○ | Oui ● | Paiement ● | Activité réglementée, expertise ○ |
+| **P8 Train** | Faible, en bons d'achat ● | Non ○ | Oui ● | Bon d'achat ● | Friction déjà faible ○ |
+| **P10 Droits sociaux** | ~330 €/mois (RSA) ● | Non ○ | Compte FranceConnect ● | Versement ● | Identité, public vulnérable ○ |
+| **P11 Appel générique** | Faible par appel ○ | En cours de banalisation (Google) ● | Non : téléphone ● | Difficile ○ | Commodité, peu défendable ○ |
 
-> incident → droit écrit → réclamation écrite → attente → relance → escalade (médiateur ou juge) → paiement vérifiable.
+**Ce qu'on peut en conclure (INTERPRÉTATION) :**
 
-Cette structure est la **vraie** découverte de la recherche. Le wedge n'est pas un secteur. C'est **une boucle d'exécution** réutilisable d'un secteur à l'autre. C'est exactement le cycle de la vision (intention → … → vérification → relance → résultat → compte rendu), dans sa version la plus accessible.
+- P1, P5, P3 et P6 partagent la même suite d'actions : **incident → droit écrit → réclamation écrite → attente → relance → escalade → paiement vérifiable**. Le point commun n'est pas un secteur. C'est cette boucle d'exécution, réutilisable.
+- **Un seul fait distingue nettement P1 : des consommateurs paient déjà 20 à 35 % de leur indemnité pour déléguer.** C'est la raison de le tester en premier. Ce n'est pas une démonstration qu'il est le meilleur point d'entrée.
 
 ---
 
-## 7. Recommandation de wedge
+## 7. Recommandation : ce qu'il faut tester
 
-### Le wedge : « Récupérer l'argent qu'on vous doit après un incident »
+### L'hypothèse de wedge
 
-- **Promesse (HYPOTHÈSE à tester) :** « Transférez-nous l'e-mail du problème. On s'occupe de tout jusqu'à ce que l'argent soit sur votre compte, et on vous dit exactement où on en est. »
-- **Premier cas vertical : la perturbation aérienne.** Elle obtient un point de moins que les colis (P5) dans la grille. Elle passe pourtant devant, car une phase concierge supervisée coûte cher par dossier : il faut une valeur par cas suffisante pour la financer et un consentement à payer déjà observé. Les colis (20 à 100 €) ne permettent de tester ni l'un ni l'autre. Quatre raisons :
-  1. la valeur par cas est la plus élevée et la plus claire (250 à 600 € par passager, FAIT) ;
-  2. un droit européen stable, **confirmé et clarifié par la réforme de juillet 2026** (applicable mi-2027 ; délai de réponse de 30 jours imposé aux compagnies) ;
-  3. un consentement à payer **déjà prouvé** (commissions de 27 à 35 %) ;
-  4. un événement déclencheur net (l'e-mail d'annulation), qui sert d'entrée naturelle à la délégation.
-- **Deuxième cas, à ajouter dès que la boucle fonctionne :** colis et commandes en ligne (P5). C'est le plus fréquent, et il sert à tester si la boucle se généralise vraiment. Ensuite : facture d'énergie (P3) et dépôt de garantie (P6).
+**Type de problème :** « Récupérer ce à quoi on a droit après un incident. »
+
+**Premier cas à tester :** la perturbation aérienne, traitée **comme un incident complet** : billet, indemnité, frais annexes, suivi jusqu'à chaque paiement.
+
+**Pourquoi ce cas plutôt qu'un autre (faits, pas scores) :**
+
+1. un consentement à payer **déjà observé** (commissions de 20 à 35 %) ;
+2. une valeur par cas assez élevée pour financer un dossier supervisé par un humain pendant la phase concierge ;
+3. un droit écrit et stable. Attention : le régime qui s'applique aujourd'hui n'est pas celui de la réforme de 2026 ([P1](#p1-vol-annulé-ou-retardé--indemnisation-remboursement-frais)) ;
+4. un déclencheur net (l'e-mail d'annulation) et un résultat vérifiable (le virement).
+
+**Ce qui peut invalider ce choix :**
+
+- les clients ne voient pas de différence avec AirHelp ou Flightright ;
+- il est trop difficile de trouver des dossiers ;
+- le coût par dossier dépasse ce qu'on peut facturer.
+
+Dans les deux derniers cas, la même boucle se teste sur P5, P3 ou P6.
 
 ### Pourquoi cette porte mène à la vision
 
@@ -365,56 +425,122 @@ Cette structure est la **vraie** découverte de la recherche. Le wedge n'est pas
 
 ### Ce qu'Atlas ne doit **pas** faire dans ce wedge
 
-- Se présenter comme « un AirHelp moins cher ». Il faut se différencier par **l'incident complet** et **la multiplicité des incidents**, pas par le prix.
+- Se présenter comme « un AirHelp moins cher ». Si différence il y a, elle porte sur **l'incident complet**, pas sur le prix.
 - Ajouter le téléphone avant d'avoir prouvé la boucle écrite.
 - Se connecter aux comptes de l'utilisateur avec ses identifiants.
 - Annoncer des taux de succès avant d'en avoir mesuré (leçon DoNotPay).
+- Utiliser dans un pitch des chiffres non revérifiés (55 % de réclamants, 58 % de rejets…).
 
 ### Modèle économique : hypothèses à tester, pas à supposer
 
-Aucun prix n'est validé. Le test doit comparer au moins deux options :
+Aucun prix n'est validé. Le test compare au moins deux options :
 
-- **Commission au résultat.** Repère marché : 27 à 35 % (FAIT). HYPOTHÈSE : un taux plus bas est tenable si le coût d'exécution par dossier est faible, **à mesurer**.
-- **Forfait par dossier remboursé en cas d'échec.** Repère : Pine, 2 à 10 $ par tâche (SOURCE).
+- **Commission au résultat.** Repère marché : 20 à 35 % (FAIT).
+- **Forfait par dossier remboursé en cas d'échec.** Repère : Pine AI, 2 à 10 $ par tâche (SOURCE).
 
-Le coût réel d'un dossier (tokens, temps humain de supervision, envois recommandés) est **MANQUANT**. C'est la première donnée à produire.
+La donnée qui décide est le **coût total (humain + IA) par dossier résolu**, comparé au revenu possible par dossier. Elle est **MANQUANTE**. C'est ce que le test doit produire en premier.
 
 ---
 
-## 8. Protocole de test MVP
+## 8. Protocole de test concierge
 
-**Principe : concierge d'abord.** Un humain supervise chaque action d'Atlas. On mesure avant d'automatiser.
+**C'est la prochaine étape centrale. On ne lance pas le développement du produit avant d'en avoir les résultats.**
 
-### Étape 1 — 20 à 30 dossiers réels (4 à 6 semaines)
+> recherche publique → cas voyage → **20 à 30 dossiers concierge** → coût réel → taux de résolution → test de paiement → **décision**
+>
+> Seulement si les chiffres sont bons : concierge → automatisation → intégrations → produit Atlas.
 
-- **Recrutement :** proches, groupes de voyageurs, forums. MANQUANT : le canal d'acquisition, qui fait partie du test.
-- **Entrée :** l'utilisateur transfère l'e-mail d'annulation ou de retard (et ses justificatifs) à une adresse dédiée, puis signe un mandat simple.
-- **Atlas (supervisé) :**
-  1. qualifie le dossier (éligibilité, montants dus : indemnité, billet, frais) ;
-  2. remplit le formulaire de la compagnie ;
-  3. planifie la relance à J+30 ;
-  4. saisit le médiateur si besoin ;
-  5. demande à l'utilisateur la preuve de paiement ;
-  6. clôture avec un compte rendu.
-- **Aucun** accès à la boîte e-mail, à la banque ou aux comptes. Aucun téléphone.
+### Ce qu'on ne construit pas pour ce test
 
-### Ce qu'on mesure
+Pas d'application mobile complète, pas d'Open Banking, pas d'agent vocal, pas d'intégrations multiples, pas de détection automatique des incidents. Pas d'accès à la boîte e-mail, à la banque ou aux comptes de l'utilisateur.
 
-| Mesure | Pourquoi |
+### L'offre testée
+
+> « Atlas s'occupe de votre réclamation liée à un vol perturbé. »
+
+Le client transfère l'e-mail d'annulation ou de retard, fournit ses justificatifs (carte d'embarquement, factures de frais) et signe un mandat simple.
+
+### Ce qu'Atlas fait, un humain supervisant chaque dossier
+
+1. analyse du dossier ;
+2. détermination de l'éligibilité, avec le régime juridique appliqué selon la date du vol ;
+3. préparation de chaque demande : billet, indemnité, frais ;
+4. envoi ;
+5. suivi ;
+6. relances ;
+7. escalade si nécessaire (médiateur ; juge via un partenaire) ;
+8. vérification du résultat (preuve de paiement pour chaque somme).
+
+**Journal obligatoire pour chaque dossier :** chaque action d'Atlas, chaque intervention humaine (qui, pourquoi, combien de minutes), chaque coût API, chaque réponse reçue. Sans ce journal, les métriques ci-dessous ne peuvent pas être calculées.
+
+### Métriques
+
+**A. Faisabilité**
+
+| Métrique | Définition |
 |---|---|
-| % d'utilisateurs qui délèguent vraiment (signent le mandat) après avoir vu la proposition | Valide C1, la promesse « Règle ça pour moi » |
-| Temps humain de supervision par dossier, et coût API par dossier | Coût réel d'exécution, base du modèle économique |
-| % de dossiers payés, délai jusqu'au paiement, montant moyen récupéré | Valide C2 et C5 |
-| % de dossiers où Atlas a dû demander quelque chose à l'utilisateur, et quoi | Mesure la frontière de responsabilité réelle |
-| Nombre d'autres problèmes que l'utilisateur **demande spontanément** à déléguer | Signal le plus important pour la vision : le wedge ouvre-t-il vers l'agent généraliste ? |
-| Consentement à payer (commission ou forfait), demandé après le résultat | Modèle économique |
-| Verbatims sur la charge mentale | Les traces qualitatives qui manquent à cette recherche |
+| % traités de bout en bout par Atlas | Dossiers clos sans intervention humaine sur le contenu, seulement la validation |
+| % nécessitant une intervention humaine | Au moins une correction ou une action faite par l'humain |
+| Nombre moyen d'interventions humaines | Par dossier, avec leur type (juridique, rédaction, blocage technique, contact client) |
+| Temps humain par dossier | En minutes, validations comprises |
 
-### Critères de décision (proposés, à ajuster)
+**B. Résultat**
 
-- **Continuer** si : au moins 60 % délèguent, au moins 50 % des dossiers éligibles sont payés en moins de 90 jours, le coût d'exécution est inférieur à 15 % de la valeur récupérée, et au moins un tiers des utilisateurs proposent spontanément un autre problème.
-- **Pivoter de cas** (vers P5, P3 ou P6) si la boucle fonctionne mais que l'acquisition aérienne est trop rare ou trop chère.
-- **Remettre en cause le wedge** si les utilisateurs ne délèguent pas même quand le résultat est gratuit pour eux.
+| Métrique | Définition |
+|---|---|
+| % de réclamations acceptées | Acceptation écrite de la compagnie |
+| % de dossiers réellement payés | **Avec preuve de paiement**. Un accord sans paiement n'est pas un succès |
+| Montant récupéré | Par dossier, ventilé par poste : billet, indemnité, frais |
+| Délai jusqu'au résultat | Du mandat jusqu'au paiement vérifié |
+
+**C. Exécution**
+
+| Métrique | Définition |
+|---|---|
+| Nombre d'actions effectuées par Atlas | Envois, formulaires, relances, saisines |
+| Nombre de relances nécessaires | Par dossier |
+| Nombre d'échecs | Actions tentées sans effet (formulaire rejeté, e-mail sans réponse, erreur d'éligibilité) |
+| Nombre de dossiers bloqués | Avec la raison exacte et ce qu'il faudrait pour débloquer |
+
+**D. Économie — la métrique la plus importante**
+
+> **Coût total (humain + IA) pour résoudre un dossier**, comparé au **revenu potentiel d'Atlas sur ce dossier**.
+
+- Coût humain = minutes × coût horaire retenu.
+- Coût IA = tokens réels, à partir des journaux de l'orchestrateur, qui les enregistrent déjà.
+- Autres coûts : envois recommandés, frais de procédure.
+- Revenu potentiel = montant récupéré × taux testé, ou forfait testé.
+
+C'est à ce moment que le modèle économique commence à exister réellement.
+
+**E. Préférence face à l'existant — la question décisive**
+
+**Le client préfère-t-il Atlas à AirHelp ou Flightright ?** Le marché de l'indemnisation existe déjà. Réclamer ne suffit donc pas. Pour chaque client :
+
+- Avant le mandat : lui montrer les deux offres (Atlas : incident complet ; société de réclamation : indemnité) et noter son choix et sa raison.
+- Après le résultat : « Qu'est-ce qu'Atlas a fait que vous n'auriez pas eu ailleurs ? » Réponse ouverte.
+- Mesure objective : la part du montant récupéré qui vient d'autre chose que l'indemnité forfaitaire (billet, frais, bagage). Si elle est proche de zéro, la différenciation « incident complet » ne tient pas.
+- Signal vers la vision : le nombre d'**autres problèmes** que le client demande spontanément à déléguer.
+
+**F. Test de paiement**
+
+Après le résultat, demander un paiement réel selon l'une des options (commission ou forfait), assignées alternativement. Noter le taux d'acceptation et les objections. Ce qui compte, c'est le paiement effectif, pas l'intention déclarée.
+
+### Seuils de décision (à fixer **avant** le test)
+
+Les seuils ci-dessous sont des propositions à discuter. Ils doivent être fixés avant le premier dossier, pour ne pas être ajustés après coup.
+
+| Décision | Condition proposée |
+|---|---|
+| **Continuer vers l'automatisation** | Coût par dossier résolu nettement inférieur au revenu par dossier ; au moins 50 % des dossiers éligibles payés dans la durée du test ; au moins une partie des clients choisissent Atlas face à une société de réclamation pour une raison autre que le prix |
+| **Changer de cas** (P5, P3, P6) | La boucle fonctionne, mais l'acquisition de dossiers de vols est trop rare ou trop chère |
+| **Remettre en cause le wedge** | Les clients ne délèguent pas, ou ne voient aucune différence avec l'existant, ou le coût par dossier dépasse durablement le revenu |
+
+### Limites du test
+
+- 20 à 30 dossiers permettent de voir des ordres de grandeur, pas des taux précis.
+- Les délais des compagnies et des médiateurs (plusieurs mois) peuvent dépasser la durée du test. Il faut donc suivre les dossiers ouverts au-delà.
+- Des clients recrutés parmi des proches biaisent les réponses sur la préférence et le paiement.
 
 ---
 
@@ -439,7 +565,9 @@ Briques minimales à ajouter pour le wedge (INTERPRÉTATION, par ordre de priori
 
 ## 10. Informations manquantes prioritaires
 
-1. Volume France des vols éligibles EU261 par an et taux de réclamation français (DGAC, AirHelp France).
+1. Source primaire et méthodologie du chiffre « 55 % des passagers réclament » (AirHelp), et plus largement volume France des vols éligibles et taux de réclamation.
+1. Date de publication au Journal officiel de la réforme EU261, donc sa date d'application exacte (12 mois et 20 jours après).
+1. Délai de prescription applicable en France aux demandes d'indemnisation (droit actuel), à confirmer juridiquement.
 2. Temps réellement passé par un particulier sur chaque type de dossier. Aucune mesure publique trouvée : **à produire pendant le test**.
 3. Coût d'exécution réel d'un dossier par Atlas (API, supervision, envois).
 4. Le texte final de la réforme EU261 (formulaires, délais, éventuelles règles sur les intermédiaires), à lire en source primaire.
@@ -457,7 +585,9 @@ Consultées via extraits de moteur de recherche ; les pages primaires n'ont pas 
 **Aérien**
 - AirHelp, rejet de 58 % des demandes éligibles en 2025 (via ITIJ) : https://www.itij.com/latest/news/airlines-reject-58-valid-passenger-compensation-claims-airhelp-says
 - AirHelp, EU261 expliqué : https://www.airhelp.com/en/ec-regulation-261-2004/
-- Tarifs AirHelp / Flightright : https://www.airhelp.fr/blog/meilleur-site-indemnisation-vol-france/ · https://oiseaurose.com/vol-retarde-ou-annule-indemnisation-flightright/
+- Flightright, liste de prix : https://www.flightright.fr/liste-de-prix · https://www.flightright.com/costs
+- Euronews, application 12 mois après publication : https://www.euronews.com/my-europe/2026/07/22/air-passengers-rights-airlines-have-12-months-to-adopt-new-rules
+- Tarifs AirHelp / Flightright (sources secondaires) : https://www.airhelp.fr/blog/meilleur-site-indemnisation-vol-france/ · https://oiseaurose.com/vol-retarde-ou-annule-indemnisation-flightright/
 - « 6 ans plus tard » : https://travelupdate.com/wow-6-years-later-airhelp-paid-me-eu261-compensation/
 - Réforme EU261, accord de conciliation du 15 juin 2026 : https://www.dlapiper.com/en-us/insights/publications/2026/06/agreement-reached-on-ec261-reform-to-strengthen-passenger-rights
 - Conseil de l'UE, adoption définitive (13/07/2026) : https://www.consilium.europa.eu/en/press/press-releases/2026/07/13/council-gives-final-clearance-for-stronger-air-passenger-rights/
