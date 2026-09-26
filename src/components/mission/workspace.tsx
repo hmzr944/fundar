@@ -413,7 +413,7 @@ function OutcomePanel({
         <Alert tone={outcome.resolved ? "success" : "info"} title={outcome.resolved ? "Problème réglé" : "Dossier clôturé"}>
           {outcome.resolved ? (
             <p>
-              {outcome.recoveredCents > 0 ? `Atlas vous a fait récupérer ${euros(outcome.recoveredCents)}.` : "Votre problème est réglé."}
+              {outcome.recoveredCents > 0 ? `Récupéré avec Atlas : ${euros(outcome.recoveredCents)}.` : "Votre problème est réglé."}
               {payment?.paidAt && payment.feeDueCents ? ` Commission réglée : ${euros(payment.amountCents ?? payment.feeDueCents)}.` : ""}
             </p>
           ) : (

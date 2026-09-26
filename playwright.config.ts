@@ -37,6 +37,7 @@ export default defineConfig({
     env: {
       DATABASE_URL: E2E_DB,
       ATLAS_LLM_PROVIDER: "scripted",
+      ATLAS_ADMIN_EMAILS: "owner-e2e@test.local",
       ATLAS_SEARCH_PROVIDER: "none",
       ATLAS_STORAGE_DIR: "./test-storage/e2e",
       ANTHROPIC_API_KEY: "",

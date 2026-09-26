@@ -135,10 +135,24 @@ test("main journey: create, clarify, plan, execute, results, resume, complete", 
   await page.getByTestId("outcome-resolved").click();
   await page.getByTestId("outcome-amount").fill("180");
   await page.getByTestId("outcome-confirm").click();
-  await expect(page.getByTestId("outcome")).toContainText("Atlas vous a fait récupérer 180,00 €");
+  await expect(page.getByTestId("outcome")).toContainText("Récupéré avec Atlas : 180,00 €");
   await expect(page.getByTestId("outcome-panel")).toHaveCount(0);
   await page.goto("/app");
-  await expect(page.getByTestId("results-counter")).toContainText("Atlas vous a fait récupérer 180,00 €");
+  await expect(page.getByTestId("results-counter")).toContainText("Récupéré avec Atlas : 180,00 €");
+  // The owner's economics page is not for customers.
+  await expect(page.getByRole("link", { name: "Économie" })).toHaveCount(0);
+  await page.goto("/app/admin");
+  await expect(page.getByRole("heading", { name: "Page introuvable" })).toBeVisible();
+  await expect(page.getByText("Économie d'Atlas")).toHaveCount(0);
+});
+
+test("the owner sees what Atlas earns and the lessons from other companies", async ({ page }) => {
+  await signup(page, "owner-e2e@test.local");
+  await page.getByRole("link", { name: "Économie" }).click();
+  await expect(page.getByRole("heading", { name: "Économie d'Atlas" })).toBeVisible();
+  // Too few closed dossiers yet: the Homejoy lesson says no paid ads.
+  await expect(page.getByTestId("economics-alerts")).toContainText("Pas de publicité payante");
+  await expect(page.getByTestId("economics-margin").first()).toBeVisible();
 });
 
 test("documents: unsupported formats are refused, readable files are listed", async ({ page }) => {

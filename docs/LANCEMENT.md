@@ -69,6 +69,25 @@ Hypothèse : franchise de TVA de la micro-entreprise (pas de TVA à reverser sou
 
 ---
 
+## Les erreurs des autres, vérifiées une par une
+
+Reprise des recherches de [`FEUILLE-DE-ROUTE.md`](FEUILLE-DE-ROUTE.md), section 2, appliquées à Atlas tel qu'il est lancé. La leçon commune : **la plupart n'ont pas manqué de clients ; chaque client leur coûtait plus qu'il ne rapportait, et elles ont grandi avant de s'en apercevoir.** D'où la page **Économie** (réservée à vous, `ATLAS_ADMIN_EMAILS`), qui calcule ce que rapporte chaque dossier et affiche une alerte reliée à chacune de ces erreurs.
+
+| Qui | Leur erreur | Ce qu'Atlas fait contre | Ce qui reste à surveiller |
+|---|---|---|---|
+| **Homejoy, Magic** | Chaque client coûtait plus qu'il ne rapportait, et elles l'ont vu trop tard | Page Économie : commissions, frais Stripe, coût IA (y compris celui des analyses gratuites sans suite), cotisations, **reste par dossier**. Alerte « À corriger » si ce reste devient négatif | Ne jamais payer un client plus cher que ce reste |
+| **Homejoy** | Grandir avant que le cœur du service fonctionne | Alerte tant que moins de 20 dossiers sont clôturés : **pas de publicité payante d'ici là** | Tenir cette règle, même si les premiers retours sont bons |
+| **Homejoy** | Promotions qui attirent des clients qui ne reviennent pas | Pas de remise ni d'offre de lancement. « Gratuit si ça échoue » n'est pas une promotion : c'est le prix permanent, le même pour tous. Part des clients revenus avec un 2e dossier affichée | Ne pas relancer les clients pour gonfler ce chiffre |
+| **Magic** | Trouver de la demande est facile ; la servir rentablement est difficile. Les inscriptions ne prouvent rien | La page ne compte pas les inscriptions : elle compte les dossiers pris en charge, réglés, et l'argent qui reste. Coût des analyses gratuites suivi ; limite d'analyses par jour (`ATLAS_ANALYSES_PER_DAY`) | Risque propre à la commission au résultat : **travailler sans être payé**. Alerte si plus de 30 % des dossiers finis ne sont jamais clôturés |
+| **Facebook M** | Un assistant « tout faire » bute sur la variété ; des humains faisaient le travail en cachette | Atlas refuse, **avant** toute carte, les dossiers qu'il ne sait pas traiter. Plafond de coût IA par dossier. La page d'accueil dit clairement qu'Atlas est une intelligence artificielle. Alerte si plus de 10 % des dossiers connaissent un échec ou un arrêt | **Votre temps n'est pas mesuré automatiquement.** Notez dans un tableur chaque intervention (dossier, minutes). Au-delà de 15 minutes par dossier en moyenne, le modèle ne tient plus |
+| **DoNotPay** | Promettre plus que ce qui est prouvé ; sanctionné par l'autorité de protection des consommateurs | Aucun résultat garanti (page d'accueil, CGV). La relecture automatique bloque les promesses dans les courriers. Le compteur dit « Récupéré avec Atlas », et non « Atlas vous a fait récupérer » : le montant est **déclaré par le client**, et le rôle d'Atlas n'est pas prouvé. Alerte si moins de 15 % des dossiers sont réglés | **Ne jamais publier dans une publicité un total « X € récupérés »** : ce sont des déclarations, pas des faits vérifiés. Le slogan « Règle ça pour moi » reste une promesse : toujours l'accompagner de « sans garantie de résultat » |
+| **Trim** | Une seule fonction étroite ne fait pas une entreprise | Atlas reste horizontal (tout litige écrit avec une entreprise), et mesure le retour des clients | Ne pas se refermer sur un seul type de dossier sans que les chiffres le justifient |
+| **Zappos, DoorDash** (réussites) | Ont fait à la main avant d'automatiser | La liste de vérification (section 4) impose un vrai dossier de bout en bout | **À faire par vous : 5 vrais problèmes de votre entourage traités avec Atlas avant d'ouvrir au public**, en notant tout ce qui coince |
+
+**Point juridique propre à la commission au résultat.** Une rémunération proportionnelle aux sommes récupérées ressemble au métier du recouvrement de créances (CPCE, art. R124-1 et suivants, voir [`ANALYSE-JURIDIQUE.md`](ANALYSE-JURIDIQUE.md)). Atlas reste en dehors tant que **le client agit pour lui-même** : c'est lui qui envoie les courriers, Atlas ne contacte jamais l'entreprise et **n'encaisse jamais l'argent récupéré**. Ne changez pas cela sans avis d'un professionnel ; posez-lui aussi la question de la commission.
+
+---
+
 ## 2. Ce que vous devez créer (comptes et démarches)
 
 Dans cet ordre :
@@ -98,7 +117,8 @@ Sur le serveur, dans le dossier du projet :
    - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` ;
    - les six champs `ATLAS_LEGAL_*` (nom, SIRET, adresse, e-mail, hébergeur, médiateur) ;
    - `RESEND_API_KEY`, `ATLAS_MAIL_FROM` ;
-   - `ATLAS_CRON_SECRET` (32 caractères aléatoires ou plus : `openssl rand -hex 32`).
+   - `ATLAS_CRON_SECRET` (32 caractères aléatoires ou plus : `openssl rand -hex 32`) ;
+   - `ATLAS_ADMIN_EMAILS=votre@adresse` : ouvre la page **Économie** à votre compte, et à lui seul.
 2. Lancer :
    ```bash
    docker compose -f docker-compose.prod.yml --env-file .env up -d --build
@@ -129,7 +149,7 @@ Sur le serveur, dans le dossier du projet :
 ## 5. Trouver les premiers clients sans perdre d'argent
 
 1. **Gratuit d'abord :** votre entourage, les groupes locaux et les forums d'entraide, en respectant leurs règles. Présentez Atlas simplement, sans promesse de résultat.
-2. **Mesurer** au bout de 20 dossiers pris en charge :
+2. **Mesurer** sur la page **Économie**, au bout de 20 dossiers clôturés :
    - le coût IA réel par dossier ;
    - la part de dossiers réglés, la commission moyenne, et la part de dossiers jamais clôturés ;
    - la part de clients qui reviennent avec un autre problème ;
@@ -155,5 +175,6 @@ Sur le serveur, dans le dossier du projet :
 
 - Aucune notification quand le client pose une question pendant qu'il est connecté : il voit la réponse à l'écran.
 - Pas de facture PDF générée par Atlas. Stripe envoie un reçu ; activez l'envoi automatique des reçus dans Stripe.
-- Pas de tableau de bord « chiffre d'affaires / marge ». Stripe et l'onglet Paramètres (coûts IA) donnent les chiffres séparément.
+- La page Économie estime les frais Stripe, la conversion dollar-euro du coût IA et les cotisations : Stripe fait foi pour l'argent réellement encaissé. Les dossiers supprimés par leurs clients ne sont pas comptés.
+- Votre propre temps passé sur les dossiers n'est pas mesuré par l'application (voir « Les erreurs des autres », Facebook M).
 - Les limites connues du `README.md` restent valables (instance unique, pas de vérification de l'e-mail à l'inscription).

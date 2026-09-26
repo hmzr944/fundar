@@ -14,6 +14,7 @@ import type { Mailer, MailMessage } from "@/server/mail/mailer";
 import { notifyUser } from "@/server/mail/notify";
 import { createMission } from "@/server/missions/service";
 import { POST as webhookRoute } from "@/app/api/payments/stripe-webhook/route";
+import { loadEconomics } from "@/server/admin/economics";
 import { analysis, planFromBriefing, turn } from "../helpers/agent";
 import { createTestUser, db, makeDeps, resetDb } from "../helpers/db";
 
@@ -291,6 +292,15 @@ describe("success fee", () => {
     await expect(declareOutcome(db, success, user.id, mission.id, { resolved: true, recoveredEuros: 180 }, stripe.impl)).rejects.toMatchObject({ status: 409 });
     expect(stripe.calls.filter((c) => c.path === "payment_intents")).toHaveLength(1);
     expect(await userResults(db, user.id)).toEqual({ resolvedCount: 1, recoveredCents: 18_000 });
+
+    // The owner sees what this dossier brought in, and what free analyses cost.
+    await db.insert(executionLogs).values({ missionId: mission.id, kind: "llm:execute", status: "ok", durationMs: 1, estimatedCostUsd: "1.000000" });
+    const other = await createMission(db, user.id, "Analyse gratuite restée sans suite");
+    await db.insert(executionLogs).values({ missionId: other.id, kind: "llm:analyze", status: "ok", durationMs: 1, estimatedCostUsd: "0.100000" });
+    const e = await loadEconomics(db, null);
+    expect(e).toMatchObject({ taken: 1, resolved: 1, revenueCents: 3000, aiTakenCents: 90, aiFreeCents: 9, recoveredCents: 18_000 });
+    expect(e.marginCents).toBe(3000 - 70 - 90 - 9 - 630);
+    expect((await loadEconomics(db, 30)).taken).toBe(1);
   });
 
   it("charges nothing when the dossier is closed without success", async () => {

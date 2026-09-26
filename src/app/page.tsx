@@ -54,7 +54,7 @@ export default async function Landing() {
             Atlas prépare les démarches, les vérifie, les suit et relance jusqu&apos;au bout.
           </p>
           <p className="mt-3 max-w-2xl text-sm text-muted">
-            Analyse gratuite.{pricing} Aucun mot de passe demandé.
+            Atlas est une intelligence artificielle. Analyse gratuite.{pricing} Aucun mot de passe demandé.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <LinkButton href={cta.href} variant="primary" className="px-5 py-2.5 text-base">
