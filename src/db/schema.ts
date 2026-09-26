@@ -102,6 +102,15 @@ export const sessions = pgTable(
 export type Constraint = { label: string; value: string };
 export type MissingInfo = { question: string; reason: string; blocking: boolean; answered?: boolean };
 export type UnsupportedRequest = { request: string; reason: string; alternative: string };
+export type MissionPayment = {
+  /** Checkout started: the user accepted the terms and asked for immediate execution. */
+  consentAt: string;
+  termsVersion: string;
+  checkoutSessionId?: string;
+  paidAt?: string;
+  amountCents?: number;
+  currency?: string;
+};
 
 export const missions = pgTable(
   "missions",
@@ -130,6 +139,8 @@ export const missions = pgTable(
     /** When Atlas picks the mission up again by itself (follow-up, reminder). */
     nextFollowUpAt: timestamp("next_follow_up_at", { withTimezone: true }),
     followUpReason: text("follow_up_reason"),
+    /** Payment for Atlas to handle this dossier (null = not paid). */
+    payment: jsonb("payment").$type<MissionPayment | null>(),
     ...timestamps,
   },
   (t) => [

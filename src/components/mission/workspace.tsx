@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Card, cx, MissionStatusBadge, Spinner } from "@/components/ui";
 import { api } from "@/lib/client/api";
@@ -41,6 +41,36 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
     return () => clearInterval(t);
   }, [active, refresh]);
 
+  // Back from the payment page: the confirmation arrives from Stripe a few seconds later.
+  const paiement = useSearchParams().get("paiement");
+  const paymentReturn = paiement === "ok" || paiement === "annule" ? paiement : null;
+  const paid = Boolean(data.mission.payment?.paidAt);
+  useEffect(() => {
+    if (paymentReturn !== "ok" || paid || active) return;
+    const started = Date.now();
+    const t = setInterval(() => {
+      if (Date.now() - started > 120_000) clearInterval(t);
+      else void refresh();
+    }, 3000);
+    return () => clearInterval(t);
+  }, [paymentReturn, paid, active, refresh]);
+
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [immediate, setImmediate] = useState(false);
+  async function checkout() {
+    setActionError(null);
+    try {
+      const { url } = await api<{ url: string }>(`/api/missions/${id}/checkout`, {
+        method: "POST",
+        json: { acceptTerms, immediateExecution: immediate },
+      });
+      window.location.assign(url);
+    } catch (e) {
+      setActionError((e as Error).message);
+    }
+  }
+
   async function act(kind: "run" | "cancel" | "analyze") {
     setBusy(kind);
     setActionError(null);
@@ -76,6 +106,8 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
   const userSteps = steps.filter((s) => s.kind === "user_action" && !["DONE", "SKIPPED"].includes(s.status));
   const hasRun = data.runs.some((r) => r.kind === "execution");
   const canRun = integrations.llm.available && !locked && steps.length > 0 && blocking.length === 0 && runnable;
+  const mustPay = integrations.billing.enabled && !paid;
+  const price = ((integrations.billing.priceCents ?? 0) / 100).toFixed(2).replace(".", ",");
   const lastRun = data.runs[0];
   const analysisFailed = !locked && lastRun?.kind === "analysis" && lastRun.status === "FAILED";
 
@@ -110,7 +142,12 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
               </Button>
             ) : (
               <>
-                {steps.length > 0 && (
+                {steps.length > 0 && mustPay && (
+                  <Button variant="primary" onClick={() => setCheckoutOpen(true)} disabled={!canRun || busy !== null} data-testid="pay-button">
+                    Confier mon dossier à Atlas — {price} €
+                  </Button>
+                )}
+                {steps.length > 0 && !mustPay && (
                   <Button variant="primary" onClick={() => act("run")} disabled={!canRun || busy !== null} data-testid="run-button">
                     {busy === "run" && <Spinner />} {hasRun ? "Reprendre l'exécution" : "Lancer l'exécution"}
                   </Button>
@@ -140,6 +177,45 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
             </span>
           </Alert>
         )}
+        {checkoutOpen && mustPay && (
+          <Alert tone="info" title={`Confier ce dossier à Atlas — ${price} € TTC, paiement unique`}>
+            <p>
+              Atlas prend en charge l&apos;ensemble du dossier : rédaction et vérification des courriers, suivi, relances et escalade.
+              Vous envoyez vous-même les courriers en un clic. Atlas ne donne pas de conseil juridique et ne garantit pas le résultat.
+            </p>
+            <label className="mt-3 flex items-start gap-2 text-sm">
+              <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} data-testid="accept-terms" />
+              <span>
+                J&apos;accepte les{" "}
+                <a href="/cgv" target="_blank" className="underline">
+                  conditions générales de vente
+                </a>{" "}
+                et la{" "}
+                <a href="/confidentialite" target="_blank" className="underline">
+                  politique de confidentialité
+                </a>
+                .
+              </span>
+            </label>
+            <label className="mt-2 flex items-start gap-2 text-sm">
+              <input type="checkbox" checked={immediate} onChange={(e) => setImmediate(e.target.checked)} data-testid="immediate-execution" />
+              <span>
+                Je demande qu&apos;Atlas commence immédiatement, sans attendre la fin du délai de rétractation de 14 jours. Si je me rétracte
+                pendant ce délai, je paierai la part du service déjà réalisée.
+              </span>
+            </label>
+            <div className="mt-3 flex gap-2">
+              <Button variant="primary" onClick={checkout} disabled={!acceptTerms || !immediate}>
+                Payer {price} €
+              </Button>
+              <Button variant="ghost" onClick={() => setCheckoutOpen(false)}>
+                Annuler
+              </Button>
+            </div>
+          </Alert>
+        )}
+        {paymentReturn === "ok" && !paid && <Alert tone="info">Paiement effectué : confirmation en cours. Atlas démarrera automatiquement.</Alert>}
+        {paymentReturn === "annule" && !paid && <Alert tone="warning">Paiement annulé : votre dossier n&apos;a pas été pris en charge.</Alert>}
         {actionError && <Alert tone="danger">{actionError}</Alert>}
         {loadError && <Alert tone="danger">Actualisation impossible : {loadError}</Alert>}
         {!integrations.llm.available && (

@@ -29,6 +29,8 @@ export type ExecuteDeps = {
   limits: RunLimits;
   /** Proofread every deliverable right after it is written (see review.ts). */
   review?: boolean;
+  /** Mission-wide AI spend ceiling: the run stops before it is exceeded. */
+  budget?: { maxUsd: number; spentBeforeUsd: number };
 };
 
 export type RunOutcome = {
@@ -223,6 +225,10 @@ export async function executeMission(
     }
     if (tokens > limits.maxRunTokens) {
       stop("STOPPED", "Budget de tokens de l'exécution épuisé.");
+      break;
+    }
+    if (deps.budget && deps.budget.spentBeforeUsd + cost >= deps.budget.maxUsd) {
+      stop("STOPPED", "Budget de traitement du dossier atteint.");
       break;
     }
 

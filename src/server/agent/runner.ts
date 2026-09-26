@@ -6,6 +6,7 @@ import { LlmError, type LlmProvider } from "@/server/llm/types";
 import { addMessage, getOwnedMission, refreshMissionStatus } from "@/server/missions/service";
 import type { PageFetcher } from "@/server/search/fetch-page";
 import type { SearchProvider } from "@/server/search/providers";
+import type { Mailer } from "@/server/mail/mailer";
 import { analyzeMission } from "./analyze";
 import { executeMission, type RunLimits } from "./orchestrator";
 import type { Capabilities } from "./prompts";
@@ -15,9 +16,14 @@ export type AgentDeps = {
   llm: LlmProvider | null;
   search: SearchProvider | null;
   fetchPage: PageFetcher;
-  limits: RunLimits & { runsPerDay: number; analysesPerDay: number; staleRunSeconds: number };
+  limits: RunLimits & { runsPerDay: number; analysesPerDay: number; staleRunSeconds: number; maxMissionCostUsd?: number };
   /** Automatic proofreading of deliverables (off unless set). */
   reviewDeliverables?: boolean;
+  /** Execution requires the dossier to be paid (billing configured). */
+  requirePayment?: boolean;
+  /** Notifications to the user (optional). */
+  mailer?: Mailer | null;
+  appUrl?: string | null;
 };
 
 export function capabilitiesOf(deps: AgentDeps): Capabilities {
@@ -124,6 +130,7 @@ export async function startAnalysis(deps: AgentDeps, userId: string, missionId: 
   }
   await assertNoActiveRun(deps.db, missionId, deps.limits.staleRunSeconds);
   await assertQuota(deps.db, userId, "analysis", deps.limits.analysesPerDay);
+  await assertMissionBudget(deps, missionId);
   const run = await createRun(deps.db, userId, missionId, "analysis");
   const ctrl = track(run.id);
   const llm = deps.llm;
@@ -172,6 +179,9 @@ export async function startAnalysis(deps: AgentDeps, userId: string, missionId: 
 export async function startExecution(deps: AgentDeps, userId: string, missionId: string): Promise<StartedRun> {
   const mission = await getOwnedMission(deps.db, userId, missionId);
   if (!deps.llm) throw unavailable(LLM_MISSING);
+  if (deps.requirePayment && !mission.payment?.paidAt) {
+    throw new AppError(402, "Ce dossier doit être payé avant qu'Atlas le prenne en charge.", "payment_required");
+  }
   await assertNoActiveRun(deps.db, missionId, deps.limits.staleRunSeconds);
   if (mission.missingInfo.some((m) => m.blocking)) {
     throw conflict("Des informations indispensables manquent encore. Répondez aux questions d'Atlas avant de lancer l'exécution.");
@@ -181,6 +191,8 @@ export async function startExecution(deps: AgentDeps, userId: string, missionId:
   if (!steps.length) throw conflict("Aucun plan n'a encore été établi pour cette mission.");
   if (!runnable.length) throw conflict("Il ne reste aucune étape qu'Atlas puisse exécuter. Les étapes restantes vous reviennent.");
   await assertQuota(deps.db, userId, "execution", deps.limits.runsPerDay);
+  await assertMissionBudget(deps, missionId);
+  const priorSpentUsd = await missionSpentUsd(deps.db, missionId);
 
   const run = await createRun(deps.db, userId, missionId, "execution");
   const ctrl = track(run.id);
@@ -201,6 +213,7 @@ export async function startExecution(deps: AgentDeps, userId: string, missionId:
           capabilities: capabilitiesOf(deps),
           limits: deps.limits,
           review: Boolean(deps.reviewDeliverables),
+          budget: deps.limits.maxMissionCostUsd ? { maxUsd: deps.limits.maxMissionCostUsd, spentBeforeUsd: priorSpentUsd } : undefined,
         },
         { runId: run.id, missionId, userId, signal: ctrl.signal },
       );
@@ -262,6 +275,22 @@ export async function cancelRun(db: Db, userId: string, missionId: string) {
     .returning({ id: missionRuns.id });
   for (const r of runs) controllers.get(r.id)?.abort();
   return runs.length > 0;
+}
+
+/** Estimated AI spend of a mission so far, every model call included (unknown prices count as 0). */
+export async function missionSpentUsd(db: Db, missionId: string) {
+  const logs = await db
+    .select({ cost: executionLogs.estimatedCostUsd, kind: executionLogs.kind })
+    .from(executionLogs)
+    .where(eq(executionLogs.missionId, missionId));
+  return logs.reduce((sum, l) => sum + (l.kind.startsWith("llm:") && l.cost !== null ? Number(l.cost) : 0), 0);
+}
+
+export const BUDGET_REACHED = "Le budget de traitement de ce dossier est atteint. Atlas ne peut plus y travailler automatiquement.";
+
+async function assertMissionBudget(deps: AgentDeps, missionId: string) {
+  const cap = deps.limits.maxMissionCostUsd ?? 0;
+  if (cap > 0 && (await missionSpentUsd(deps.db, missionId)) >= cap) throw tooMany(BUDGET_REACHED);
 }
 
 /** Aggregated real usage for one mission (from execution logs). */

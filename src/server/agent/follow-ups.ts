@@ -1,6 +1,7 @@
 import { and, asc, eq, isNotNull, lte } from "drizzle-orm";
 import { missions } from "@/db/schema";
 import { addMessage, hasActiveRun, refreshMissionStatus } from "@/server/missions/service";
+import { notifyUser } from "@/server/mail/notify";
 import { continueMission, type AgentDeps, type ContinueOutcome } from "./runner";
 
 export type FollowUpResult = { missionId: string; outcome: ContinueOutcome | "error"; error?: string };
@@ -46,6 +47,7 @@ export async function runFollowUps(deps: AgentDeps, claimed: { id: string; userI
     );
     try {
       results.push({ missionId: m.id, outcome: await continueMission(deps, m.userId, m.id) });
+      await notifyUser(deps.db, deps.mailer, deps.appUrl, m.id);
     } catch (e) {
       const message = e instanceof Error ? e.message : "erreur inconnue";
       results.push({ missionId: m.id, outcome: "error", error: message });

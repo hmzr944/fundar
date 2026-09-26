@@ -46,9 +46,15 @@ test.describe("route protection", () => {
 
 test("landing page presents Atlas without fake figures", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Dites-moi ce que vous voulez accomplir");
-  await expect(page.getByRole("heading", { name: "Exemples de missions" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Règle ça pour moi");
+  await expect(page.getByRole("heading", { name: "Ce qu'on confie à Atlas" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Commencer" }).first()).toBeVisible();
+  // Billing is off in this environment: no price is shown.
+  await expect(page.getByText("€ TTC")).toHaveCount(0);
+  // Legal pages are public, and say plainly what is not configured yet.
+  await page.getByRole("link", { name: "Mentions légales" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Mentions légales");
+  await expect(page.getByText("[SIRET non renseigné]")).toBeVisible();
 });
 
 test("main journey: create, clarify, plan, execute, results, resume, complete", async ({ page }) => {

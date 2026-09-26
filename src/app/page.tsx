@@ -1,24 +1,28 @@
 import { currentUser } from "@/lib/http";
+import { LegalFooter } from "@/components/legal-footer";
 import { LinkButton, Logo } from "@/components/ui";
+import { billingConfig } from "@/server/billing/stripe";
 
 const examples = [
-  { title: "Organiser un déménagement", text: "Comparer les solutions de transport, lister les démarches, préparer les courriers de résiliation." },
-  { title: "Comparer des offres", text: "Box internet, assurance, mutuelle : relever les offres selon vos critères et les sources." },
-  { title: "Analyser un document", text: "Bail, contrat, devis, facture : extraire les points importants et ce qui manque." },
-  { title: "Préparer une réclamation", text: "Rédiger un courrier de remboursement à partir de vos justificatifs." },
-  { title: "Planifier une semaine", text: "Prioriser vos tâches et obtenir un planning réaliste avec une checklist." },
-  { title: "Préparer un voyage", text: "Rassembler les informations utiles, un programme et une liste de départ." },
+  { title: "Un colis jamais arrivé", text: "Le vendeur ne rembourse pas, le transporteur renvoie vers le vendeur." },
+  { title: "Une facture contestée", text: "Frais injustifiés, régularisation énorme, erreur de facturation." },
+  { title: "Une caution non rendue", text: "Le délai est dépassé et le bailleur ne répond plus." },
+  { title: "Un abonnement impossible à arrêter", text: "Les prélèvements continuent malgré la résiliation." },
+  { title: "Un remboursement qui n'arrive pas", text: "Vol annulé, commande annulée, avoir imposé au lieu d'un remboursement." },
+  { title: "Une réclamation sans réponse", text: "Service client muet, relances ignorées, médiateur à saisir." },
 ];
 
 const how = [
-  { n: "1", title: "Vous décrivez votre objectif", text: "En langage naturel, sans formulaire. Ajoutez des documents si besoin." },
-  { n: "2", title: "Atlas clarifie et planifie", text: "Il reformule, pose seulement les questions utiles et propose un plan d'étapes." },
-  { n: "3", title: "Atlas exécute ce qu'il peut", text: "Recherches, lecture de documents, rédaction de livrables — avec les sources." },
-  { n: "4", title: "Vous gardez la main", text: "Chaque étape a un statut vérifiable. Les actions engageantes restent les vôtres." },
+  { n: "1", title: "Vous décrivez le problème", text: "En quelques phrases, avec vos documents (factures, e-mails, contrat)." },
+  { n: "2", title: "Atlas vous dit s'il peut s'en occuper", text: "Analyse gratuite. Il vous dit ce qu'il va demander, à qui, et pourquoi." },
+  { n: "3", title: "Atlas prépare et vérifie tout", text: "Courriers relus et vérifiés : chaque montant et chaque date sont contrôlés dans vos pièces." },
+  { n: "4", title: "Vous envoyez en un clic, Atlas suit", text: "Il reprend le dossier seul à l'échéance : relance, médiateur, jusqu'au bout." },
 ];
 
 export default async function Landing() {
   const user = await currentUser();
+  const billing = billingConfig();
+  const price = billing ? (billing.priceCents / 100).toFixed(2).replace(".", ",") : null;
   const cta = user ? { href: "/app", label: "Ouvrir mon espace" } : { href: "/signup", label: "Commencer" };
   return (
     <div className="min-h-dvh">
@@ -38,13 +42,14 @@ export default async function Landing() {
 
       <main className="mx-auto max-w-6xl px-4 sm:px-6">
         <section className="py-14 sm:py-24">
-          <p className="mb-4 text-sm font-medium text-accent">Agent personnel généraliste</p>
-          <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-            Dites-moi ce que vous voulez accomplir.
-          </h1>
+          <p className="mb-4 text-sm font-medium text-accent">Atlas</p>
+          <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">Règle ça pour moi.</h1>
           <p className="mt-5 max-w-2xl text-lg text-muted">
-            Atlas vous aide à le faire avancer, étape par étape, et vous montre clairement ce qui a été réalisé — avec ses
-            sources, ses livrables et ses limites.
+            Un problème avec une entreprise ou une organisation, et pas l&apos;envie ou le temps de vous en occuper ? Décrivez-le.
+            Atlas prépare les démarches, les vérifie, les suit et relance jusqu&apos;au bout.
+          </p>
+          <p className="mt-3 max-w-2xl text-sm text-muted">
+            Analyse gratuite.{price ? ` Prise en charge du dossier : ${price} € TTC, paiement unique.` : ""} Aucun mot de passe demandé.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <LinkButton href={cta.href} variant="primary" className="px-5 py-2.5 text-base">
@@ -58,7 +63,7 @@ export default async function Landing() {
 
         <section aria-labelledby="exemples" className="pb-16">
           <h2 id="exemples" className="mb-5 text-sm font-semibold uppercase tracking-wide text-muted">
-            Exemples de missions
+            Ce qu&apos;on confie à Atlas
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {examples.map((e) => (
@@ -88,11 +93,11 @@ export default async function Landing() {
         </section>
 
         <section className="mb-20 rounded-2xl border border-line bg-surface/60 p-6 sm:p-8">
-          <h2 className="text-lg font-semibold">Ce qu&apos;Atlas ne fait pas (encore)</h2>
+          <h2 className="text-lg font-semibold">Ce qu&apos;Atlas ne fait pas</h2>
           <p className="mt-2 max-w-3xl text-sm text-muted">
-            Atlas ne passe pas d&apos;appels, n&apos;effectue aucun paiement, ne signe rien et ne se connecte pas à vos comptes.
-            Quand une mission l&apos;exige, il prépare ce qu&apos;il faut (courrier, script, checklist) et vous indique clairement ce
-            qui vous revient. Une mission n&apos;est marquée terminée que lorsque ses résultats sont réellement disponibles.
+            Atlas ne donne pas de conseil juridique, ne vous représente pas en justice et ne garantit pas le résultat. Il n&apos;envoie
+            rien à votre place : c&apos;est vous qui envoyez, en un clic, les courriers qu&apos;il a préparés. Il ne se connecte à aucun de
+            vos comptes. Un dossier n&apos;est marqué réglé que sur preuve.
           </p>
           <LinkButton href={cta.href} variant="primary" className="mt-5">
             {cta.label}
@@ -100,7 +105,7 @@ export default async function Landing() {
         </section>
       </main>
 
-      <footer className="border-t border-line py-6 text-center text-xs text-faint">Atlas — MVP</footer>
+      <LegalFooter />
     </div>
   );
 }

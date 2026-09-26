@@ -7,6 +7,8 @@ import { createDemoScriptProvider } from "@/server/llm/scripted";
 import type { LlmProvider } from "@/server/llm/types";
 import { createPageFetcher } from "@/server/search/fetch-page";
 import { BraveSearch, TavilySearch, type SearchProvider } from "@/server/search/providers";
+import { billingConfig } from "@/server/billing/stripe";
+import { mailerFromEnv } from "@/server/mail/mailer";
 
 const g = globalThis as unknown as { __atlasLlm?: LlmProvider | null; __atlasSearch?: SearchProvider | null };
 
@@ -58,8 +60,12 @@ export function getAgentDeps(): AgentDeps {
       runsPerDay: l.runsPerDay,
       analysesPerDay: l.analysesPerDay,
       staleRunSeconds: l.staleRunSeconds,
+      maxMissionCostUsd: l.maxMissionCostUsd,
     },
     reviewDeliverables: config.reviewDeliverables,
+    requirePayment: Boolean(billingConfig()),
+    mailer: mailerFromEnv(),
+    appUrl: process.env.ATLAS_APP_URL?.trim().replace(/\/+$/, "") || null,
   };
 }
 
@@ -69,5 +75,10 @@ export function integrationStatus() {
   return {
     llm: deps.llm ? { available: true, provider: deps.llm.name, model: deps.llm.model, testDouble: deps.llm.isTestDouble } : { available: false as const },
     search: deps.search ? { available: true, provider: deps.search.name } : { available: false as const },
+    billing: (() => {
+      const cfg = billingConfig();
+      return cfg ? { enabled: true as const, priceCents: cfg.priceCents } : { enabled: false as const };
+    })(),
+    notifications: { enabled: Boolean(deps.mailer && deps.appUrl) },
   };
 }

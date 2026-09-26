@@ -71,6 +71,7 @@ export function makeDeps(llm: LlmProvider | null, over: Partial<AgentDeps> = {})
       runsPerDay: 100,
       analysesPerDay: 100,
       staleRunSeconds: 180,
+      maxMissionCostUsd: 0,
     },
     ...over,
   };

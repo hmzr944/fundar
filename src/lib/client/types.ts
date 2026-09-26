@@ -62,5 +62,7 @@ export type MissionDetailDTO = {
   integrations: {
     llm: { available: boolean; provider?: string; model?: string; testDouble?: boolean };
     search: { available: boolean; provider?: string };
+    billing: { enabled: boolean; priceCents?: number };
+    notifications: { enabled: boolean };
   };
 };

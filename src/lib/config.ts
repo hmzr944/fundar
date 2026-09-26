@@ -104,6 +104,15 @@ export const config = {
       return int("ATLAS_ANALYSES_PER_DAY", 150);
     },
     /** A running execution without heartbeat for this long is considered interrupted. */
+    /**
+     * Hard ceiling on the estimated AI spend of one mission (all runs,
+     * reviews included), in USD. 0 disables it. Keeps every dossier below
+     * what it earns.
+     */
+    get maxMissionCostUsd() {
+      const raw = Number(process.env.ATLAS_MAX_COST_PER_MISSION_USD ?? "3");
+      return Number.isFinite(raw) && raw >= 0 ? raw : 3;
+    },
     get staleRunSeconds() {
       return int("ATLAS_STALE_RUN_SECONDS", 180);
     },
