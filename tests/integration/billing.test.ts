@@ -4,11 +4,11 @@
  */
 import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
-import { executionLogs, messages, missions } from "@/db/schema";
+import { executionLogs, messages, missions, missionSteps, users } from "@/db/schema";
 import { analyzeMission } from "@/server/agent/analyze";
 import { startAnalysis, startExecution } from "@/server/agent/runner";
-import { applyStripeEvent, checkoutSchema, startCheckout, startPaidMission } from "@/server/billing/service";
-import { billingConfig, signStripePayload, verifyStripeSignature, type BillingConfig } from "@/server/billing/stripe";
+import { applyStripeEvent, checkoutSchema, declareOutcome, startCheckout, startPaidMission, userResults } from "@/server/billing/service";
+import { billingConfig, computeSuccessFee, signStripePayload, verifyStripeSignature, type BillingConfig } from "@/server/billing/stripe";
 import { ScriptedProvider, textResult, toolCallsResult } from "@/server/llm/scripted";
 import type { Mailer, MailMessage } from "@/server/mail/mailer";
 import { notifyUser } from "@/server/mail/notify";
@@ -19,7 +19,8 @@ import { createTestUser, db, makeDeps, resetDb } from "../helpers/db";
 
 beforeEach(resetDb);
 
-const cfg: BillingConfig = { priceCents: 1200, currency: "eur", secretKey: "sk_test_x", webhookSecret: "whsec_test", appUrl: "https://atlas.example", termsVersion: "1" };
+const fee = { ratePct: 20, minCents: 500, maxCents: 3000, flatCents: 500 };
+const cfg: BillingConfig = { mode: "upfront", fee, priceCents: 1200, currency: "eur", secretKey: "sk_test_x", webhookSecret: "whsec_test", appUrl: "https://atlas.example", termsVersion: "1" };
 const legalEnv = {
   ATLAS_LEGAL_NAME: "Atlas EI",
   ATLAS_LEGAL_SIRET: "123 456 789 00010",
@@ -74,8 +75,12 @@ describe("billing configuration", () => {
   it("never charges without the seller's legal identity", () => {
     const base = { ATLAS_PRICE_CENTS: "1200", STRIPE_SECRET_KEY: "sk", STRIPE_WEBHOOK_SECRET: "wh", ATLAS_APP_URL: "https://a.example/" };
     expect(billingConfig(base)).toBeNull();
-    expect(billingConfig({ ...base, ...legalEnv })).toMatchObject({ priceCents: 1200, appUrl: "https://a.example" });
-    expect(billingConfig({ ...base, ...legalEnv, ATLAS_PRICE_CENTS: "0" })).toBeNull();
+    // Success fee by default: no upfront price needed.
+    expect(billingConfig({ ...base, ...legalEnv })).toMatchObject({ mode: "success", fee, appUrl: "https://a.example" });
+    expect(billingConfig({ ...base, ...legalEnv, ATLAS_PRICE_CENTS: "0" })).toMatchObject({ mode: "success" });
+    expect(billingConfig({ ...base, ...legalEnv, ATLAS_BILLING_MODE: "upfront" })).toMatchObject({ mode: "upfront", priceCents: 1200 });
+    expect(billingConfig({ ...base, ...legalEnv, ATLAS_BILLING_MODE: "upfront", ATLAS_PRICE_CENTS: "0" })).toBeNull();
+    expect(billingConfig({ ...base, ...legalEnv, ATLAS_SUCCESS_FEE_PCT: "25", ATLAS_SUCCESS_FEE_FLAT_CENTS: "900" })?.fee).toEqual({ ...fee, ratePct: 25, flatCents: 900 });
   });
 });
 
@@ -180,6 +185,181 @@ describe("paying for a dossier", () => {
       for (const k of Object.keys(process.env)) if (!(k in previous)) delete process.env[k];
       Object.assign(process.env, previous);
     }
+  });
+});
+
+describe("success fee", () => {
+  const success: BillingConfig = { ...cfg, mode: "success", priceCents: 0 };
+
+  /** A fake Stripe API: records every call, answers from `replies` by path. */
+  function fakeStripe(replies: Record<string, (form: URLSearchParams | null) => { status?: number; body: unknown }>) {
+    const calls: { method: string; path: string; form: URLSearchParams | null }[] = [];
+    const impl = (async (url: string, init: RequestInit) => {
+      const path = url.replace("https://api.stripe.com/v1/", "");
+      const form = (init.body as URLSearchParams | undefined) ?? null;
+      calls.push({ method: init.method ?? "GET", path, form });
+      const key = Object.keys(replies).find((k) => path.startsWith(k));
+      if (!key) return new Response(JSON.stringify({ error: { message: `inattendu : ${path}` } }), { status: 400 });
+      const r = replies[key](form);
+      return new Response(JSON.stringify(r.body), { status: r.status ?? 200 });
+    }) as unknown as typeof fetch;
+    return { impl, calls };
+  }
+
+  const stripeOk = () =>
+    fakeStripe({
+      customers: () => ({ body: { id: "cus_1" } }),
+      "checkout/sessions": (f) => ({ body: { id: f?.get("mode") === "setup" ? "cs_setup_1" : "cs_fee_1", url: "https://checkout.stripe.com/c/x" } }),
+      "setup_intents/seti_1": () => ({ body: { id: "seti_1", payment_method: "pm_1" } }),
+      payment_intents: () => ({ body: { id: "pi_1", status: "succeeded" } }),
+    });
+
+  const setupDone = (missionId: string) => ({
+    type: "checkout.session.completed",
+    data: { object: { id: "cs_setup_1", mode: "setup", status: "complete", setup_intent: "seti_1", customer: "cus_1", metadata: { missionId } } },
+  });
+
+  async function authorizedMission(stripe = stripeOk()) {
+    const { user, mission } = await plannedMission();
+    await startCheckout(db, success, user.id, mission.id, stripe.impl);
+    expect(await applyStripeEvent(db, success, setupDone(mission.id), stripe.impl)).toEqual({ missionId: mission.id, userId: user.id });
+    return { user, mission, stripe };
+  }
+
+  it("is a share of what was recovered, within bounds, or a flat fee", () => {
+    expect(computeSuccessFee(fee, 18_000)).toBe(3000);
+    expect(computeSuccessFee(fee, 10_000)).toBe(2000);
+    expect(computeSuccessFee(fee, 1_000)).toBe(500);
+    expect(computeSuccessFee(fee, 1_000_000)).toBe(3000);
+    expect(computeSuccessFee(fee, 0)).toBe(500);
+  });
+
+  it("saves a card without charging it, then lets Atlas start", async () => {
+    const { user, mission, stripe } = await authorizedMission();
+    expect(stripe.calls.map((c) => c.path)).toEqual(["customers", "checkout/sessions", "setup_intents/seti_1"]);
+    expect(stripe.calls[1].form?.get("mode")).toBe("setup");
+    expect(stripe.calls[1].form?.get("customer")).toBe("cus_1");
+    expect(stripe.calls.some((c) => c.path.startsWith("payment_intents"))).toBe(false);
+    const [u] = await db.select().from(users).where(eq(users.id, user.id));
+    expect(u).toMatchObject({ stripeCustomerId: "cus_1", stripePaymentMethodId: "pm_1", cardSavedAt: expect.any(Date) });
+    const [row] = await db.select().from(missions).where(eq(missions.id, mission.id));
+    expect(row.payment).toMatchObject({ authorizedAt: expect.any(String) });
+    expect(row.payment?.paidAt).toBeUndefined();
+    // Replays and foreign sessions change nothing.
+    expect(await applyStripeEvent(db, success, setupDone(mission.id), stripe.impl)).toBeNull();
+    const deps = makeDeps(executor(), { requirePayment: true });
+    await expect(startExecution(deps, user.id, mission.id).then((r) => r.done)).resolves.toBeUndefined();
+  });
+
+  it("ignores a setup session that is not the dossier's own", async () => {
+    const stripe = stripeOk();
+    const { user, mission } = await plannedMission();
+    await startCheckout(db, success, user.id, mission.id, stripe.impl);
+    const other = setupDone(mission.id);
+    other.data.object.id = "cs_autre";
+    expect(await applyStripeEvent(db, success, other, stripe.impl)).toBeNull();
+    const deps = makeDeps(executor(), { requirePayment: true });
+    await expect(startExecution(deps, user.id, mission.id)).rejects.toMatchObject({ status: 402 });
+  });
+
+  it("starts the next dossier right away with the card already saved", async () => {
+    const { user, stripe } = await authorizedMission();
+    const m2 = await createMission(db, user.id, "Deuxième problème");
+    await analyzeMission({ db, llm: new ScriptedProvider(() => textResult(JSON.stringify(plan))), capabilities: { webSearch: false, searchProvider: null } }, m2.id, null);
+    const before = stripe.calls.length;
+    expect(await startCheckout(db, success, user.id, m2.id, stripe.impl)).toEqual({ url: null, started: true });
+    expect(stripe.calls.length).toBe(before);
+    const [row] = await db.select().from(missions).where(eq(missions.id, m2.id));
+    expect(row.payment).toMatchObject({ authorizedAt: expect.any(String) });
+  });
+
+  it("charges the fee once, only when the problem is solved, and closes the dossier", async () => {
+    const { user, mission, stripe } = await authorizedMission();
+    const result = await declareOutcome(db, success, user.id, mission.id, { resolved: true, recoveredEuros: 180 }, stripe.impl);
+    expect(result.charge).toEqual({ feeCents: 3000, status: "charged", payUrl: null });
+    const charge = stripe.calls.find((c) => c.path === "payment_intents")!;
+    expect(charge.form?.get("amount")).toBe("3000");
+    expect(charge.form?.get("off_session")).toBe("true");
+    expect(charge.form?.get("payment_method")).toBe("pm_1");
+    const [row] = await db.select().from(missions).where(eq(missions.id, mission.id));
+    expect(row.outcome).toMatchObject({ resolved: true, recoveredCents: 18_000 });
+    expect(row.payment).toMatchObject({ paidAt: expect.any(String), amountCents: 3000, feeDueCents: 3000, paymentIntentId: "pi_1" });
+    expect(row.nextFollowUpAt).toBeNull();
+    const steps = await db.select().from(missionSteps).where(eq(missionSteps.missionId, mission.id));
+    expect(steps.every((s) => s.status === "DONE" || s.status === "SKIPPED")).toBe(true);
+    // Never twice.
+    await expect(declareOutcome(db, success, user.id, mission.id, { resolved: true, recoveredEuros: 180 }, stripe.impl)).rejects.toMatchObject({ status: 409 });
+    expect(stripe.calls.filter((c) => c.path === "payment_intents")).toHaveLength(1);
+    expect(await userResults(db, user.id)).toEqual({ resolvedCount: 1, recoveredCents: 18_000 });
+  });
+
+  it("charges nothing when the dossier is closed without success", async () => {
+    const { user, mission, stripe } = await authorizedMission();
+    const result = await declareOutcome(db, success, user.id, mission.id, { resolved: false, recoveredEuros: 500 }, stripe.impl);
+    expect(result.charge.status).toBe("none");
+    expect(stripe.calls.some((c) => c.path === "payment_intents")).toBe(false);
+    const [row] = await db.select().from(missions).where(eq(missions.id, mission.id));
+    expect(row.outcome).toMatchObject({ resolved: false, recoveredCents: 0 });
+    expect(await userResults(db, user.id)).toEqual({ resolvedCount: 0, recoveredCents: 0 });
+  });
+
+  it("sends a payment page when the bank asks for authentication, and records its payment", async () => {
+    const stripe = stripeOk();
+    const { user, mission } = await authorizedMission(stripe);
+    const declined = fakeStripe({
+      payment_intents: () => ({ status: 402, body: { error: { code: "authentication_required", message: "auth", payment_intent: { id: "pi_2" } } } }),
+      "checkout/sessions": () => ({ body: { id: "cs_fee_1", url: "https://checkout.stripe.com/c/fee" } }),
+    });
+    const result = await declareOutcome(db, success, user.id, mission.id, { resolved: true }, declined.impl);
+    expect(result.charge).toEqual({ feeCents: 500, status: "payment_page", payUrl: "https://checkout.stripe.com/c/fee" });
+    const page = declined.calls.find((c) => c.path === "checkout/sessions")!;
+    expect(page.form?.get("mode")).toBe("payment");
+    expect(page.form?.get("metadata[kind]")).toBe("success_fee");
+    expect(page.form?.get("line_items[0][price_data][unit_amount]")).toBe("500");
+    let [row] = await db.select().from(missions).where(eq(missions.id, mission.id));
+    expect(row.payment).toMatchObject({ feeDueCents: 500, payLinkUrl: "https://checkout.stripe.com/c/fee", failure: expect.stringContaining("validation") });
+    expect(row.payment?.paidAt).toBeUndefined();
+
+    const mailer = new FakeMailer();
+    const { notifyFeePage } = await import("@/server/mail/notify");
+    await notifyFeePage(db, mailer, mission.id);
+    expect(mailer.sent[0].text).toContain("https://checkout.stripe.com/c/fee");
+    expect(mailer.sent[0].text).toContain("5,00 €");
+
+    const paidEvent = (over: Record<string, unknown> = {}) => ({
+      type: "checkout.session.completed",
+      data: { object: { id: "cs_fee_1", mode: "payment", payment_status: "paid", amount_total: 500, currency: "eur", metadata: { missionId: mission.id, kind: "success_fee" }, ...over } },
+    });
+    expect(await applyStripeEvent(db, success, paidEvent({ amount_total: 100 }))).toBeNull();
+    [row] = await db.select().from(missions).where(eq(missions.id, mission.id));
+    expect(row.payment?.paidAt).toBeUndefined();
+    // Paying the fee never restarts the dossier.
+    expect(await applyStripeEvent(db, success, paidEvent())).toBeNull();
+    [row] = await db.select().from(missions).where(eq(missions.id, mission.id));
+    expect(row.payment).toMatchObject({ paidAt: expect.any(String), amountCents: 500 });
+    expect(row.payment?.payLinkUrl).toBeUndefined();
+  });
+
+  it("keeps the outcome even when Stripe is unreachable", async () => {
+    const { user, mission } = await authorizedMission();
+    const down = (async () => {
+      throw new Error("réseau");
+    }) as unknown as typeof fetch;
+    const result = await declareOutcome(db, success, user.id, mission.id, { resolved: true, recoveredEuros: 40 }, down);
+    expect(result.charge.status).toBe("failed");
+    const [row] = await db.select().from(missions).where(eq(missions.id, mission.id));
+    expect(row.outcome).toMatchObject({ resolved: true, recoveredCents: 4000 });
+    expect(row.payment).toMatchObject({ feeDueCents: 800, failure: expect.any(String) });
+  });
+
+  it("an upfront payment is never counted as a success-mode authorisation, and vice versa", async () => {
+    const { user, mission } = await plannedMission();
+    await paidSession(mission.id, user.id);
+    const event = {
+      type: "checkout.session.completed",
+      data: { object: { id: "cs_test_1", payment_status: "paid", amount_total: 1200, currency: "eur", metadata: { missionId: mission.id } } },
+    };
+    expect(await applyStripeEvent(db, success, event)).toBeNull();
   });
 });
 

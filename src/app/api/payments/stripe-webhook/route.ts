@@ -22,7 +22,14 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "Corps invalide." }, { status: 400 });
   }
-  const paid = await applyStripeEvent(getDb(), cfg, event);
+  let paid: Awaited<ReturnType<typeof applyStripeEvent>>;
+  try {
+    paid = await applyStripeEvent(getDb(), cfg, event);
+  } catch (e) {
+    // Stripe retries on a non-2xx answer: a transient failure is not lost.
+    console.error("[atlas] stripe event failed", e);
+    return NextResponse.json({ error: "Traitement impossible pour le moment." }, { status: 500 });
+  }
   if (paid) void startPaidMission(getAgentDeps(), paid.missionId, paid.userId);
   return NextResponse.json({ received: true });
 }

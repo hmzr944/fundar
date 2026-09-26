@@ -130,6 +130,15 @@ test("main journey: create, clarify, plan, execute, results, resume, complete", 
   // Journal shows real counters (no invented cost for the test double).
   await page.getByRole("tab", { name: "Journal" }).click();
   await expect(page.getByText("non disponible")).toBeVisible();
+
+  // The user closes the dossier as solved; the dashboard shows what Atlas obtained.
+  await page.getByTestId("outcome-resolved").click();
+  await page.getByTestId("outcome-amount").fill("180");
+  await page.getByTestId("outcome-confirm").click();
+  await expect(page.getByTestId("outcome")).toContainText("Atlas vous a fait récupérer 180,00 €");
+  await expect(page.getByTestId("outcome-panel")).toHaveCount(0);
+  await page.goto("/app");
+  await expect(page.getByTestId("results-counter")).toContainText("Atlas vous a fait récupérer 180,00 €");
 });
 
 test("documents: unsupported formats are refused, readable files are listed", async ({ page }) => {

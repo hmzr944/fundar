@@ -35,9 +35,9 @@ export async function notifyUser(db: Db, mailer: Mailer | null | undefined, appU
     } else if (mission.status === "WAITING_FOR_USER") {
       subject = `Une action vous attend — ${mission.title}`;
       body = `Votre dossier attend une action de votre part.\n\n${link}`;
-    } else if (mission.status === "COMPLETED") {
+    } else if (mission.status === "COMPLETED" && !mission.outcome) {
       subject = `Votre dossier est terminé — ${mission.title}`;
-      body = `Atlas a terminé votre dossier. Le compte rendu vous attend ici :\n\n${link}`;
+      body = `Atlas a terminé votre dossier. Le compte rendu vous attend ici :\n\n${link}\n\nQuand l'entreprise vous a répondu, dites à Atlas si votre problème est réglé : c'est ce qui clôt le dossier.`;
     } else {
       return null;
     }
@@ -53,6 +53,31 @@ export async function notifyUser(db: Db, mailer: Mailer | null | undefined, appU
     return subject;
   } catch (e) {
     console.error("[atlas] notification failed", e);
+    return null;
+  }
+}
+
+/** Sends the payment page for a success fee the saved card could not cover. Never throws. */
+export async function notifyFeePage(db: Db, mailer: Mailer | null | undefined, missionId: string) {
+  if (!mailer) return null;
+  try {
+    const mission = await db.query.missions.findFirst({ where: eq(missions.id, missionId) });
+    const url = mission?.payment?.payLinkUrl;
+    const fee = mission?.payment?.feeDueCents;
+    if (!mission || !url || !fee) return null;
+    const user = await db.query.users.findFirst({ where: eq(users.id, mission.userId) });
+    if (!user) return null;
+    const subject = `Votre problème est réglé — ${mission.title}`;
+    const amount = `${(fee / 100).toFixed(2).replace(".", ",")} €`;
+    await mailer.send({
+      to: user.email,
+      subject,
+      text: `Bonne nouvelle : vous avez indiqué que votre problème est réglé.\n\nLa commission d'Atlas est de ${amount}. Votre banque demande une validation pour ce paiement : vous pouvez le régler ici :\n\n${url}\n\n— Atlas`,
+    });
+    await addMessage(db, missionId, "event", `Notification envoyée par e-mail : « ${subject} ».`, { kind: "notification", key: `fee:${fee}` });
+    return subject;
+  } catch (e) {
+    console.error("[atlas] fee notification failed", e);
     return null;
   }
 }

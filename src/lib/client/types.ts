@@ -59,10 +59,17 @@ export type MissionDetailDTO = {
     totalDurationMs: number;
     estimatedCostUsd: number | null;
   };
+  /** The signed-in user's account, as far as this dossier needs it. */
+  account: { cardSaved: boolean };
   integrations: {
     llm: { available: boolean; provider?: string; model?: string; testDouble?: boolean };
     search: { available: boolean; provider?: string };
-    billing: { enabled: boolean; priceCents?: number };
+    billing: {
+      enabled: boolean;
+      mode?: "success" | "upfront";
+      priceCents?: number;
+      fee?: { ratePct: number; minCents: number; maxCents: number; flatCents: number };
+    };
     notifications: { enabled: boolean };
   };
 };

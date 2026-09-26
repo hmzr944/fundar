@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Card, cx, MissionStatusBadge, Spinner } from "@/components/ui";
 import { api } from "@/lib/client/api";
+import { describeFee, eurosShort } from "@/lib/fee";
 import type { MissionDetailDTO } from "@/lib/client/types";
 import { Conversation } from "./conversation";
 import { PlanPanel } from "./plan-panel";
@@ -44,7 +45,8 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
   // Back from the payment page: the confirmation arrives from Stripe a few seconds later.
   const paiement = useSearchParams().get("paiement");
   const paymentReturn = paiement === "ok" || paiement === "annule" ? paiement : null;
-  const paid = Boolean(data.mission.payment?.paidAt);
+  // Handed to Atlas: paid (upfront mode) or card saved (success mode).
+  const paid = Boolean(data.mission.payment?.paidAt || data.mission.payment?.authorizedAt);
   useEffect(() => {
     if (paymentReturn !== "ok" || paid || active) return;
     const started = Date.now();
@@ -61,11 +63,16 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
   async function checkout() {
     setActionError(null);
     try {
-      const { url } = await api<{ url: string }>(`/api/missions/${id}/checkout`, {
+      const { url } = await api<{ url: string | null }>(`/api/missions/${id}/checkout`, {
         method: "POST",
         json: { acceptTerms, immediateExecution: immediate },
       });
-      window.location.assign(url);
+      if (url) window.location.assign(url);
+      else {
+        // Card already saved: Atlas has started.
+        setCheckoutOpen(false);
+        await refresh();
+      }
     } catch (e) {
       setActionError((e as Error).message);
     }
@@ -109,7 +116,10 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
   const eligibility = mission.eligibility;
   const mustPay = integrations.billing.enabled && !paid;
   const canPay = mustPay && eligibility?.canHandle === true && blocking.length === 0;
-  const price = ((integrations.billing.priceCents ?? 0) / 100).toFixed(2).replace(".", ",");
+  const price = eurosShort(integrations.billing.priceCents ?? 0);
+  const success = integrations.billing.enabled && integrations.billing.mode === "success";
+  const feeText = integrations.billing.fee ? describeFee(integrations.billing.fee) : "";
+  const cardSaved = data.account.cardSaved;
   const lastRun = data.runs[0];
   const analysisFailed = !locked && lastRun?.kind === "analysis" && lastRun.status === "FAILED";
 
@@ -146,7 +156,7 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
               <>
                 {steps.length > 0 && canPay && (
                   <Button variant="primary" onClick={() => setCheckoutOpen(true)} disabled={!canRun || busy !== null} data-testid="pay-button">
-                    Confier mon dossier à Atlas — {price} €
+                    {success ? "Confier mon dossier à Atlas" : `Confier mon dossier à Atlas — ${price} €`}
                   </Button>
                 )}
                 {steps.length > 0 && !mustPay && (
@@ -195,11 +205,19 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
           </div>
         )}
         {checkoutOpen && canPay && (
-          <Alert tone="info" title={`Confier ce dossier à Atlas — ${price} € TTC, paiement unique`}>
+          <Alert tone="info" title={success ? "Confier ce dossier à Atlas — vous ne payez que si c'est réglé" : `Confier ce dossier à Atlas — ${price} € TTC, paiement unique`}>
             <p>
               Atlas prend en charge l&apos;ensemble du dossier : rédaction et vérification des courriers, suivi, relances et escalade.
               Vous envoyez vous-même les courriers en un clic. Atlas ne donne pas de conseil juridique et ne garantit pas le résultat.
             </p>
+            {success && (
+              <p className="mt-2" data-testid="fee-terms">
+                <strong>Rien à payer maintenant.</strong> Si votre problème est réglé, Atlas prélève {feeText}. Sinon, vous ne payez rien.{" "}
+                {cardSaved
+                  ? "Votre carte enregistrée sera utilisée."
+                  : "Vous enregistrez votre carte une seule fois, sur la page sécurisée de Stripe : aucun débit aujourd'hui."}
+              </p>
+            )}
             <label className="mt-3 flex items-start gap-2 text-sm">
               <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} data-testid="accept-terms" />
               <span>
@@ -217,13 +235,15 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
             <label className="mt-2 flex items-start gap-2 text-sm">
               <input type="checkbox" checked={immediate} onChange={(e) => setImmediate(e.target.checked)} data-testid="immediate-execution" />
               <span>
-                Je demande qu&apos;Atlas commence immédiatement, sans attendre la fin du délai de rétractation de 14 jours. Si je me rétracte
-                pendant ce délai, je paierai la part du service déjà réalisée.
+                Je demande qu&apos;Atlas commence immédiatement, sans attendre la fin du délai de rétractation de 14 jours.
+                {success
+                  ? " Si mon problème est réglé avant la fin de ce délai, la commission reste due."
+                  : " Si je me rétracte pendant ce délai, je paierai la part du service déjà réalisée."}
               </span>
             </label>
             <div className="mt-3 flex gap-2">
-              <Button variant="primary" onClick={checkout} disabled={!acceptTerms || !immediate}>
-                Payer {price} €
+              <Button variant="primary" onClick={checkout} disabled={!acceptTerms || !immediate} data-testid="confirm-checkout">
+                {success ? (cardSaved ? "Confier le dossier" : "Enregistrer ma carte (aucun débit)") : `Payer ${price} €`}
               </Button>
               <Button variant="ghost" onClick={() => setCheckoutOpen(false)}>
                 Annuler
@@ -231,8 +251,13 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
             </div>
           </Alert>
         )}
-        {paymentReturn === "ok" && !paid && <Alert tone="info">Paiement effectué : confirmation en cours. Atlas démarrera automatiquement.</Alert>}
-        {paymentReturn === "annule" && !paid && <Alert tone="warning">Paiement annulé : votre dossier n&apos;a pas été pris en charge.</Alert>}
+        {paymentReturn === "ok" && !paid && (
+          <Alert tone="info">{success ? "Carte enregistrée" : "Paiement effectué"} : confirmation en cours. Atlas démarrera automatiquement.</Alert>
+        )}
+        {paymentReturn === "annule" && !paid && <Alert tone="warning">Opération annulée : votre dossier n&apos;a pas été pris en charge.</Alert>}
+        {!locked && (paid || !integrations.billing.enabled) && hasRun && (
+          <OutcomePanel missionId={id} outcome={mission.outcome} payment={mission.payment} feeText={success ? feeText : null} onDone={refresh} />
+        )}
         {actionError && <Alert tone="danger">{actionError}</Alert>}
         {loadError && <Alert tone="danger">Actualisation impossible : {loadError}</Alert>}
         {!integrations.llm.available && (
@@ -359,5 +384,127 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
         </aside>
       </div>
     </div>
+  );
+}
+
+function OutcomePanel({
+  missionId,
+  outcome,
+  payment,
+  feeText,
+  onDone,
+}: {
+  missionId: string;
+  outcome: MissionDetailDTO["mission"]["outcome"];
+  payment: MissionDetailDTO["mission"]["payment"];
+  feeText: string | null;
+  onDone: () => Promise<void>;
+}) {
+  const [open, setOpen] = useState<null | "resolved" | "not">(null);
+  const [amount, setAmount] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const euros = (cents: number) => `${(cents / 100).toFixed(2).replace(".", ",")} €`;
+
+  if (outcome) {
+    const due = payment?.feeDueCents && !payment.paidAt;
+    return (
+      <div data-testid="outcome">
+        <Alert tone={outcome.resolved ? "success" : "info"} title={outcome.resolved ? "Problème réglé" : "Dossier clôturé"}>
+          {outcome.resolved ? (
+            <p>
+              {outcome.recoveredCents > 0 ? `Atlas vous a fait récupérer ${euros(outcome.recoveredCents)}.` : "Votre problème est réglé."}
+              {payment?.paidAt && payment.feeDueCents ? ` Commission réglée : ${euros(payment.amountCents ?? payment.feeDueCents)}.` : ""}
+            </p>
+          ) : (
+            <p>Vous avez clôturé ce dossier sans succès : aucune commission n&apos;est due.</p>
+          )}
+          {due && payment?.payLinkUrl && (
+            <p className="mt-2">
+              Votre banque demande une validation pour la commission de {euros(payment.feeDueCents!)}.{" "}
+              <a href={payment.payLinkUrl} className="font-medium underline" data-testid="fee-pay-link">
+                Régler la commission
+              </a>
+            </p>
+          )}
+        </Alert>
+      </div>
+    );
+  }
+
+  async function submit(resolved: boolean) {
+    setBusy(true);
+    setError(null);
+    const value = Number(amount.replace(",", ".").replace(/[^\d.]/g, "") || 0);
+    try {
+      await api(`/api/missions/${missionId}/outcome`, {
+        method: "POST",
+        json: resolved ? { resolved, recoveredEuros: Number.isFinite(value) ? value : 0 } : { resolved },
+      });
+      await onDone();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card data-testid="outcome-panel">
+      <p className="text-sm font-medium">L&apos;entreprise vous a répondu ?</p>
+      <p className="mt-1 text-xs text-muted">Dites-le à Atlas : c&apos;est ce qui clôt le dossier et arrête les relances.</p>
+      {open === null && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button variant="primary" onClick={() => setOpen("resolved")} data-testid="outcome-resolved">
+            Mon problème est réglé
+          </Button>
+          <Button variant="ghost" onClick={() => setOpen("not")} data-testid="outcome-not-resolved">
+            Clore sans succès
+          </Button>
+        </div>
+      )}
+      {open === "resolved" && (
+        <div className="mt-3 space-y-2 text-sm">
+          <label className="block">
+            Combien avez-vous récupéré ou économisé ? (laisser vide si ce n&apos;est pas une somme d&apos;argent)
+            <input
+              inputMode="decimal"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="Ex. : 180"
+              className="mt-1 block w-40 rounded-lg border border-line bg-bg px-2 py-1"
+              data-testid="outcome-amount"
+            />
+          </label>
+          {feeText && <p className="text-xs text-muted">Commission d&apos;Atlas : {feeText}, prélevée sur votre carte enregistrée.</p>}
+          <div className="flex gap-2">
+            <Button variant="primary" onClick={() => submit(true)} disabled={busy} data-testid="outcome-confirm">
+              {busy && <Spinner />} Confirmer
+            </Button>
+            <Button variant="ghost" onClick={() => setOpen(null)} disabled={busy}>
+              Retour
+            </Button>
+          </div>
+        </div>
+      )}
+      {open === "not" && (
+        <div className="mt-3 space-y-2 text-sm">
+          <p>Atlas arrête le suivi de ce dossier. Vous ne payez rien.</p>
+          <div className="flex gap-2">
+            <Button onClick={() => submit(false)} disabled={busy} data-testid="outcome-confirm-not">
+              {busy && <Spinner />} Clore le dossier
+            </Button>
+            <Button variant="ghost" onClick={() => setOpen(null)} disabled={busy}>
+              Retour
+            </Button>
+          </div>
+        </div>
+      )}
+      {error && (
+        <div className="mt-2">
+          <Alert tone="danger">{error}</Alert>
+        </div>
+      )}
+    </Card>
   );
 }

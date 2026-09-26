@@ -80,6 +80,10 @@ export const users = pgTable(
     email: text("email").notNull(),
     name: text("name"),
     passwordHash: text("password_hash").notNull(),
+    /** Card saved once with Stripe for success fees (never card data itself). */
+    stripeCustomerId: text("stripe_customer_id"),
+    stripePaymentMethodId: text("stripe_payment_method_id"),
+    cardSavedAt: timestamp("card_saved_at", { withTimezone: true }),
     ...timestamps,
   },
   (t) => [uniqueIndex("users_email_unique").on(t.email)],
@@ -108,8 +112,27 @@ export type MissionPayment = {
   termsVersion: string;
   checkoutSessionId?: string;
   paidAt?: string;
+  /** Success-fee mode: a card is saved, Atlas may work; nothing charged yet. */
+  authorizedAt?: string;
   amountCents?: number;
   currency?: string;
+  /** Success-fee mode: the fee due once the user declared the problem solved. */
+  feeDueCents?: number;
+  paymentIntentId?: string;
+  /** Checkout opened to collect the fee when the saved card could not be charged. */
+  feeCheckoutSessionId?: string;
+  /** Payment page sent when the saved card could not be charged directly. */
+  payLinkUrl?: string;
+  failure?: string;
+};
+
+/** What the user declared at the end of the dossier. */
+export type MissionOutcome = {
+  resolved: boolean;
+  /** Money recovered or saved, in cents (0 for a non-monetary result). */
+  recoveredCents: number;
+  note?: string;
+  declaredAt: string;
 };
 
 export const missions = pgTable(
@@ -141,6 +164,7 @@ export const missions = pgTable(
     followUpReason: text("follow_up_reason"),
     /** Atlas' verdict at analysis time: can it handle the whole dossier (offers payment when true)? */
     eligibility: jsonb("eligibility").$type<{ canHandle: boolean; reason: string; whatAtlasWillDo: string } | null>(),
+    outcome: jsonb("outcome").$type<MissionOutcome | null>(),
     /** Payment for Atlas to handle this dossier (null = not paid). */
     payment: jsonb("payment").$type<MissionPayment | null>(),
     ...timestamps,

@@ -1,4 +1,5 @@
 import { LegalValue } from "@/components/legal-value";
+import { describeFee, eurosShort } from "@/lib/fee";
 import { billingConfig, legalIdentity } from "@/server/billing/stripe";
 
 export const dynamic = "force-dynamic";
@@ -7,7 +8,9 @@ export const metadata = { title: "Conditions générales de vente — Atlas" };
 export default function Cgv() {
   const id = legalIdentity();
   const cfg = billingConfig();
-  const price = cfg ? `${(cfg.priceCents / 100).toFixed(2).replace(".", ",")} € TTC` : null;
+  const success = !cfg || cfg.mode === "success";
+  const price = cfg && cfg.mode === "upfront" ? `${eurosShort(cfg.priceCents)} € TTC` : null;
+  const fee = cfg && cfg.mode === "success" ? `${describeFee(cfg.fee)}, TTC` : null;
   return (
     <>
       <h1>Conditions générales de vente</h1>
@@ -33,25 +36,54 @@ export default function Cgv() {
         l&apos;organisation concernée.
       </p>
 
-      <h2>3. Analyse gratuite, puis prise en charge payante</h2>
-      <p>
-        L&apos;analyse initiale est gratuite : Atlas vous indique s&apos;il peut prendre votre dossier en charge. La prise en charge
-        complète d&apos;un dossier coûte <LegalValue value={price} label="Prix" />, payable en une fois, par carte, avant son début.
-        Le paiement est traité par Stripe.
-      </p>
+      {success ? (
+        <>
+          <h2>3. Prix : vous ne payez que si votre problème est réglé</h2>
+          <p>
+            L&apos;analyse initiale est gratuite : Atlas vous indique s&apos;il peut prendre votre dossier en charge. La prise en charge
+            ne coûte rien tant que votre problème n&apos;est pas réglé. Lorsque vous déclarez dans votre dossier que votre problème est
+            réglé, Atlas perçoit une commission de <LegalValue value={fee} label="Commission" />. Le montant récupéré ou économisé est
+            celui que vous déclarez. Si vous clôturez le dossier sans succès, rien n&apos;est dû.
+          </p>
+          <p>
+            Pour confier un premier dossier, vous enregistrez une carte bancaire sur la page sécurisée de Stripe ; aucun débit n&apos;a
+            lieu à ce moment. Vous autorisez Atlas à débiter cette carte du seul montant de la commission, lorsque vous déclarez un
+            dossier réglé. Si votre banque demande une validation, un lien de paiement vous est envoyé. Vous pouvez demander la
+            suppression de votre carte à tout moment en écrivant à <LegalValue value={id.email} label="E-mail de contact" />.
+          </p>
 
-      <h2>4. Droit de rétractation</h2>
-      <p>
-        Vous disposez de 14 jours à compter du paiement pour vous rétracter, sans motif, en écrivant à{" "}
-        <LegalValue value={id.email} label="E-mail de contact" />. En payant, vous demandez expressément que le service commence
-        immédiatement. Si vous vous rétractez pendant ce délai, vous êtes remboursé, déduction faite de la part du service déjà
-        réalisée à la date de votre rétractation (articles L221-18, L221-25 et L221-28 du code de la consommation).
-      </p>
+          <h2>4. Droit de rétractation</h2>
+          <p>
+            Vous disposez de 14 jours à compter de la prise en charge du dossier pour vous rétracter, sans motif, en écrivant à{" "}
+            <LegalValue value={id.email} label="E-mail de contact" />. En confiant le dossier, vous demandez expressément que le
+            service commence immédiatement. Une rétractation avant que le problème soit réglé ne vous coûte rien. Si vous déclarez
+            votre problème réglé pendant ce délai, la commission reste due pour le service rendu (articles L221-18, L221-25 et L221-28
+            du code de la consommation).
+          </p>
+        </>
+      ) : (
+        <>
+          <h2>3. Analyse gratuite, puis prise en charge payante</h2>
+          <p>
+            L&apos;analyse initiale est gratuite : Atlas vous indique s&apos;il peut prendre votre dossier en charge. La prise en charge
+            complète d&apos;un dossier coûte <LegalValue value={price} label="Prix" />, payable en une fois, par carte, avant son
+            début. Le paiement est traité par Stripe.
+          </p>
+
+          <h2>4. Droit de rétractation</h2>
+          <p>
+            Vous disposez de 14 jours à compter du paiement pour vous rétracter, sans motif, en écrivant à{" "}
+            <LegalValue value={id.email} label="E-mail de contact" />. En payant, vous demandez expressément que le service commence
+            immédiatement. Si vous vous rétractez pendant ce délai, vous êtes remboursé, déduction faite de la part du service déjà
+            réalisée à la date de votre rétractation (articles L221-18, L221-25 et L221-28 du code de la consommation).
+          </p>
+        </>
+      )}
 
       <h2>5. Dossiers qu&apos;Atlas ne traite pas</h2>
       <p>
         Procédures judiciaires, droit pénal, de la famille, du travail, des étrangers, santé, dettes qui vous sont réclamées. Si un
-        dossier payé s&apos;avère hors de ce périmètre, Atlas vous le signale et vous êtes remboursé.
+        dossier pris en charge s&apos;avère hors de ce périmètre, Atlas vous le signale ; ce que vous avez éventuellement payé pour ce dossier vous est remboursé.
       </p>
 
       <h2>6. Réclamations et médiation</h2>

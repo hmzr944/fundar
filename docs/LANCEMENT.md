@@ -1,31 +1,58 @@
 # Lancer Atlas — guide pas à pas
 
-> Date : 26 septembre 2026. Ce guide remplace, pour le lancement, la « phase A gratuite » de [`ANALYSE-JURIDIQUE.md`](ANALYSE-JURIDIQUE.md). Atlas est désormais **payant dès le premier dossier**.
+> Date : 26 septembre 2026. Ce guide remplace, pour le lancement, la « phase A gratuite » de [`ANALYSE-JURIDIQUE.md`](ANALYSE-JURIDIQUE.md).
 > Ce document n'est pas un avis juridique ni comptable. Les montants sont des **estimations** à vérifier sur vos propres devis.
 
 ---
 
-## 1. Le modèle : rentable dès le premier dossier
+## 1. Le modèle : le client ne paie que si c'est réglé
 
-| Principe | Comment c'est garanti dans l'application |
+**Pourquoi ce choix.** Payer 12 € d'avance à un service inconnu freine beaucoup de gens. Un abonnement convient mal à un besoin qui revient quelques fois par an : on s'abonne, on résilie. La commission au résultat supprime le risque pour le client. C'est aussi le modèle que les spécialistes (vols, litiges) ont imposé, et Atlas le propose à un taux plus bas (20 %, plafonné à 30 €, contre 25 à 35 % sans plafond).
+
+| Pour le client | Comment ça marche dans l'application |
 |---|---|
-| Aucun coût engagé sans paiement | L'analyse est gratuite et coûte quelques centimes. Atlas ne traite le dossier (courriers, suivi, relances) **qu'après paiement** : sinon, il répond « paiement requis » |
-| Un dossier ne coûte jamais plus que ce qu'il rapporte | **Plafond de coût IA par dossier** (`ATLAS_MAX_COST_PER_MISSION_USD`, 3 $ par défaut). Une fois atteint, Atlas s'arrête ; une exécution en cours s'arrête avant de le dépasser |
-| Zéro temps humain dans le cas normal | Atlas rédige, vérifie (règles, chiffres comparés aux pièces, deuxième relecture), suit, reprend le dossier seul aux échéances et prévient le client par e-mail. Le client envoie en un clic |
-| Pas de croissance payée à perte | Pas de publicité au lancement. Voir [section 5](#5-trouver-les-premiers-clients-sans-perdre-dargent) |
-| Pas de promotion qui attire des clients qui ne reviennent pas | Prix unique, pas de remise de lancement |
+| Rien à payer pour essayer | Analyse gratuite. Atlas dit s'il peut s'occuper du dossier **avant** toute demande de carte |
+| Rien à payer si ça échoue | « Clore sans succès » : aucune commission |
+| Une seule saisie de carte | La carte est enregistrée une fois chez Stripe (aucun débit). Les dossiers suivants démarrent en un clic |
+| Il voit ce qu'Atlas lui rapporte | Sur le tableau de bord : « Atlas vous a fait récupérer X € » |
 
-### Marge par dossier (estimation, pour un prix de 12 € TTC)
-
-| Poste | Montant |
+| Pour vous | Comment c'est garanti |
 |---|---|
-| Prix payé par le client | 12,00 € |
-| Frais Stripe (carte européenne : environ 1,5 % + 0,25 €) | − 0,43 € |
-| IA : cas courant / pire cas (plafond de 3 $ atteint) | − 1,50 € / − 2,80 € |
-| Cotisations sociales en micro-entreprise (environ 21 % pour une prestation de services, à vérifier selon votre activité) | − 2,50 € |
-| **Reste par dossier** | **environ 7,50 € (cas courant) à 6,30 € (pire cas)** |
+| Le client paie sans rien avoir à faire | À « Mon problème est réglé », la commission est prélevée automatiquement sur la carte enregistrée. Si la banque demande une validation, un lien de paiement est envoyé par e-mail et affiché dans le dossier |
+| Jamais deux prélèvements | Un dossier ne se clôture qu'une fois ; la clôture est verrouillée avant tout prélèvement |
+| Un dossier ne coûte jamais plus qu'une somme fixée | **Plafond de coût IA par dossier** (`ATLAS_MAX_COST_PER_MISSION_USD`, 3 $ par défaut) |
+| Zéro temps humain dans le cas normal | Atlas rédige, vérifie, suit et relance seul. Le client envoie en un clic |
 
-Hypothèse : franchise de TVA de la micro-entreprise (pas de TVA à reverser sous le seuil). Au-dessus du seuil, ou avec une autre structure, refaites le calcul.
+**Commission par défaut** (modifiable sans toucher au code, voir `.env.example`) : 20 % de la somme récupérée, **au minimum 5 € et au maximum 30 €** ; **5 €** quand le résultat n'est pas une somme d'argent (abonnement résilié, service rétabli).
+
+| Somme récupérée | Commission |
+|---|---|
+| 20 € | 5 € (minimum) |
+| 80 € | 16 € |
+| 180 € et plus | 30 € (plafond) |
+| Résiliation obtenue | 5 € |
+
+### Est-ce rentable ? (estimation)
+
+Hypothèses, **à vérifier sur vos 20 premiers dossiers** : commission moyenne de 15 € ; IA à 1,50 € par dossier en moyenne (2,60 € au pire, plafond atteint) ; frais Stripe d'environ 0,50 € par prélèvement ; cotisations d'environ 21 % en micro-entreprise.
+
+| Part des dossiers réglés | Ce que rapporte un dossier pris en charge, en moyenne |
+|---|---|
+| 20 % | environ 0,80 € |
+| 35 % | environ 2,50 € |
+| 50 % | environ 4,20 € |
+| 70 % | environ 6,50 € |
+
+- **Seuil de rentabilité d'un dossier : environ 15 % de dossiers réglés** (environ 25 % si l'IA atteint toujours son plafond).
+- Coûts fixes de 30 à 70 € par mois (tableau ci-dessous) : avec 50 % de réussite, il faut **environ 7 à 17 dossiers pris en charge par mois** pour les couvrir.
+- En mode paiement d'avance (12 €), chaque dossier payé rapportait environ 7,50 €, mais beaucoup moins de gens passaient le cap. Au lancement, le nombre de dossiers compte plus que la marge par dossier : c'est lui qui fait revenir les clients et parler d'Atlas.
+
+### Les deux risques de ce modèle, et que surveiller
+
+1. **Le client déclare « sans succès » alors que c'est réglé.** Aucun contrôle automatique n'est possible sans accès à ses comptes. Surveiller la part de dossiers « sans succès » dont le dernier courrier a reçu une réponse positive. Si elle dépasse 10 %, envisager de demander une preuve (capture du virement) pour les grosses sommes.
+2. **Le client ne clôture jamais.** L'e-mail de fin de dossier lui demande de le faire. Si plus de 30 % des dossiers terminés restent ouverts après 60 jours, envisager d'exiger la clôture d'un dossier avant d'en ouvrir un nouveau. Ce n'est **pas** fait aujourd'hui, pour ne pas ajouter de friction.
+
+Le mode « prix d'avance » reste disponible : `ATLAS_BILLING_MODE=upfront` et `ATLAS_PRICE_CENTS=1200`.
 
 ### Coûts fixes mensuels (estimation)
 
@@ -38,9 +65,7 @@ Hypothèse : franchise de TVA de la micro-entreprise (pas de TVA à reverser sou
 | Assurance responsabilité civile professionnelle (recommandée) | ~15 à 30 € |
 | **Total** | **environ 30 à 70 € par mois** |
 
-**Point mort : environ 5 à 10 dossiers par mois.** Au-delà, chaque dossier rapporte environ 7 €.
-
-Le prix de 12 € est un **point de départ**. Il se change sans toucher au code (`ATLAS_PRICE_CENTS`). Les concurrents spécialisés prennent 25 à 35 % des sommes récupérées : pour un dossier à 100 € et plus, 12 à 19 € restent compétitifs.
+Hypothèse : franchise de TVA de la micro-entreprise (pas de TVA à reverser sous le seuil). Au-dessus du seuil, ou avec une autre structure, refaites le calcul.
 
 ---
 
@@ -69,7 +94,7 @@ Sur le serveur, dans le dossier du projet :
    - `ANTHROPIC_API_KEY` ;
    - `POSTGRES_PASSWORD` (mot de passe fort) ;
    - `ATLAS_APP_URL=https://VOTRE-DOMAINE` ;
-   - `ATLAS_PRICE_CENTS=1200` ;
+   - le mode de paiement : rien à mettre pour la commission au résultat (réglages par défaut) ; pour un prix d'avance, `ATLAS_BILLING_MODE=upfront` et `ATLAS_PRICE_CENTS=1200` ;
    - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` ;
    - les six champs `ATLAS_LEGAL_*` (nom, SIRET, adresse, e-mail, hébergeur, médiateur) ;
    - `RESEND_API_KEY`, `ATLAS_MAIL_FROM` ;
@@ -93,9 +118,9 @@ Sur le serveur, dans le dossier du projet :
 
 - [ ] `https://VOTRE-DOMAINE/api/health` répond `{"ok":true}`.
 - [ ] Les pages **Mentions légales**, **CGV** et **Confidentialité** n'affichent plus aucun `[… non renseigné]`. Tant qu'un champ manque, **le paiement reste désactivé** : c'est voulu.
-- [ ] La page d'accueil affiche le prix.
+- [ ] La page d'accueil affiche la commission (« Vous ne payez que si votre problème est réglé… »).
 - [ ] `pnpm check:integrations` (sur le serveur) : Claude OK.
-- [ ] **Faire un vrai dossier soi-même**, avec une vraie carte, en mode Stripe réel : analyse, paiement, démarrage automatique, courrier « Prêt à envoyer », envoi en un clic, « J'ai envoyé », reprise programmée, e-mail reçu. Puis se rembourser depuis le tableau de bord Stripe.
+- [ ] **Faire un vrai dossier soi-même**, avec une vraie carte, en mode Stripe réel : analyse, enregistrement de la carte (aucun débit), démarrage automatique, courrier « Prêt à envoyer », envoi en un clic, « J'ai envoyé », reprise programmée, e-mail reçu, puis « Mon problème est réglé » avec un montant : vérifier le prélèvement dans Stripe, puis se rembourser depuis le tableau de bord Stripe.
 - [ ] Vérifier dans le **Journal** du dossier le coût IA réel, et le comparer à l'estimation de la section 1.
 - [ ] Relire vous-même les CGV. Idéalement, les faire relire une fois par un professionnel (voir [`ANALYSE-JURIDIQUE.md`](ANALYSE-JURIDIQUE.md), risques 1 et 2).
 
@@ -104,13 +129,13 @@ Sur le serveur, dans le dossier du projet :
 ## 5. Trouver les premiers clients sans perdre d'argent
 
 1. **Gratuit d'abord :** votre entourage, les groupes locaux et les forums d'entraide, en respectant leurs règles. Présentez Atlas simplement, sans promesse de résultat.
-2. **Mesurer** au bout de 20 dossiers payés :
+2. **Mesurer** au bout de 20 dossiers pris en charge :
    - le coût IA réel par dossier ;
-   - la part de dossiers réglés ;
+   - la part de dossiers réglés, la commission moyenne, et la part de dossiers jamais clôturés ;
    - la part de clients qui reviennent avec un autre problème ;
    - les demandes de remboursement.
-3. **Publicité seulement ensuite**, par tranches de 50 à 100 €, et seulement si **le coût pour obtenir un dossier payé reste inférieur à la marge**, soit environ 7 €. Sinon, on arrête la publicité.
-4. **Ne pas** baisser le prix pour « faire du volume » : c'est l'erreur de Homejoy.
+3. **Publicité seulement ensuite**, par tranches de 50 à 100 €, et seulement si **le coût pour obtenir un dossier pris en charge reste inférieur à ce qu'il rapporte en moyenne** (environ 4 € avec 50 % de réussite, voir la section 1). Sinon, on arrête la publicité.
+4. **Ne pas** baisser la commission pour « faire du volume » : c'est l'erreur de Homejoy. Le client ne paie déjà rien en cas d'échec.
 
 ---
 
@@ -118,9 +143,10 @@ Sur le serveur, dans le dossier du projet :
 
 | Situation | Fréquence attendue | Que faire |
 |---|---|---|
-| Demande de remboursement ou de rétractation | Rare | Rembourser depuis Stripe (la part déjà réalisée peut être retenue, voir les CGV) |
-| Dossier hors périmètre payé par erreur | Rare | Rembourser (engagement des CGV) |
-| Dossier arrêté par le plafond de coût | Rare | Regarder le Journal ; rembourser ou terminer à la main |
+| Contestation d'une commission | Rare | Rembourser depuis Stripe si le client se trompe de bouton ou de montant |
+| Commission non réglée (lien de paiement ignoré, carte expirée) | Occasionnelle | Le dossier affiche la commission due ; relancer une fois par e-mail, sans plus |
+| Demande de suppression de la carte | Rare | La supprimer du client dans le tableau de bord Stripe |
+| Dossier arrêté par le plafond de coût | Rare | Regarder le Journal ; terminer à la main ou prévenir le client |
 | E-mail d'un client | Variable | Répondre depuis l'adresse de contact |
 
 ---

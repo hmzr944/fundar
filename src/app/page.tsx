@@ -1,6 +1,7 @@
 import { currentUser } from "@/lib/http";
 import { LegalFooter } from "@/components/legal-footer";
 import { LinkButton, Logo } from "@/components/ui";
+import { describeFee, eurosShort } from "@/lib/fee";
 import { billingConfig } from "@/server/billing/stripe";
 
 const examples = [
@@ -22,7 +23,11 @@ const how = [
 export default async function Landing() {
   const user = await currentUser();
   const billing = billingConfig();
-  const price = billing ? (billing.priceCents / 100).toFixed(2).replace(".", ",") : null;
+  const pricing = !billing
+    ? ""
+    : billing.mode === "success"
+      ? ` Vous ne payez que si votre problème est réglé : ${describeFee(billing.fee)}. Sinon, rien.`
+      : ` Prise en charge du dossier : ${eurosShort(billing.priceCents)} € TTC, paiement unique.`;
   const cta = user ? { href: "/app", label: "Ouvrir mon espace" } : { href: "/signup", label: "Commencer" };
   return (
     <div className="min-h-dvh">
@@ -49,7 +54,7 @@ export default async function Landing() {
             Atlas prépare les démarches, les vérifie, les suit et relance jusqu&apos;au bout.
           </p>
           <p className="mt-3 max-w-2xl text-sm text-muted">
-            Analyse gratuite.{price ? ` Prise en charge du dossier : ${price} € TTC, paiement unique.` : ""} Aucun mot de passe demandé.
+            Analyse gratuite.{pricing} Aucun mot de passe demandé.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <LinkButton href={cta.href} variant="primary" className="px-5 py-2.5 text-base">
@@ -97,7 +102,7 @@ export default async function Landing() {
           <p className="mt-2 max-w-3xl text-sm text-muted">
             Atlas ne donne pas de conseil juridique, ne vous représente pas en justice et ne garantit pas le résultat. Il n&apos;envoie
             rien à votre place : c&apos;est vous qui envoyez, en un clic, les courriers qu&apos;il a préparés. Il ne se connecte à aucun de
-            vos comptes. Un dossier n&apos;est marqué réglé que sur preuve.
+            vos comptes. Un dossier n&apos;est marqué réglé que lorsque vous le confirmez.
           </p>
           <LinkButton href={cta.href} variant="primary" className="mt-5">
             {cta.label}

@@ -179,8 +179,8 @@ export async function startAnalysis(deps: AgentDeps, userId: string, missionId: 
 export async function startExecution(deps: AgentDeps, userId: string, missionId: string): Promise<StartedRun> {
   const mission = await getOwnedMission(deps.db, userId, missionId);
   if (!deps.llm) throw unavailable(LLM_MISSING);
-  if (deps.requirePayment && !mission.payment?.paidAt) {
-    throw new AppError(402, "Ce dossier doit être payé avant qu'Atlas le prenne en charge.", "payment_required");
+  if (deps.requirePayment && !mission.payment?.paidAt && !mission.payment?.authorizedAt) {
+    throw new AppError(402, "Validez d'abord la prise en charge de ce dossier.", "payment_required");
   }
   await assertNoActiveRun(deps.db, missionId, deps.limits.staleRunSeconds);
   if (mission.missingInfo.some((m) => m.blocking)) {
