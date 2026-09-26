@@ -42,6 +42,8 @@ Production :
 pnpm build && pnpm start
 ```
 
+Mise en ligne complète (application, base, planificateur des reprises, purge, paiement, notifications) : voir [`docs/LANCEMENT.md`](docs/LANCEMENT.md) et `docker-compose.prod.yml`.
+
 Scripts utiles :
 
 | Commande | Rôle |

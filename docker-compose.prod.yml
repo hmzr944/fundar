@@ -1,0 +1,56 @@
+# Production: application + PostgreSQL + follow-up scheduler.
+# Usage: docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: atlas
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?définir POSTGRES_PASSWORD dans .env}
+      POSTGRES_DB: atlas
+    volumes:
+      - atlas-db:/var/lib/postgresql/data
+
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://atlas:${POSTGRES_PASSWORD}@db:5432/atlas
+      ATLAS_STORAGE_DIR: /app/storage
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    volumes:
+      - atlas-files:/app/storage
+
+  # Wakes Atlas every 15 minutes for the follow-ups that are due.
+  scheduler:
+    image: curlimages/curl:8.10.1
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - app
+    entrypoint:
+      - sh
+      - -c
+      - 'while true; do curl -fsS -X POST -H "authorization: Bearer $$ATLAS_CRON_SECRET" http://app:3000/api/internal/follow-ups || true; sleep 900; done'
+
+  # Deletes inactive dossiers once a day (retention policy).
+  purge:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://atlas:${POSTGRES_PASSWORD}@db:5432/atlas
+      ATLAS_STORAGE_DIR: /app/storage
+    depends_on:
+      - db
+    volumes:
+      - atlas-files:/app/storage
+    entrypoint: ["sh", "-c", "while true; do pnpm purge || true; sleep 86400; done"]
+
+volumes:
+  atlas-db:
+  atlas-files:
