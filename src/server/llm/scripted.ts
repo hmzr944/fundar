@@ -117,6 +117,11 @@ function analyzeDemo(req: LlmRequest): LlmResult {
       ? []
       : [{ request: "Recherche web", reason: "Aucun fournisseur de recherche configuré.", alternative: "Fournissez des liens ou des documents." }],
     steps,
+    eligibility: {
+      can_handle: missing.length === 0,
+      reason: missing.length ? "Il faut d'abord répondre aux questions." : "[Test] Démarches écrites possibles.",
+      what_atlas_will_do: missing.length ? "" : "[Test] Atlas prépare les courriers et suit le dossier.",
+    },
     reply: missing.length
       ? `[Réponse scriptée de test] Il me manque quelques informations :\n${missing.map((m, i) => `${i + 1}. ${m.question}`).join("\n")}`
       : "[Réponse scriptée de test] Voici le plan proposé.",

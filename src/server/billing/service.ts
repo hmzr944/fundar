@@ -18,6 +18,10 @@ export async function startCheckout(db: Db, cfg: BillingConfig, userId: string, 
   const mission = await getOwnedMission(db, userId, missionId);
   if (mission.payment?.paidAt) throw conflict("Ce dossier est déjà payé.");
   if (mission.missingInfo.some((m) => m.blocking)) throw conflict("Répondez d'abord aux questions d'Atlas : il vous dira ensuite s'il peut prendre votre dossier en charge.");
+  // Never take money for a dossier Atlas has not said it can handle.
+  if (mission.eligibility?.canHandle !== true) {
+    throw conflict(mission.eligibility?.reason ? `Atlas ne peut pas prendre ce dossier en charge : ${mission.eligibility.reason}` : "Atlas n'a pas encore dit s'il peut prendre ce dossier en charge.");
+  }
   const steps = await db.select({ id: missionSteps.id }).from(missionSteps).where(eq(missionSteps.missionId, missionId));
   if (!steps.length) throw conflict("Atlas n'a pas encore analysé ce dossier.");
   const user = await db.query.users.findFirst({ where: eq(users.id, userId) });

@@ -6,10 +6,10 @@ import { Button, Spinner } from "@/components/ui";
 import { api } from "@/lib/client/api";
 
 const suggestions = [
-  "Je déménage le mois prochain. Aide-moi à organiser mon déménagement, comparer les solutions de transport et préparer les démarches.",
-  "Compare les offres de box internet fibre à moins de 30 €/mois, sans engagement de préférence.",
-  "Prépare une réclamation pour obtenir le remboursement de mon billet de train annulé.",
-  "Organise ma semaine : dossier CAF urgent, courses, 3 séances de sport et un anniversaire samedi.",
+  "Mon colis est indiqué livré mais je ne l'ai jamais reçu, et le vendeur refuse de me rembourser.",
+  "Mon opérateur m'a facturé des frais de résiliation que je pense injustifiés.",
+  "Mon ancien propriétaire ne m'a toujours pas rendu ma caution, plus de deux mois après l'état des lieux.",
+  "Mon vol a été annulé et la compagnie m'impose un avoir au lieu d'un remboursement.",
 ];
 
 export function MissionComposer({ disabled }: { disabled?: boolean }) {
@@ -38,7 +38,7 @@ export function MissionComposer({ disabled }: { disabled?: boolean }) {
   return (
     <form onSubmit={submit} className="rounded-2xl border border-line-strong bg-surface p-4 shadow-[0_0_0_1px_rgba(110,168,255,0.04)] sm:p-5">
       <label htmlFor="mission-request" className="text-lg font-semibold">
-        Que voulez-vous accomplir ?
+        Quel problème voulez-vous régler ?
       </label>
       <textarea
         id="mission-request"
@@ -49,7 +49,7 @@ export function MissionComposer({ disabled }: { disabled?: boolean }) {
         }}
         rows={4}
         maxLength={8000}
-        placeholder="Décrivez librement votre objectif, vos contraintes (dates, budget, lieux…) et ce que vous attendez."
+        placeholder="Racontez simplement : avec quelle entreprise, ce qui s'est passé, les dates et montants, ce que vous avez déjà tenté, et ce que vous voulez obtenir."
         className="mt-3 w-full resize-y rounded-xl border border-line bg-elev px-4 py-3 text-[0.95rem] outline-none placeholder:text-faint focus:border-accent"
       />
       {error && (
@@ -58,9 +58,12 @@ export function MissionComposer({ disabled }: { disabled?: boolean }) {
         </p>
       )}
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-faint">Vous pourrez ajouter des documents et des précisions ensuite. Ctrl/⌘ + Entrée pour envoyer.</p>
+        <p className="text-xs text-faint">
+          Analyse gratuite : Atlas vous dit s&apos;il peut s&apos;occuper de votre dossier. Vous pourrez ajouter vos documents (factures,
+          e-mails, contrat) ensuite.
+        </p>
         <Button type="submit" variant="primary" disabled={pending || disabled}>
-          {pending && <Spinner />} Créer la mission
+          {pending && <Spinner />} Analyser gratuitement
         </Button>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">

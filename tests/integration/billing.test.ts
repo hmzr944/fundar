@@ -108,6 +108,16 @@ describe("paying for a dossier", () => {
     expect(row.payment).toMatchObject({ checkoutSessionId: "cs_test_1", termsVersion: "1", consentAt: expect.any(String) });
   });
 
+  it("never takes money for a dossier Atlas said it cannot handle", async () => {
+    const user = await createTestUser();
+    const m = await createMission(db, user.id, "Organise ma semaine");
+    const refused = analysis({ eligibility: { can_handle: false, reason: "Ce n'est pas un problème avec une organisation.", what_atlas_will_do: "" } });
+    await analyzeMission({ db, llm: new ScriptedProvider(() => textResult(JSON.stringify(refused))), capabilities: { webSearch: false, searchProvider: null } }, m.id, null);
+    await expect(paidSession(m.id, user.id)).rejects.toMatchObject({ status: 409, message: expect.stringContaining("pas un problème avec une organisation") });
+    const [row] = await db.select().from(missions).where(eq(missions.id, m.id));
+    expect(row.eligibility).toEqual({ canHandle: false, reason: "Ce n'est pas un problème avec une organisation.", whatAtlasWillDo: "" });
+  });
+
   it("refuses to open a checkout before Atlas has said it can help", async () => {
     const user = await createTestUser();
     const m = await createMission(db, user.id, "Pas encore analysée");

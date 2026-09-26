@@ -14,8 +14,8 @@ async function signup(page: Page, mail = email()) {
 }
 
 async function createMission(page: Page, request: string) {
-  await page.getByLabel("Que voulez-vous accomplir ?").fill(request);
-  await page.getByRole("button", { name: "Créer la mission" }).click();
+  await page.getByLabel("Quel problème voulez-vous régler ?").fill(request);
+  await page.getByRole("button", { name: "Analyser gratuitement" }).click();
   await expect(page).toHaveURL(/\/app\/missions\/[0-9a-f-]{36}$/);
   return page.url().split("/").pop()!;
 }

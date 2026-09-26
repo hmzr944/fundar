@@ -106,7 +106,9 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
   const userSteps = steps.filter((s) => s.kind === "user_action" && !["DONE", "SKIPPED"].includes(s.status));
   const hasRun = data.runs.some((r) => r.kind === "execution");
   const canRun = integrations.llm.available && !locked && steps.length > 0 && blocking.length === 0 && runnable;
+  const eligibility = mission.eligibility;
   const mustPay = integrations.billing.enabled && !paid;
+  const canPay = mustPay && eligibility?.canHandle === true && blocking.length === 0;
   const price = ((integrations.billing.priceCents ?? 0) / 100).toFixed(2).replace(".", ",");
   const lastRun = data.runs[0];
   const analysisFailed = !locked && lastRun?.kind === "analysis" && lastRun.status === "FAILED";
@@ -142,7 +144,7 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
               </Button>
             ) : (
               <>
-                {steps.length > 0 && mustPay && (
+                {steps.length > 0 && canPay && (
                   <Button variant="primary" onClick={() => setCheckoutOpen(true)} disabled={!canRun || busy !== null} data-testid="pay-button">
                     Confier mon dossier à Atlas — {price} €
                   </Button>
@@ -177,7 +179,22 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
             </span>
           </Alert>
         )}
-        {checkoutOpen && mustPay && (
+        {!locked && eligibility && blocking.length === 0 && !paid && (
+          <div data-testid="eligibility" data-can-handle={eligibility.canHandle}>
+            {eligibility.canHandle ? (
+              <Alert tone="success" title="Atlas peut s'occuper de votre dossier">
+                <p>{eligibility.whatAtlasWillDo}</p>
+                <p className="mt-1 text-xs text-muted">{eligibility.reason}</p>
+              </Alert>
+            ) : (
+              <Alert tone="warning" title="Atlas ne peut pas prendre ce dossier en charge">
+                <p>{eligibility.reason}</p>
+                {mustPay && <p className="mt-1 text-xs text-muted">Aucun paiement ne vous sera demandé pour ce dossier.</p>}
+              </Alert>
+            )}
+          </div>
+        )}
+        {checkoutOpen && canPay && (
           <Alert tone="info" title={`Confier ce dossier à Atlas — ${price} € TTC, paiement unique`}>
             <p>
               Atlas prend en charge l&apos;ensemble du dossier : rédaction et vérification des courriers, suivi, relances et escalade.

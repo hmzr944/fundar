@@ -29,6 +29,13 @@
       "when": 1790405309308,
       "tag": "0003_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790408928845,
+      "tag": "0004_eligibility",
+      "breakpoints": true
     }
   ]
 }

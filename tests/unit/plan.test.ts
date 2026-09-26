@@ -59,3 +59,16 @@ describe("mergePlan", () => {
     expect(m.insert[2].depends_on).toEqual([]);
   });
 });
+
+describe("mission titles", () => {
+  it("cuts a long first line on a word boundary", async () => {
+    const { shortTitle } = await import("@/server/missions/service");
+    const long = "Mon colis Colissimo (commande Boulanger n°48213, 89 €) est indiqué livré le 12/09/2026 mais je ne l'ai jamais reçu.";
+    const t = shortTitle(long);
+    expect(t.length).toBeLessThanOrEqual(81);
+    expect(t.endsWith("…")).toBe(true);
+    expect(long.startsWith(t.slice(0, -1))).toBe(true);
+    expect(long.charAt(t.length - 1)).toBe(" ");
+    expect(shortTitle("Court")).toBe("Court");
+  });
+});

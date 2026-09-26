@@ -135,8 +135,17 @@ export async function getMissionDetail(db: Db, userId: string, missionId: string
   return { mission, steps, messages: msgs, artifacts: artifactsOut, sources: srcs, documents: docs, runs };
 }
 
+/** First line of the request, cut on a word boundary. */
+export function shortTitle(request: string, max = 80) {
+  const line = request.split(/\n/)[0].trim();
+  if (line.length <= max) return line;
+  const cut = line.slice(0, max);
+  const space = cut.lastIndexOf(" ");
+  return `${(space > max / 2 ? cut.slice(0, space) : cut).replace(/[\s,;:.(-]+$/, "")}…`;
+}
+
 export async function createMission(db: Db, userId: string, request: string) {
-  const title = request.split(/\n/)[0].slice(0, 80) + (request.length > 80 ? "…" : "");
+  const title = shortTitle(request);
   return db.transaction(async (tx) => {
     const [mission] = await tx
       .insert(missions)
@@ -205,6 +214,13 @@ export async function applyAnalysis(db: Db, missionId: string, analysis: Analysi
         constraints: analysis.constraints.slice(0, 20).map((c) => ({ label: c.label.slice(0, 80), value: c.value.slice(0, 300) })),
         missingInfo,
         unsupported: analysis.unsupported.slice(0, 8),
+        eligibility: analysis.eligibility
+          ? {
+              canHandle: analysis.eligibility.can_handle,
+              reason: analysis.eligibility.reason.slice(0, 600),
+              whatAtlasWillDo: analysis.eligibility.what_atlas_will_do.slice(0, 1000),
+            }
+          : null,
         status,
         lastError: null,
       })

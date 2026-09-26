@@ -40,6 +40,14 @@ export const analysisSchema = z.object({
         depends_on: z.array(z.string()),
       }),
     ),
+  /** Can Atlas take the whole dossier in charge? Decides whether payment is offered. */
+  eligibility: z
+    .object({
+      can_handle: z.boolean(),
+      reason: z.string(),
+      what_atlas_will_do: z.string(),
+    })
+    .optional(),
   reply: z.string().min(1),
 });
 
@@ -58,6 +66,7 @@ export const analysisJsonSchema = {
     "capabilities_needed",
     "unsupported",
     "steps",
+    "eligibility",
     "reply",
   ],
   properties: {
@@ -126,6 +135,25 @@ export const analysisJsonSchema = {
           description: { type: "string" },
           kind: { type: "string", enum: [...STEP_KINDS] },
           depends_on: { type: "array", items: { type: "string" } },
+        },
+      },
+    },
+    eligibility: {
+      type: "object",
+      additionalProperties: false,
+      required: ["can_handle", "reason", "what_atlas_will_do"],
+      description:
+        "Atlas peut-il prendre en charge ce dossier de bout en bout ? C'est ce verdict qui décide si l'utilisateur peut payer la prise en charge : ne mets true que si les conditions sont réunies.",
+      properties: {
+        can_handle: {
+          type: "boolean",
+          description:
+            "true seulement si : il s'agit d'un problème avec une entreprise ou une organisation (réclamation, remboursement, facture, résiliation, caution, litige de consommation…) ; les démarches peuvent se faire par écrit (e-mail, formulaire, courrier, médiateur) sans les identifiants de l'utilisateur ; le résultat attendu est vérifiable ; le sujet n'est pas exclu (procédure judiciaire, pénal, famille, travail, étrangers, santé, dette réclamée à l'utilisateur). Une demande qui n'est pas un problème à régler (organisation, comparaison, planning…) → false.",
+        },
+        reason: { type: "string", description: "Pourquoi, en une ou deux phrases adressées à l'utilisateur." },
+        what_atlas_will_do: {
+          type: "string",
+          description: "Si can_handle : ce qu'Atlas va faire concrètement (à qui il écrira, quoi demander, quel suivi), en 2 ou 3 phrases, sans promettre de résultat. Sinon : chaîne vide.",
         },
       },
     },

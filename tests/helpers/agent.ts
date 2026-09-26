@@ -14,6 +14,7 @@ export function analysis(over: Partial<Analysis> = {}): Analysis {
     capabilities_needed: ["planning"],
     unsupported: [],
     steps: [{ key: "s1", title: "Organiser", description: "", kind: "planning", depends_on: [] }],
+    eligibility: { can_handle: true, reason: "Démarches écrites possibles.", what_atlas_will_do: "Préparer et suivre la réclamation." },
     reply: "Voici le plan.",
     ...over,
   };

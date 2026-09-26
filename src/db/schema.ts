@@ -139,6 +139,8 @@ export const missions = pgTable(
     /** When Atlas picks the mission up again by itself (follow-up, reminder). */
     nextFollowUpAt: timestamp("next_follow_up_at", { withTimezone: true }),
     followUpReason: text("follow_up_reason"),
+    /** Atlas' verdict at analysis time: can it handle the whole dossier (offers payment when true)? */
+    eligibility: jsonb("eligibility").$type<{ canHandle: boolean; reason: string; whatAtlasWillDo: string } | null>(),
     /** Payment for Atlas to handle this dossier (null = not paid). */
     payment: jsonb("payment").$type<MissionPayment | null>(),
     ...timestamps,

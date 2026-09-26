@@ -63,7 +63,7 @@ export function Conversation({
           rows={3}
           maxLength={8000}
           disabled={locked}
-          placeholder={locked ? "Atlas travaille… vous pourrez répondre ensuite." : "Ex. : départ de Lyon, arrivée à Nantes, budget 1 500 €."}
+          placeholder={locked ? "Atlas travaille… vous pourrez répondre ensuite." : "Ex. : la réponse de l'entreprise, une date, un montant, l'adresse e-mail du service client."}
           className="mt-2 w-full resize-y rounded-lg border border-line bg-elev px-3 py-2 text-sm outline-none placeholder:text-faint focus:border-accent disabled:opacity-60"
         />
         {error && (
