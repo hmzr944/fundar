@@ -23,6 +23,8 @@ export const missionStatus = pgEnum("mission_status", [
   "PARTIALLY_COMPLETED",
   "COMPLETED",
   "FAILED",
+  /** Atlas has done what it can for now and will pick the mission up on a set date. */
+  "SCHEDULED",
 ]);
 
 export const stepStatus = pgEnum("step_status", [
@@ -125,9 +127,13 @@ export const missions = pgTable(
     remainingActions: jsonb("remaining_actions").$type<string[]>().notNull().default([]),
     limitations: jsonb("limitations").$type<string[]>().notNull().default([]),
     lastError: text("last_error"),
+    /** When Atlas picks the mission up again by itself (follow-up, reminder). */
+    nextFollowUpAt: timestamp("next_follow_up_at", { withTimezone: true }),
+    followUpReason: text("follow_up_reason"),
     ...timestamps,
   },
   (t) => [
+    index("missions_follow_up_idx").on(t.nextFollowUpAt),
     index("missions_user_updated_idx").on(t.userId, t.updatedAt),
     index("missions_user_status_idx").on(t.userId, t.status),
   ],

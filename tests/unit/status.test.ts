@@ -70,3 +70,19 @@ describe("deriveMissionStatus", () => {
     expect(deriveMissionStatus({ steps: [step({})], hasBlockingMissingInfo: false, lastRunFailed: true })).toBe("FAILED");
   });
 });
+
+describe("scheduled follow-up", () => {
+  const step = (status: "DONE" | "PENDING" | "BLOCKED", kind: "planning" | "user_action" = "planning") =>
+    ({ status, kind, result: status === "DONE" ? "ok" : null, completedBy: status === "DONE" ? ("atlas" as const) : null, evidence: {} });
+
+  it("reads as scheduled while Atlas waits for a set date", () => {
+    expect(deriveMissionStatus({ steps: [step("DONE"), step("PENDING", "user_action")], hasBlockingMissingInfo: false, followUpScheduled: true })).toBe("SCHEDULED");
+  });
+
+  it("does not hide a blocked step, a running run, a question or a finished mission", () => {
+    expect(deriveMissionStatus({ steps: [step("BLOCKED")], hasBlockingMissingInfo: false, followUpScheduled: true })).not.toBe("SCHEDULED");
+    expect(deriveMissionStatus({ steps: [step("PENDING")], hasBlockingMissingInfo: false, runActive: true, followUpScheduled: true })).toBe("IN_PROGRESS");
+    expect(deriveMissionStatus({ steps: [step("PENDING")], hasBlockingMissingInfo: true, followUpScheduled: true })).toBe("NEEDS_INPUT");
+    expect(deriveMissionStatus({ steps: [step("DONE")], hasBlockingMissingInfo: false, followUpScheduled: true })).toBe("COMPLETED");
+  });
+});

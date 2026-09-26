@@ -48,7 +48,10 @@ export async function buildExecutionBriefing(db: Db, missionId: string) {
       .from(documents)
       .where(eq(documents.missionId, missionId)),
     db.select().from(messages).where(eq(messages.missionId, missionId)).orderBy(messages.createdAt),
-    db.select({ id: artifacts.id, name: artifacts.name, type: artifacts.type }).from(artifacts).where(eq(artifacts.missionId, missionId)),
+    db
+      .select({ id: artifacts.id, name: artifacts.name, type: artifacts.type, metadata: artifacts.metadata })
+      .from(artifacts)
+      .where(eq(artifacts.missionId, missionId)),
     db.select({ id: sources.id }).from(sources).where(eq(sources.missionId, missionId)),
   ]);
 
@@ -76,6 +79,7 @@ Demande initiale : ${mission.description}
 Reformulation : ${mission.reformulation ?? "-"}
 Contraintes : ${mission.constraints.length ? mission.constraints.map((c) => `${c.label} = ${c.value}`).join(" ; ") : "aucune connue"}
 Informations encore manquantes : ${mission.missingInfo.length ? mission.missingInfo.map((m) => `${m.question}${m.blocking ? " (bloquante)" : ""}`).join(" ; ") : "aucune"}
+Reprise programmée : ${mission.nextFollowUpAt ? `${mission.nextFollowUpAt.toLocaleDateString("fr-FR")} — ${mission.followUpReason ?? ""}` : "aucune"}
 </mission>
 
 <plan_json>
@@ -87,7 +91,7 @@ ${docs.length ? docs.map((d) => `- document_id=${d.id} « ${d.name} » ${d.statu
 </documents>
 
 <deja_produit>
-Livrables existants : ${arts.length ? arts.map((a) => `${a.name} [${a.type}] artifact_id=${a.id}`).join(" ; ") : "aucun"}
+Livrables existants : ${arts.length ? arts.map((a) => `${a.name} [${a.type}] artifact_id=${a.id}${sendStatus(a.metadata)}`).join(" ; ") : "aucun"}
 Sources déjà enregistrées : ${srcCount.length}
 ${mission.contextSummary ? `Résumé des exécutions précédentes :\n${mission.contextSummary}` : ""}
 </deja_produit>
@@ -97,6 +101,13 @@ ${conversation}
 </conversation>
 
 Exécute les étapes encore ouvertes (statut PENDING, IN_PROGRESS, BLOCKED ou FAILED ; les étapes DONE/SKIPPED sont closes). Réessaie une étape BLOCKED/FAILED seulement si une nouvelle information le permet. Termine par finish_mission.`;
+}
+
+function sendStatus(metadata: Record<string, unknown>) {
+  const send = metadata.send as { to?: string } | undefined;
+  if (!send?.to) return "";
+  const sentAt = typeof metadata.sentAt === "string" ? new Date(metadata.sentAt).toLocaleDateString("fr-FR") : null;
+  return sentAt ? ` (envoyé par l'utilisateur à ${send.to} le ${sentAt})` : ` (à envoyer à ${send.to}, pas encore envoyé)`;
 }
 
 function canonical(v: unknown): string {

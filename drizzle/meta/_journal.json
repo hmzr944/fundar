@@ -15,6 +15,13 @@
       "when": 1790188398693,
       "tag": "0001_needy_nightcrawler",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790404452138,
+      "tag": "0002_follow_ups",
+      "breakpoints": true
     }
   ]
 }

@@ -22,7 +22,7 @@ export async function buildAnalysisInput(db: Db, missionId: string) {
       .where(eq(documents.missionId, missionId)),
   ]);
   const conversation = msgs
-    .filter((m) => m.role !== "event" || m.metadata?.kind === "step_update")
+    .filter((m) => m.role !== "event" || m.metadata?.kind === "step_update" || m.metadata?.kind === "follow_up_due")
     .slice(-30)
     .map((m) => `[${m.role === "user" ? "Utilisateur" : m.role === "assistant" ? "Atlas" : "Événement"}] ${m.content.slice(0, 4000)}`)
     .join("\n\n");

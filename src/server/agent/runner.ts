@@ -1,7 +1,7 @@
 import { and, count, eq, gte, inArray, lt } from "drizzle-orm";
 import type { Db } from "@/db";
 import { executionLogs, missionRuns, missions, missionSteps, type MissionRun } from "@/db/schema";
-import { conflict, tooMany, unavailable } from "@/server/errors";
+import { AppError, conflict, tooMany, unavailable } from "@/server/errors";
 import { LlmError, type LlmProvider } from "@/server/llm/types";
 import { addMessage, getOwnedMission, refreshMissionStatus } from "@/server/missions/service";
 import type { PageFetcher } from "@/server/search/fetch-page";
@@ -226,6 +226,31 @@ export async function startExecution(deps: AgentDeps, userId: string, missionId:
     }
   })();
   return { run, done };
+}
+
+export type ContinueOutcome = "executed" | "needs_input" | "nothing_to_run" | "analysis_failed";
+
+/**
+ * Picks a mission up without anyone clicking: re-analyses it with what is new
+ * (a reply, an elapsed delay…), then executes the plan when nothing blocks.
+ * Used for scheduled follow-ups.
+ */
+export async function continueMission(deps: AgentDeps, userId: string, missionId: string): Promise<ContinueOutcome> {
+  const analysis = await startAnalysis(deps, userId, missionId);
+  await analysis.done;
+  const run = await deps.db.query.missionRuns.findFirst({ where: eq(missionRuns.id, analysis.run.id) });
+  if (run?.status !== "SUCCEEDED") return "analysis_failed";
+  const mission = await getOwnedMission(deps.db, userId, missionId);
+  if (mission.missingInfo.some((m) => m.blocking)) return "needs_input";
+  try {
+    const execution = await startExecution(deps, userId, missionId);
+    await execution.done;
+    return "executed";
+  } catch (e) {
+    // No step left for Atlas (everything is on the user's side): not an error.
+    if (e instanceof AppError && e.status === 409) return "nothing_to_run";
+    throw e;
+  }
 }
 
 export async function cancelRun(db: Db, userId: string, missionId: string) {

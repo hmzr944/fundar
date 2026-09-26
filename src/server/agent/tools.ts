@@ -76,6 +76,13 @@ const inputs = {
     title: z.string().trim().min(1).max(150),
     content_markdown: z.string().min(1).max(100_000),
     step_id: z.string().uuid().optional(),
+    send_to: z.string().trim().email().max(320).optional(),
+    subject: z.string().trim().min(1).max(200).optional(),
+    follow_up_days_after_sending: z.number().int().min(1).max(120).optional(),
+  }),
+  schedule_follow_up: z.object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "format AAAA-MM-JJ attendu"),
+    reason: z.string().trim().min(3).max(300),
   }),
   revise_deliverable: z.object({
     artifact_id: z.string().uuid(),
@@ -157,6 +164,33 @@ export function toolDefinitions(opts: { webSearch: boolean; review?: boolean }):
           title: { type: "string" },
           content_markdown: { type: "string" },
           step_id: { type: "string", description: "Étape à laquelle rattacher le livrable." },
+          send_to: {
+            type: "string",
+            description:
+              "Pour un courrier ou un e-mail destiné à un tiers : adresse e-mail du destinataire. Seulement si elle figure dans les documents ou les messages de l'utilisateur ; sinon, omets-la. L'utilisateur l'envoie en un clic depuis sa messagerie.",
+          },
+          subject: { type: "string", description: "Objet de l'e-mail d'envoi." },
+          follow_up_days_after_sending: {
+            type: "integer",
+            minimum: 1,
+            maximum: 120,
+            description:
+              "Nombre de jours après l'envoi par l'utilisateur au bout desquels Atlas reprendra le dossier (vérifier la réponse, relancer ou escalader). Choisis-le d'après le délai légal ou contractuel de réponse.",
+          },
+        },
+      },
+    },
+    {
+      name: "schedule_follow_up",
+      description:
+        "Programme la reprise automatique du dossier par Atlas à une date donnée (attente d'une réponse, d'un remboursement, fin d'un délai légal). Remplace la reprise déjà programmée.",
+      input_schema: {
+        type: "object",
+        additionalProperties: false,
+        required: ["date", "reason"],
+        properties: {
+          date: { type: "string", description: "Date de reprise, AAAA-MM-JJ, dans le futur (180 jours au plus)." },
+          reason: { type: "string", description: "Ce qu'Atlas devra vérifier ou faire ce jour-là." },
         },
       },
     },
@@ -394,21 +428,32 @@ const handlers: { [K in ToolName]: (ctx: ToolContext, input: z.infer<(typeof inp
       }
     }
     const content = stripToolMarkup(input.content_markdown);
+    const send = input.send_to
+      ? {
+          to: input.send_to,
+          subject: input.subject ?? input.title,
+          // An address the user gave (message or document) vs. one the model proposed.
+          confirmed: await addressKnownToUser(ctx, input.send_to),
+          ...(input.follow_up_days_after_sending ? { followUpDays: input.follow_up_days_after_sending } : {}),
+        }
+      : null;
+    const metadata = { generatedBy: "atlas", ...(send ? { send } : {}) };
     const [art] = await ctx.db
       .insert(artifacts)
-      .values({
-        missionId: ctx.missionId,
-        stepId,
-        type: input.type,
-        name: input.title,
-        content,
-        metadata: { generatedBy: "atlas" },
-      })
+      .values({ missionId: ctx.missionId, stepId, type: input.type, name: input.title, content, metadata })
       .returning({ id: artifacts.id });
-    const review = await runReview(ctx, art.id, { type: input.type, title: input.title, content }, { generatedBy: "atlas" });
+    const review = await runReview(ctx, art.id, { type: input.type, title: input.title, content }, metadata);
     return {
       ok: true,
-      content: { ok: true, artifact_id: art.id, title: input.title, ...(review ? reviewPayload(review, 0) : {}) },
+      content: {
+        ok: true,
+        artifact_id: art.id,
+        title: input.title,
+        ...(send && !send.confirmed
+          ? { send_warning: "Cette adresse ne figure ni dans les messages ni dans les documents de l'utilisateur : elle lui sera signalée comme à vérifier." }
+          : {}),
+        ...(review ? reviewPayload(review, 0) : {}),
+      },
       logDetails: {
         artifactId: art.id,
         type: input.type,
@@ -443,6 +488,20 @@ const handlers: { [K in ToolName]: (ctx: ToolContext, input: z.infer<(typeof inp
       ok: true,
       content: { ok: true, artifact_id: art.id, revision: revisions + 1, ...(review ? reviewPayload(review, revisions + 1) : {}) },
       logDetails: { artifactId: art.id, revision: revisions + 1, ...(review ? { review: review.verdict, reviewIssues: review.issues.length } : {}) },
+    };
+  },
+
+  async schedule_follow_up(ctx, input) {
+    const at = new Date(`${input.date}T09:00:00`);
+    const now = new Date();
+    if (Number.isNaN(at.getTime())) return fail("invalid_date", "Date invalide.");
+    if (at <= now) return fail("date_in_past", "La date de reprise doit être dans le futur.");
+    if (at.getTime() - now.getTime() > 180 * 86_400_000) return fail("date_too_far", "La reprise doit avoir lieu dans les 180 jours.");
+    await ctx.db.update(missions).set({ nextFollowUpAt: at, followUpReason: input.reason }).where(eq(missions.id, ctx.missionId));
+    return {
+      ok: true,
+      content: { ok: true, follow_up_at: at.toISOString(), reason: input.reason },
+      logDetails: { followUpAt: at.toISOString() },
     };
   },
 
@@ -552,6 +611,22 @@ const handlers: { [K in ToolName]: (ctx: ToolContext, input: z.infer<(typeof inp
     };
   },
 };
+
+/** True when the user wrote this address in a message or it appears in one of their documents. */
+async function addressKnownToUser(ctx: ToolContext, address: string) {
+  const needle = address.toLowerCase();
+  const [userMsgs, docs] = await Promise.all([
+    ctx.db
+      .select({ content: messages.content })
+      .from(messages)
+      .where(and(eq(messages.missionId, ctx.missionId), eq(messages.role, "user"))),
+    ctx.db
+      .select({ text: documents.extractedText })
+      .from(documents)
+      .where(and(eq(documents.missionId, ctx.missionId), eq(documents.userId, ctx.userId), eq(documents.status, "READY"))),
+  ]);
+  return [...userMsgs.map((m) => m.content), ...docs.map((d) => d.text ?? "")].some((t) => t.toLowerCase().includes(needle));
+}
 
 /** Reviews a deliverable (when enabled) and stores the result on the artifact. */
 async function runReview(

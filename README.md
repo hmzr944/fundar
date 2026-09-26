@@ -135,13 +135,32 @@ L'interface interroge `GET /api/missions/:id` toutes les 2 s pendant qu'Atlas tr
 | `web_search` | Recherche réelle (Tavily/Brave) ; chaque résultat devient une `Source` | Proposé seulement si un fournisseur est configuré |
 | `fetch_page` | Lit le texte d'une page | URL limitées à celles trouvées par la recherche ou écrites par l'utilisateur (anti-exfiltration) ; blocage SSRF à la résolution DNS ; http(s) et ports standard uniquement ; 2 Mo, 15 s, 4 redirections revalidées ; une page coupée à 2 Mo ou à 60 000 caractères est signalée comme **lue partiellement** (au modèle et dans l'onglet Sources) |
 | `read_document` | Lit le texte extrait d'un document importé, par tranches | Limité aux documents de la mission et de son propriétaire |
-| `create_deliverable` | Crée un livrable Markdown (courrier, e-mail, checklist, tableau…) | Taille bornée ; **relu automatiquement** dès sa création (voir ci-dessous) |
+| `create_deliverable` | Crée un livrable Markdown (courrier, e-mail, checklist, tableau…). Pour un message à un tiers : destinataire (`send_to`), objet et délai de reprise après envoi (`follow_up_days_after_sending`) | Taille bornée ; **relu automatiquement** dès sa création (voir ci-dessous) ; une adresse qui ne figure ni dans les messages ni dans les documents de l'utilisateur est signalée « à vérifier » |
+| `schedule_follow_up` | Programme la reprise automatique du dossier à une date (attente d'une réponse, d'un remboursement, fin d'un délai) | Date dans le futur, 180 jours au plus ; remplace la reprise précédente |
 | `revise_deliverable` | Corrige un livrable après la relecture | Proposé seulement si la relecture est active ; 2 corrections au plus par livrable ; refusé si l'utilisateur a modifié le livrable ; la nouvelle version est relue à son tour |
 | `update_step` | Change le statut d'une étape | `done` exige une preuve selon le type (voir ci-dessous) |
 | `list_history` | Consulte les autres missions de l'utilisateur | Métadonnées uniquement, jamais celles d'autres utilisateurs |
 | `finish_mission` | Clôt l'exécution avec un compte rendu honnête | Ne fixe pas le statut |
 
 Chaque outil renvoie `{ ok, content, error? }`. Une erreur n'arrête pas la mission : le modèle la voit et adapte sa suite, et elle est journalisée.
+
+### Envoi en un clic et reprises programmées
+
+Atlas **n'envoie rien lui-même**. Il prépare, vérifie et suit ; l'utilisateur envoie :
+
+1. Pour un courrier destiné à un tiers, Atlas enregistre le destinataire et l'objet. Quand le livrable est **« Prêt à envoyer »**, l'onglet Résultats propose **« Envoyer depuis ma messagerie »** : un lien `mailto:` qui ouvre le message déjà rempli (destinataire, objet, texte). L'envoi part de la boîte de l'utilisateur, en son nom.
+2. L'utilisateur clique ensuite sur **« J'ai envoyé »** (`POST /api/artifacts/[id]/sent`). Atlas enregistre la date, l'écrit dans la conversation, ferme l'étape « Envoyer … » qui dépend de la rédaction, et programme sa reprise après le délai prévu (`follow_up_days_after_sending`).
+3. Pendant l'attente, la mission est **« Suivi programmé »** et affiche la date de reprise. À l'échéance, Atlas reprend seul le dossier : nouvelle analyse avec ce qui a changé (réponse reçue ou non), puis exécution du plan mis à jour (relance, saisine du médiateur…) si aucune information indispensable ne manque. Sinon, il pose la question à l'utilisateur.
+
+**Déclenchement des reprises.** Une tâche planifiée doit appeler, toutes les 15 minutes, le point d'entrée protégé par secret :
+
+```bash
+curl -fsS -X POST -H "authorization: Bearer $ATLAS_CRON_SECRET" http://localhost:3000/api/internal/follow-ups
+```
+
+Sans `ATLAS_CRON_SECRET` (32 caractères au moins), le point d'entrée répond 503 et aucune reprise ne se déclenche. Chaque mission échue n'est prise qu'une fois, même si deux appels se chevauchent. Une mission sur laquelle Atlas travaille déjà est reprise à l'appel suivant. Les reprises s'exécutent dans le processus du serveur, comme les autres exécutions.
+
+**Limite actuelle :** aucune notification n'est envoyée. L'utilisateur voit la relance préparée ou la question posée en ouvrant son dossier.
 
 ### Relecture automatique des livrables
 
@@ -301,6 +320,7 @@ La procédure de validation avec les vraies clés (connexions, `test:live`, 12 m
 - Statuts dérivés des preuves ; étapes déclarées par l'utilisateur distinguées de celles exécutées par Atlas
 - Import de documents (PDF texte, DOCX, TXT, MD, CSV) avec extraction réelle et erreurs affichées
 - Livrables consultables, copiables, modifiables et **réellement téléchargeables** (.docx, .md, .csv si tableau)
+- Envoi en un clic par l'utilisateur (lien `mailto:` prérempli), confirmation d'envoi qui ferme l'étape correspondante, reprises programmées déclenchées par une tâche planifiée : analyse puis exécution sans intervention. Vérifié avec le modèle scripté ; **non essayé avec de vraies boîtes mail ni sur de vrais délais**
 - Relecture automatique de chaque livrable (règles fixes + second passage du modèle), correction par Atlas, relecture à la demande après modification. Vérifiée avec le modèle scripté ; **la qualité de la relecture par le vrai modèle n'a pas encore été évaluée**
 - Sources affichées, en distinguant les pages lues des simples résultats de recherche
 - Isolation des données entre utilisateurs ; suppression (mission, document, données, compte) ; purge de conservation

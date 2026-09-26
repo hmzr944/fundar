@@ -2,6 +2,7 @@ import { and, desc, eq, ilike, inArray, or, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/db";
 import { isReadyToSend, reviewFromMetadata } from "@/server/agent/review";
+import { sendInfoOf } from "@/server/artifacts/send";
 import {
   artifacts,
   documents,
@@ -123,7 +124,13 @@ export async function getMissionDetail(db: Db, userId: string, missionId: string
   // Only the review is exposed from the artifact metadata.
   const artifactsOut = arts.map(({ metadata, ...a }) => {
     const review = reviewFromMetadata(metadata);
-    return { ...a, review, readyToSend: isReadyToSend(review, a.content) };
+    return {
+      ...a,
+      review,
+      readyToSend: isReadyToSend(review, a.content),
+      send: sendInfoOf(metadata),
+      sentAt: typeof metadata.sentAt === "string" ? metadata.sentAt : null,
+    };
   });
   return { mission, steps, messages: msgs, artifacts: artifactsOut, sources: srcs, documents: docs, runs };
 }
@@ -220,6 +227,7 @@ export async function refreshMissionStatus(db: Db, missionId: string, opts: { la
     hasBlockingMissingInfo: mission.missingInfo.some((m) => m.blocking),
     runActive: active,
     lastRunFailed: opts.lastRunFailed,
+    followUpScheduled: Boolean(mission.nextFollowUpAt && mission.nextFollowUpAt > new Date()),
   });
   if (status !== mission.status) {
     await db.update(missions).set({ status }).where(eq(missions.id, missionId));

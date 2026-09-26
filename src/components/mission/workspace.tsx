@@ -163,10 +163,16 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
             <p className="mt-2 text-xs text-muted">Répondez dans la conversation : Atlas mettra le plan à jour.</p>
           </Alert>
         )}
+        {mission.nextFollowUpAt && (
+          <Alert tone="info" title={`Atlas reprendra ce dossier le ${new Date(mission.nextFollowUpAt).toLocaleDateString("fr-FR")}`}>
+            <span data-testid="follow-up">{mission.followUpReason}</span>
+            <p className="mt-1 text-xs text-muted">Vous n&apos;avez rien à faire d&apos;ici là. Si vous recevez une réponse avant, ajoutez-la à la conversation.</p>
+          </Alert>
+        )}
         {!locked && blocking.length === 0 && userSteps.length > 0 && !runnable && steps.length > 0 && (
           <Alert tone="warning" title="À vous de jouer">
-            Il reste {userSteps.length} action(s) que vous seul pouvez réaliser. Marquez-les comme faites dans le plan une fois
-            réalisées.
+            Il reste {userSteps.length} action(s) que vous seul pouvez réaliser. Pour un courrier prêt, utilisez le bouton
+            « Envoyer » dans l&apos;onglet Résultats, puis « J&apos;ai envoyé ». Pour le reste, marquez les actions comme faites dans le plan.
           </Alert>
         )}
       </div>

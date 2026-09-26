@@ -119,7 +119,13 @@ function ArtifactCard({ artifact, locked, onChanged }: { artifact: ArtifactDTO; 
         <span className="rounded-md bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">{TYPE_LABELS[artifact.type]}</span>
         <span className="min-w-0 flex-1 truncate font-medium">{artifact.name}</span>
         {artifact.editedByUser && <span className="text-[11px] text-faint">modifié par vous</span>}
-        <ReadinessBadge ready={artifact.readyToSend} />
+        {artifact.sentAt ? (
+          <span className="rounded-md border border-success/40 bg-success/5 px-2 py-0.5 text-[11px] font-medium text-success">
+            Envoyé le {new Date(artifact.sentAt).toLocaleDateString("fr-FR")}
+          </span>
+        ) : (
+          <ReadinessBadge ready={artifact.readyToSend} />
+        )}
         <span className="hidden text-xs text-faint sm:inline">{formatDate(artifact.updatedAt)}</span>
         <span className="text-faint" aria-hidden>
           {open ? "▴" : "▾"}
@@ -157,6 +163,7 @@ function ArtifactCard({ artifact, locked, onChanged }: { artifact: ArtifactDTO; 
           ) : (
             <Markdown>{artifact.content}</Markdown>
           )}
+          {artifact.send && <SendPanel artifact={artifact} locked={locked} onChanged={onChanged} />}
           <ReviewDetails artifactId={artifact.id} review={artifact.review} ready={artifact.readyToSend} locked={locked} onChanged={onChanged} />
           <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-3">
             <Button className="px-2.5 py-1 text-xs" onClick={copy}>
@@ -295,6 +302,80 @@ function ReviewDetails({
       <p className="mt-2 text-[11px] text-faint">
         Relecture par règles fixes et par un second passage du modèle. Elle aide à repérer les erreurs, mais ne remplace pas votre vérification avant envoi.
       </p>
+      {error && (
+        <p role="alert" className="mt-2 text-xs text-danger">
+          {error}
+        </p>
+      )}
+    </section>
+  );
+}
+
+/** Plain text for an e-mail body: Markdown markers removed, layout kept. */
+function plainText(markdown: string) {
+  return markdown
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/__(.+?)__/g, "$1")
+    .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, "$1 ($2)")
+    .trim();
+}
+
+function SendPanel({ artifact, locked, onChanged }: { artifact: ArtifactDTO; locked: boolean; onChanged: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const send = artifact.send!;
+  const body = plainText(artifact.content);
+  const mailto = `mailto:${encodeURIComponent(send.to)}?subject=${encodeURIComponent(send.subject)}&body=${encodeURIComponent(body)}`;
+
+  async function confirmSent() {
+    setBusy(true);
+    setError(null);
+    try {
+      await api(`/api/artifacts/${artifact.id}/sent`, { method: "POST" });
+      onChanged();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="mt-4 rounded-lg border border-line bg-bg/40 p-3" aria-label="Envoi" data-testid="send-panel">
+      <p className="text-sm font-semibold text-muted">Envoi</p>
+      <p className="mt-1 text-sm">
+        À : <span className="font-medium">{send.to}</span> · Objet : {send.subject}
+      </p>
+      {!send.confirmed && (
+        <p className="mt-1 text-xs text-warning">
+          Cette adresse a été proposée par Atlas mais ne figure pas dans vos messages ou documents : vérifiez-la avant d&apos;envoyer.
+        </p>
+      )}
+      {artifact.sentAt ? (
+        <p className="mt-2 text-sm text-success">
+          Envoyé le {new Date(artifact.sentAt).toLocaleDateString("fr-FR")}.
+          {send.followUpDays ? ` Atlas vérifiera la réponse dans ${send.followUpDays} jours.` : ""}
+        </p>
+      ) : artifact.readyToSend ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <a className="rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-accent-contrast hover:bg-accent-strong" href={mailto} data-testid="send-link">
+            Envoyer depuis ma messagerie
+          </a>
+          {!locked && (
+            <Button className="px-2.5 py-1 text-xs" onClick={confirmSent} disabled={busy}>
+              {busy ? "Enregistrement…" : "J'ai envoyé"}
+            </Button>
+          )}
+          <p className="w-full text-xs text-faint">
+            Le message s&apos;ouvre prêt dans votre messagerie : vérifiez-le, envoyez-le, puis cliquez sur « J&apos;ai envoyé ».
+            {send.followUpDays ? ` Atlas reprendra ensuite le dossier seul dans ${send.followUpDays} jours.` : ""}
+            {body.length > 1800 ? " Message long : si votre messagerie le coupe, utilisez « Copier »." : ""}
+          </p>
+        </div>
+      ) : (
+        <p className="mt-2 text-xs text-warning">L&apos;envoi sera possible quand le courrier sera « Prêt à envoyer » (voir la relecture ci-dessous).</p>
+      )}
       {error && (
         <p role="alert" className="mt-2 text-xs text-danger">
           {error}

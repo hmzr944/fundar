@@ -50,6 +50,7 @@ const missionTone: Record<MissionStatus, string> = {
   PARTIALLY_COMPLETED: "text-violet border-violet/40 bg-violet/5",
   COMPLETED: "text-success border-success/40 bg-success/5",
   FAILED: "text-danger border-danger/40 bg-danger/5",
+  SCHEDULED: "text-info border-info/40 bg-info/5",
 };
 
 export function MissionStatusBadge({ status }: { status: MissionStatus }) {

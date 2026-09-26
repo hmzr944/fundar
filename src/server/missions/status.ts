@@ -40,6 +40,8 @@ export type DeriveInput = {
   runActive?: boolean;
   /** Set when the last execution run ended abnormally (error, limit, cancel). */
   lastRunFailed?: boolean;
+  /** Atlas has scheduled itself to pick the mission up again on a later date. */
+  followUpScheduled?: boolean;
 };
 
 /**
@@ -55,6 +57,10 @@ export function deriveMissionStatus(input: DeriveInput): MissionStatus {
 
   const done = steps.filter((s) => s.status === "DONE");
   const allClosed = steps.every((s) => TERMINAL_OK.includes(s.status));
+  // Waiting for the other party (a reply, a refund…) until a set date.
+  if (input.followUpScheduled && !allClosed && !steps.some((s) => s.status === "BLOCKED" || s.status === "FAILED")) {
+    return "SCHEDULED";
+  }
 
   if (allClosed) {
     const proven = done.length > 0 && done.every(stepHasEvidence);
@@ -88,6 +94,7 @@ export const MISSION_STATUS_LABELS: Record<MissionStatus, string> = {
   PARTIALLY_COMPLETED: "Résultat partiel",
   COMPLETED: "Terminée",
   FAILED: "Échouée",
+  SCHEDULED: "Suivi programmé",
 };
 
 export const STEP_STATUS_LABELS: Record<StepStatus, string> = {
@@ -115,4 +122,4 @@ export const NEEDS_ACTION_STATUSES: MissionStatus[] = [
   "BLOCKED",
   "PLANNED",
 ];
-export const ACTIVE_STATUSES: MissionStatus[] = ["IN_PROGRESS", "PARTIALLY_COMPLETED"];
+export const ACTIVE_STATUSES: MissionStatus[] = ["IN_PROGRESS", "PARTIALLY_COMPLETED", "SCHEDULED"];
