@@ -14,13 +14,14 @@ import type { Mailer, MailMessage } from "@/server/mail/mailer";
 import { notifyUser } from "@/server/mail/notify";
 import { createMission } from "@/server/missions/service";
 import { POST as webhookRoute } from "@/app/api/payments/stripe-webhook/route";
-import { loadEconomics } from "@/server/admin/economics";
+import { loadEconomics, stripeFeeCents } from "@/server/admin/economics";
+import { sendOutcomeReminders } from "@/server/billing/reminders";
 import { analysis, planFromBriefing, turn } from "../helpers/agent";
 import { createTestUser, db, makeDeps, resetDb } from "../helpers/db";
 
 beforeEach(resetDb);
 
-const fee = { ratePct: 20, minCents: 500, maxCents: 3000, flatCents: 500 };
+const fee = { ratePct: 20, minCents: 500, maxCents: 3000, flatCents: 500, tier2RatePct: 10, tier2CapCents: 15_000 };
 const cfg: BillingConfig = { mode: "upfront", fee, priceCents: 1200, currency: "eur", secretKey: "sk_test_x", webhookSecret: "whsec_test", appUrl: "https://atlas.example", termsVersion: "1" };
 const legalEnv = {
   ATLAS_LEGAL_NAME: "Atlas EI",
@@ -228,11 +229,16 @@ describe("success fee", () => {
   }
 
   it("is a share of what was recovered, within bounds, or a flat fee", () => {
-    expect(computeSuccessFee(fee, 18_000)).toBe(3000);
     expect(computeSuccessFee(fee, 10_000)).toBe(2000);
     expect(computeSuccessFee(fee, 1_000)).toBe(500);
-    expect(computeSuccessFee(fee, 1_000_000)).toBe(3000);
     expect(computeSuccessFee(fee, 0)).toBe(500);
+    // Beyond the amount where tier 1 alone already reaches maxCents (150 €
+    // here), Atlas still takes a smaller share instead of capping every big
+    // dispute at the same commission as a small one.
+    expect(computeSuccessFee(fee, 18_000)).toBe(3300);
+    expect(computeSuccessFee(fee, 50_000)).toBe(6500);
+    // Never above the overall ceiling, whatever is recovered.
+    expect(computeSuccessFee(fee, 1_000_000)).toBe(15_000);
   });
 
   it("saves a card without charging it, then lets Atlas start", async () => {
@@ -277,14 +283,15 @@ describe("success fee", () => {
   it("charges the fee once, only when the problem is solved, and closes the dossier", async () => {
     const { user, mission, stripe } = await authorizedMission();
     const result = await declareOutcome(db, success, user.id, mission.id, { resolved: true, recoveredEuros: 180 }, stripe.impl);
-    expect(result.charge).toEqual({ feeCents: 3000, status: "charged", payUrl: null });
+    // 180 € recovered goes past the first tier (which tops out at 150 €): 30 € + 10 % of the 30 € beyond it.
+    expect(result.charge).toEqual({ feeCents: 3300, status: "charged", payUrl: null });
     const charge = stripe.calls.find((c) => c.path === "payment_intents")!;
-    expect(charge.form?.get("amount")).toBe("3000");
+    expect(charge.form?.get("amount")).toBe("3300");
     expect(charge.form?.get("off_session")).toBe("true");
     expect(charge.form?.get("payment_method")).toBe("pm_1");
     const [row] = await db.select().from(missions).where(eq(missions.id, mission.id));
     expect(row.outcome).toMatchObject({ resolved: true, recoveredCents: 18_000 });
-    expect(row.payment).toMatchObject({ paidAt: expect.any(String), amountCents: 3000, feeDueCents: 3000, paymentIntentId: "pi_1" });
+    expect(row.payment).toMatchObject({ paidAt: expect.any(String), amountCents: 3300, feeDueCents: 3300, paymentIntentId: "pi_1" });
     expect(row.nextFollowUpAt).toBeNull();
     const steps = await db.select().from(missionSteps).where(eq(missionSteps.missionId, mission.id));
     expect(steps.every((s) => s.status === "DONE" || s.status === "SKIPPED")).toBe(true);
@@ -298,8 +305,8 @@ describe("success fee", () => {
     const other = await createMission(db, user.id, "Analyse gratuite restée sans suite");
     await db.insert(executionLogs).values({ missionId: other.id, kind: "llm:analyze", status: "ok", durationMs: 1, estimatedCostUsd: "0.100000" });
     const e = await loadEconomics(db, null);
-    expect(e).toMatchObject({ taken: 1, resolved: 1, revenueCents: 3000, aiTakenCents: 90, aiFreeCents: 9, recoveredCents: 18_000 });
-    expect(e.marginCents).toBe(3000 - 70 - 90 - 9 - 630);
+    expect(e).toMatchObject({ taken: 1, resolved: 1, revenueCents: 3300, aiTakenCents: 90, aiFreeCents: 9, recoveredCents: 18_000 });
+    expect(e.marginCents).toBe(3300 - stripeFeeCents(3300) - 90 - 9 - Math.round(3300 * 0.21));
     expect((await loadEconomics(db, 30)).taken).toBe(1);
   });
 
@@ -370,6 +377,53 @@ describe("success fee", () => {
       data: { object: { id: "cs_test_1", payment_status: "paid", amount_total: 1200, currency: "eur", metadata: { missionId: mission.id } } },
     };
     expect(await applyStripeEvent(db, success, event)).toBeNull();
+  });
+});
+
+describe("outcome reminders", () => {
+  const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000);
+
+  it("reminds the user once per stage, only while a commission or outcome is still pending", async () => {
+    const { user, mission } = await plannedMission();
+    const old = daysAgo(40);
+    await db
+      .update(missions)
+      .set({ status: "WAITING_FOR_USER", payment: { consentAt: old.toISOString(), termsVersion: "1", authorizedAt: old.toISOString() }, updatedAt: old })
+      .where(eq(missions.id, mission.id));
+    const mailer = new FakeMailer();
+
+    expect(await sendOutcomeReminders(db, mailer, "https://atlas.example")).toEqual({ sent: 1 });
+    expect(mailer.sent).toHaveLength(1);
+    expect(mailer.sent[0]).toMatchObject({ to: user.email, subject: expect.stringContaining("Votre dossier est-il réglé ?") });
+    expect(mailer.sent[0].text).toContain("commission");
+
+    // Not sent twice for the same stage.
+    expect(await sendOutcomeReminders(db, mailer, "https://atlas.example")).toEqual({ sent: 0 });
+    expect(mailer.sent).toHaveLength(1);
+
+    // Closing the dossier stops any further reminder.
+    await db
+      .update(missions)
+      .set({ outcome: { resolved: true, recoveredCents: 0, declaredAt: new Date().toISOString() } })
+      .where(eq(missions.id, mission.id));
+    expect(await sendOutcomeReminders(db, mailer, "https://atlas.example")).toEqual({ sent: 0 });
+    expect(mailer.sent).toHaveLength(1);
+  });
+
+  it("never reminds a dossier that was only analysed for free, and waits for the first stage", async () => {
+    const { mission } = await plannedMission();
+    const mailer = new FakeMailer();
+    // No card ever on file: never a reminder, however old.
+    await db.update(missions).set({ status: "WAITING_FOR_USER", updatedAt: daysAgo(90) }).where(eq(missions.id, mission.id));
+    expect(await sendOutcomeReminders(db, mailer, "https://atlas.example")).toEqual({ sent: 0 });
+
+    // A card is on file, but the dossier is too recent for the first stage.
+    await db
+      .update(missions)
+      .set({ payment: { consentAt: new Date().toISOString(), termsVersion: "1", authorizedAt: new Date().toISOString() }, updatedAt: daysAgo(2) })
+      .where(eq(missions.id, mission.id));
+    expect(await sendOutcomeReminders(db, mailer, "https://atlas.example")).toEqual({ sent: 0 });
+    expect(mailer.sent).toHaveLength(0);
   });
 });
 

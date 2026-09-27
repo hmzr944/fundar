@@ -1,6 +1,6 @@
 import { and, gte, inArray, sql } from "drizzle-orm";
 import type { Db } from "@/db";
-import { executionLogs, missionRuns, missions, type MissionOutcome, type MissionPayment } from "@/db/schema";
+import { executionLogs, missionRuns, missions, type MissionOutcome, type MissionPayment, type MissionStatus } from "@/db/schema";
 
 /**
  * The owner's economics dashboard. It exists because of what sank Homejoy
@@ -37,7 +37,9 @@ export type MissionFacts = {
 export type Economics = Figures & { alerts: Alert[] };
 export type Figures = ReturnType<typeof computeFigures>;
 
-const FINISHED = ["COMPLETED", "PARTIALLY_COMPLETED", "WAITING_FOR_USER"];
+/** A dossier in one of these statuses has nothing left for Atlas to do: only the user's outcome is missing. */
+export const FINISHED_STATUSES: readonly MissionStatus[] = ["COMPLETED", "PARTIALLY_COMPLETED", "WAITING_FOR_USER"];
+const FINISHED: readonly string[] = FINISHED_STATUSES;
 
 export function summarize(rows: MissionFacts[], now = new Date()): Economics {
   const figures = computeFigures(rows, now);

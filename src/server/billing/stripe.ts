@@ -45,6 +45,12 @@ export function billingConfig(env: Record<string, string | undefined> = process.
     minCents: intEnv(env.ATLAS_SUCCESS_FEE_MIN_CENTS, 500),
     maxCents: intEnv(env.ATLAS_SUCCESS_FEE_MAX_CENTS, 3000),
     flatCents: intEnv(env.ATLAS_SUCCESS_FEE_FLAT_CENTS, 500),
+    // Above the amount where the first tier already reaches maxCents, Atlas
+    // still takes a (smaller) share instead of leaving high-value disputes
+    // capped at the same commission as a small one — bounded so a big
+    // recovery never costs the client a disproportionate fee.
+    tier2RatePct: intEnv(env.ATLAS_SUCCESS_FEE_TIER2_PCT, 10),
+    tier2CapCents: intEnv(env.ATLAS_SUCCESS_FEE_TIER2_CAP_CENTS, 15_000),
   };
   return { mode, priceCents, fee, currency: "eur", secretKey, webhookSecret, appUrl, termsVersion: env.ATLAS_TERMS_VERSION?.trim() || "1" };
 }
@@ -55,8 +61,15 @@ export function billingConfig(env: Record<string, string | undefined> = process.
  */
 export function computeSuccessFee(fee: SuccessFee, recoveredCents: number) {
   if (recoveredCents <= 0) return fee.flatCents;
-  const share = Math.round((recoveredCents * fee.ratePct) / 100);
-  return Math.min(fee.maxCents, Math.max(fee.minCents, share));
+  // Tier 1: ratePct, bounded to [minCents, maxCents]. Tier 2 starts at the
+  // recovered amount where tier 1 alone would already be worth maxCents.
+  const tier1ThresholdCents = Math.ceil((fee.maxCents * 100) / fee.ratePct);
+  if (recoveredCents <= tier1ThresholdCents) {
+    const share = Math.round((recoveredCents * fee.ratePct) / 100);
+    return Math.min(fee.maxCents, Math.max(fee.minCents, share));
+  }
+  const beyond = Math.round(((recoveredCents - tier1ThresholdCents) * fee.tier2RatePct) / 100);
+  return Math.min(fee.tier2CapCents, fee.maxCents + beyond);
 }
 
 /** Seller identity shown in the legal pages (mentions légales, CGV). */

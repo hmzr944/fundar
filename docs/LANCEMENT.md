@@ -23,18 +23,20 @@
 | Un dossier ne coûte jamais plus qu'une somme fixée | **Plafond de coût IA par dossier** (`ATLAS_MAX_COST_PER_MISSION_USD`, 3 $ par défaut) |
 | Zéro temps humain dans le cas normal | Atlas rédige, vérifie, suit et relance seul. Le client envoie en un clic |
 
-**Commission par défaut** (modifiable sans toucher au code, voir `.env.example`) : 20 % de la somme récupérée, **au minimum 5 € et au maximum 30 €** ; **5 €** quand le résultat n'est pas une somme d'argent (abonnement résilié, service rétabli).
+**Commission par défaut** (modifiable sans toucher au code, voir `.env.example`) : 20 % de la somme récupérée jusqu'à 150 €, **au minimum 5 € et au maximum 30 €** ; **au-delà de 150 € récupérés**, Atlas prend encore 10 % du surplus, **sans jamais dépasser 150 € au total** ; **5 €** quand le résultat n'est pas une somme d'argent (abonnement résilié, service rétabli). Ce deuxième palier existe pour que les gros dossiers (caution non rendue, voyage annulé, appareil sous garantie) rapportent plus qu'un petit litige, sans jamais approcher les 25 à 35 % — souvent sans plafond — que prennent les spécialistes.
 
 | Somme récupérée | Commission |
 |---|---|
 | 20 € | 5 € (minimum) |
 | 80 € | 16 € |
-| 180 € et plus | 30 € (plafond) |
+| 150 € | 30 € (fin du 1ᵉʳ palier) |
+| 500 € | 65 € |
+| 2 000 € et plus | 150 € (plafond global) |
 | Résiliation obtenue | 5 € |
 
 ### Est-ce rentable ? (estimation)
 
-Hypothèses, **à vérifier sur vos 20 premiers dossiers** : commission moyenne de 15 € ; IA à 1,50 € par dossier en moyenne (2,60 € au pire, plafond atteint) ; frais Stripe d'environ 0,50 € par prélèvement ; cotisations d'environ 21 % en micro-entreprise.
+Hypothèses, **à vérifier sur vos 20 premiers dossiers** : commission moyenne de 15 € (avant le 2ᵉ palier — quelques gros dossiers la font monter) ; IA à 1,50 € par dossier en moyenne (2,60 € au pire, plafond atteint) ; frais Stripe d'environ 0,50 € par prélèvement ; cotisations d'environ 21 % en micro-entreprise.
 
 | Part des dossiers réglés | Ce que rapporte un dossier pris en charge, en moyenne |
 |---|---|
@@ -47,10 +49,15 @@ Hypothèses, **à vérifier sur vos 20 premiers dossiers** : commission moyenne 
 - Coûts fixes de 30 à 70 € par mois (tableau ci-dessous) : avec 50 % de réussite, il faut **environ 7 à 17 dossiers pris en charge par mois** pour les couvrir.
 - En mode paiement d'avance (12 €), chaque dossier payé rapportait environ 7,50 €, mais beaucoup moins de gens passaient le cap. Au lancement, le nombre de dossiers compte plus que la marge par dossier : c'est lui qui fait revenir les clients et parler d'Atlas.
 
+### Deux réglages qui augmentent ce que vous gagnez, sans rien changer pour la plupart des clients
+
+1. **Le deuxième palier de commission** (ci-dessus) capte plus de valeur sur les dossiers à forte somme récupérée, qui sont rares mais qui, sans lui, rapportaient la même commission plafonnée qu'un petit litige. À ajuster (`ATLAS_SUCCESS_FEE_TIER2_PCT`, `ATLAS_SUCCESS_FEE_TIER2_CAP_CENTS`) une fois que vous connaissez la répartition réelle des sommes récupérées.
+2. **Les rappels automatiques de clôture.** Un dossier qu'Atlas a terminé mais que le client ne clôture jamais ne rapporte rien : c'est l'erreur de Magic (servir sans être payé), reprise plus haut. Atlas envoie maintenant un e-mail 10 jours après la fin du dossier, puis un second à 35 jours, pour demander « votre problème est-il réglé ? » — avant l'alerte « jamais clôturé » de la page Économie (60 jours). Rien à configurer : c'est actif dès que les e-mails et les reprises programmées le sont.
+
 ### Les deux risques de ce modèle, et que surveiller
 
 1. **Le client déclare « sans succès » alors que c'est réglé.** Aucun contrôle automatique n'est possible sans accès à ses comptes. Surveiller la part de dossiers « sans succès » dont le dernier courrier a reçu une réponse positive. Si elle dépasse 10 %, envisager de demander une preuve (capture du virement) pour les grosses sommes.
-2. **Le client ne clôture jamais.** L'e-mail de fin de dossier lui demande de le faire. Si plus de 30 % des dossiers terminés restent ouverts après 60 jours, envisager d'exiger la clôture d'un dossier avant d'en ouvrir un nouveau. Ce n'est **pas** fait aujourd'hui, pour ne pas ajouter de friction.
+2. **Le client ne clôture jamais.** Les rappels automatiques ci-dessus réduisent ce risque, sans le supprimer. Si la page Économie montre encore plus de 30 % de dossiers jamais clôturés malgré les rappels, envisagez d'exiger la clôture d'un dossier avant d'en ouvrir un nouveau.
 
 Le mode « prix d'avance » reste disponible : `ATLAS_BILLING_MODE=upfront` et `ATLAS_PRICE_CENTS=1200`.
 

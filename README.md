@@ -162,6 +162,8 @@ curl -fsS -X POST -H "authorization: Bearer $ATLAS_CRON_SECRET" http://localhost
 
 Sans `ATLAS_CRON_SECRET` (32 caractères au moins), le point d'entrée répond 503 et aucune reprise ne se déclenche. Chaque mission échue n'est prise qu'une fois, même si deux appels se chevauchent. Une mission sur laquelle Atlas travaille déjà est reprise à l'appel suivant. Les reprises s'exécutent dans le processus du serveur, comme les autres exécutions.
 
+Le même appel déclenche aussi, sans coût de modèle, les **rappels de clôture** : un e-mail à un client dont le dossier est terminé côté Atlas mais jamais clôturé (« votre problème est-il réglé ? »), 10 jours puis 35 jours après la dernière activité — avant qu'il ne remonte comme « jamais clôturé » sur la page Économie (voir `src/server/billing/reminders.ts`).
+
 **Limite actuelle :** aucune notification n'est envoyée. L'utilisateur voit la relance préparée ou la question posée en ouvrant son dossier.
 
 ### Relecture automatique des livrables

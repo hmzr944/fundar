@@ -68,7 +68,7 @@ export type MissionDetailDTO = {
       enabled: boolean;
       mode?: "success" | "upfront";
       priceCents?: number;
-      fee?: { ratePct: number; minCents: number; maxCents: number; flatCents: number };
+      fee?: import("@/lib/fee").FeeTerms;
     };
     notifications: { enabled: boolean };
   };
