@@ -47,10 +47,12 @@ export default function Cgv() {
             celui que vous déclarez. Si vous clôturez le dossier sans succès, rien n&apos;est dû.
           </p>
           <p>
-            Pour confier un premier dossier, vous enregistrez une carte bancaire sur la page sécurisée de Stripe ; aucun débit n&apos;a
-            lieu à ce moment. Vous autorisez Atlas à débiter cette carte du seul montant de la commission, lorsque vous déclarez un
-            dossier réglé. Si votre banque demande une validation, un lien de paiement vous est envoyé. Vous pouvez demander la
-            suppression de votre carte à tout moment en écrivant à <LegalValue value={id.email} label="E-mail de contact" />.
+            Sur un premier dossier, Atlas rédige et vérifie un premier courrier gratuitement, sans qu&apos;aucune carte bancaire ne
+            vous soit demandée. Pour qu&apos;Atlas assure ensuite le suivi (relances, escalade) et la suite de vos dossiers, vous
+            enregistrez une carte bancaire sur la page sécurisée de Stripe ; aucun débit n&apos;a lieu à ce moment. Vous autorisez
+            Atlas à débiter cette carte du seul montant de la commission, lorsque vous déclarez un dossier réglé. Si votre banque
+            demande une validation, un lien de paiement vous est envoyé. Vous pouvez demander la suppression de votre carte à tout
+            moment en écrivant à <LegalValue value={id.email} label="E-mail de contact" />.
           </p>
 
           <h2>4. Droit de rétractation</h2>

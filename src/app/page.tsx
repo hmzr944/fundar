@@ -26,7 +26,7 @@ export default async function Landing() {
   const pricing = !billing
     ? ""
     : billing.mode === "success"
-      ? ` Vous ne payez que si votre problème est réglé : ${describeFee(billing.fee)}. Sinon, rien.`
+      ? ` Premier courrier rédigé gratuitement, sans carte bancaire. Vous ne payez que si votre problème est réglé : ${describeFee(billing.fee)}. Sinon, rien.`
       : ` Prise en charge du dossier : ${eurosShort(billing.priceCents)} € TTC, paiement unique.`;
   const cta = user ? { href: "/app", label: "Ouvrir mon espace" } : { href: "/signup", label: "Commencer" };
   return (

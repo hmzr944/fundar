@@ -27,8 +27,14 @@ export type AgentDeps = {
   };
   /** Automatic proofreading of deliverables (off unless set). */
   reviewDeliverables?: boolean;
-  /** Execution requires the dossier to be paid (billing configured). */
-  requirePayment?: boolean;
+  /**
+   * Billing mode in effect, if any. In "success" mode the first execution
+   * run is free (Atlas shows what it can do before asking for a card): only
+   * a second run requires the dossier to be paid or authorized. "upfront"
+   * always requires payment first — the point of that mode is that nothing
+   * is done before it. Undefined/"none": no gate (billing off).
+   */
+  paymentPolicy?: "success" | "upfront";
   /** Notifications to the user (optional). */
   mailer?: Mailer | null;
   appUrl?: string | null;
@@ -187,8 +193,10 @@ export async function startAnalysis(deps: AgentDeps, userId: string, missionId: 
 export async function startExecution(deps: AgentDeps, userId: string, missionId: string): Promise<StartedRun> {
   const mission = await getOwnedMission(deps.db, userId, missionId);
   if (!deps.llm) throw unavailable(LLM_MISSING);
-  if (deps.requirePayment && !mission.payment?.paidAt && !mission.payment?.authorizedAt) {
-    throw new AppError(402, "Validez d'abord la prise en charge de ce dossier.", "payment_required");
+  if (deps.paymentPolicy && !mission.payment?.paidAt && !mission.payment?.authorizedAt) {
+    // Success mode shows what Atlas can do before ever asking for a card — but only once per dossier.
+    const freeTrialLeft = deps.paymentPolicy === "success" && !(await hasExecuted(deps.db, missionId));
+    if (!freeTrialLeft) throw new AppError(402, "Validez d'abord la prise en charge de ce dossier.", "payment_required");
   }
   await assertNoActiveRun(deps.db, missionId, deps.limits.staleRunSeconds);
   if (mission.missingInfo.some((m) => m.blocking)) {
@@ -301,6 +309,12 @@ async function effectiveCostCapUsd(deps: AgentDeps, userId: string): Promise<num
   if (!base || !deps.limits.plusCostMultiplier || deps.limits.plusCostMultiplier <= 1) return base;
   const user = await deps.db.query.users.findFirst({ where: eq(users.id, userId), columns: { plus: true } });
   return isPlusActive(user?.plus) ? base * deps.limits.plusCostMultiplier : base;
+}
+
+/** Whether an execution run has ever been attempted for this dossier (any status) — the free trial is spent either way. */
+async function hasExecuted(db: Db, missionId: string) {
+  const [row] = await db.select({ id: missionRuns.id }).from(missionRuns).where(and(eq(missionRuns.missionId, missionId), eq(missionRuns.kind, "execution"))).limit(1);
+  return Boolean(row);
 }
 
 async function assertMissionBudget(deps: AgentDeps, userId: string, missionId: string) {

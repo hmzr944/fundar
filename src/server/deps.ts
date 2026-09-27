@@ -64,7 +64,7 @@ export function getAgentDeps(): AgentDeps {
       plusCostMultiplier: billingConfig()?.plus?.costMultiplier,
     },
     reviewDeliverables: config.reviewDeliverables,
-    requirePayment: Boolean(billingConfig()),
+    paymentPolicy: billingConfig()?.mode,
     mailer: mailerFromEnv(),
     appUrl: process.env.ATLAS_APP_URL?.trim().replace(/\/+$/, "") || null,
   };

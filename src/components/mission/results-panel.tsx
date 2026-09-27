@@ -324,9 +324,26 @@ function plainText(markdown: string) {
 function SendPanel({ artifact, locked, onChanged }: { artifact: ArtifactDTO; locked: boolean; onChanged: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const send = artifact.send!;
   const body = plainText(artifact.content);
-  const mailto = `mailto:${encodeURIComponent(send.to)}?subject=${encodeURIComponent(send.subject)}&body=${encodeURIComponent(body)}`;
+  const to = encodeURIComponent(send.to);
+  const subject = encodeURIComponent(send.subject);
+  const encodedBody = encodeURIComponent(body);
+  const mailto = `mailto:${to}?subject=${subject}&body=${encodedBody}`;
+  // Plain compose deep links — no Google/Microsoft sign-in or account access, just a pre-filled draft in the browser.
+  const gmailCompose = `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${encodedBody}`;
+  const outlookCompose = `https://outlook.office.com/mail/deeplink/compose?to=${to}&subject=${subject}&body=${encodedBody}`;
+
+  async function copyText() {
+    try {
+      await navigator.clipboard.writeText(`À : ${send.to}\nObjet : ${send.subject}\n\n${body}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard can be unavailable; the text is still visible above to select by hand.
+    }
+  }
 
   async function confirmSent() {
     setBusy(true);
@@ -359,18 +376,26 @@ function SendPanel({ artifact, locked, onChanged }: { artifact: ArtifactDTO; loc
         </p>
       ) : artifact.readyToSend ? (
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <a className="rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-accent-contrast hover:bg-accent-strong" href={mailto} data-testid="send-link">
-            Envoyer depuis ma messagerie
+          <a className="rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-accent-contrast hover:bg-accent-strong" href={gmailCompose} target="_blank" rel="noopener noreferrer" data-testid="send-link-gmail">
+            Envoyer avec Gmail
           </a>
+          <a className="rounded-lg border border-line-strong px-3 py-1.5 text-sm font-medium hover:bg-elev" href={outlookCompose} target="_blank" rel="noopener noreferrer" data-testid="send-link-outlook">
+            Envoyer avec Outlook
+          </a>
+          <a className="rounded-lg border border-line-strong px-3 py-1.5 text-sm font-medium hover:bg-elev" href={mailto} data-testid="send-link">
+            Autre messagerie
+          </a>
+          <Button variant="ghost" className="px-2.5 py-1 text-xs" onClick={copyText} data-testid="send-copy">
+            {copied ? "Copié !" : "Copier le texte"}
+          </Button>
           {!locked && (
             <Button className="px-2.5 py-1 text-xs" onClick={confirmSent} disabled={busy}>
               {busy ? "Enregistrement…" : "J'ai envoyé"}
             </Button>
           )}
           <p className="w-full text-xs text-faint">
-            Le message s&apos;ouvre prêt dans votre messagerie : vérifiez-le, envoyez-le, puis cliquez sur « J&apos;ai envoyé ».
+            Le message s&apos;ouvre prêt, à vérifier avant d&apos;envoyer. Puis cliquez sur « J&apos;ai envoyé ».
             {send.followUpDays ? ` Atlas reprendra ensuite le dossier seul dans ${send.followUpDays} jours.` : ""}
-            {body.length > 1800 ? " Message long : si votre messagerie le coupe, utilisez « Copier »." : ""}
           </p>
         </div>
       ) : (

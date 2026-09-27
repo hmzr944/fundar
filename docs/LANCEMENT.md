@@ -42,9 +42,14 @@ Le 27 septembre 2026, on m'a laissé décider seul du modèle économique, avec 
 | Pour le client | Comment ça marche dans l'application |
 |---|---|
 | Rien à payer pour essayer | Analyse gratuite. Atlas dit s'il peut s'occuper du dossier **avant** toute demande de carte |
+| **Le premier courrier est rédigé et vérifié gratuitement, avant toute carte** | La demande de carte n'arrive **qu'après** avoir montré un vrai courrier prêt à envoyer, pour qu'on décide en connaissance de cause. Voir « Le paradoxe de la carte bancaire » ci-dessous |
 | Rien à payer si ça échoue | « Clore sans succès » : aucune commission |
 | Une seule saisie de carte | La carte est enregistrée une fois chez Stripe (aucun débit). Les dossiers suivants démarrent en un clic |
 | Il voit ce qu'Atlas lui rapporte | Sur le tableau de bord : « Atlas vous a fait récupérer X € » |
+
+### Le paradoxe de la carte bancaire, et pourquoi il est traité
+
+Demander une carte bancaire avant d'avoir rien montré casse la promesse « vous ne perdez rien à essayer » : beaucoup de gens partent à ce moment précis, par méfiance. Atlas inverse donc l'ordre : la **première exécution d'un dossier est gratuite et ne demande aucune carte** — elle produit un vrai courrier, vérifié comme les suivants. La carte n'est demandée qu'**ensuite**, pour qu'Atlas assure le suivi (relances, escalade) : à ce moment, la personne a déjà vu ce qu'Atlas sait faire, et décide en connaissance de cause. Le coût de cette gratuité reste borné : une seule exécution gratuite par dossier, plafonnée comme toutes les autres par `ATLAS_MAX_COST_PER_MISSION_USD`.
 
 | Pour vous | Comment c'est garanti |
 |---|---|
@@ -88,6 +93,10 @@ Hypothèses, **à vérifier sur vos 20 premiers dossiers** : commission moyenne 
 
 1. **Le client déclare « sans succès » alors que c'est réglé.** Aucun contrôle automatique n'est possible sans accès à ses comptes. Surveiller la part de dossiers « sans succès » dont le dernier courrier a reçu une réponse positive. Si elle dépasse 10 %, envisager de demander une preuve (capture du virement) pour les grosses sommes.
 2. **Le client ne clôture jamais.** Les rappels automatiques ci-dessus réduisent ce risque, sans le supprimer. Si la page Économie montre encore plus de 30 % de dossiers jamais clôturés malgré les rappels, envisagez d'exiger la clôture d'un dossier avant d'en ouvrir un nouveau.
+
+**Ce que je n'ai pas fait pour ces deux risques, volontairement.** Deux idées reviennent souvent : mettre Atlas en copie cachée des courriers envoyés pour surveiller les réponses, ou pénaliser (voire bannir) un client qui ne déclare jamais l'issue de son dossier. Je n'ai fait ni l'un ni l'autre :
+- La copie cachée demanderait qu'Atlas envoie lui-même les e-mails (ou les manipule à l'insu du client), ce qui contredit directement le choix — juridiquement le plus sûr — que le client reste l'auteur et l'expéditeur de ses propres courriers.
+- Pénaliser ou bannir un client qui ne répond pas transforme un simple oubli en sanction, contre quelqu'un qui n'a peut-être rien à se reprocher. Ça abîme la confiance pour économiser quelques euros de commission manquée.
 
 Le mode « prix d'avance » reste disponible : `ATLAS_BILLING_MODE=upfront` et `ATLAS_PRICE_CENTS=1200`.
 

@@ -114,10 +114,12 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
   const hasRun = data.runs.some((r) => r.kind === "execution");
   const canRun = integrations.llm.available && !locked && steps.length > 0 && blocking.length === 0 && runnable;
   const eligibility = mission.eligibility;
-  const mustPay = integrations.billing.enabled && !paid;
+  const success = integrations.billing.enabled && integrations.billing.mode === "success";
+  // Success mode: the first execution is free — Atlas shows a draft before ever asking for a card.
+  const freeTrialAvailable = success && !hasRun;
+  const mustPay = integrations.billing.enabled && !paid && !freeTrialAvailable;
   const canPay = mustPay && eligibility?.canHandle === true && blocking.length === 0;
   const price = eurosShort(integrations.billing.priceCents ?? 0);
-  const success = integrations.billing.enabled && integrations.billing.mode === "success";
   const feeText = integrations.billing.fee ? describeFee(integrations.billing.fee) : "";
   const cardSaved = data.account.cardSaved;
   const lastRun = data.runs[0];
@@ -156,7 +158,7 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
               <>
                 {steps.length > 0 && canPay && (
                   <Button variant="primary" onClick={() => setCheckoutOpen(true)} disabled={!canRun || busy !== null} data-testid="pay-button">
-                    {success ? "Confier mon dossier à Atlas" : `Confier mon dossier à Atlas — ${price} €`}
+                    {success ? "Continuer le suivi du dossier" : `Confier mon dossier à Atlas — ${price} €`}
                   </Button>
                 )}
                 {steps.length > 0 && !mustPay && (
@@ -189,6 +191,11 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
             </span>
           </Alert>
         )}
+        {!locked && freeTrialAvailable && (
+          <Alert tone="info" title="Premier brouillon gratuit, sans carte bancaire">
+            Atlas prépare un courrier prêt à vérifier. Vous déciderez ensuite, en le voyant, si vous voulez qu&apos;il assure la suite.
+          </Alert>
+        )}
         {!locked && eligibility && blocking.length === 0 && !paid && (
           <div data-testid="eligibility" data-can-handle={eligibility.canHandle}>
             {eligibility.canHandle ? (
@@ -199,15 +206,20 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
             ) : (
               <Alert tone="warning" title="Atlas ne peut pas prendre ce dossier en charge">
                 <p>{eligibility.reason}</p>
-                {mustPay && <p className="mt-1 text-xs text-muted">Aucun paiement ne vous sera demandé pour ce dossier.</p>}
+                {integrations.billing.enabled && <p className="mt-1 text-xs text-muted">Aucun paiement ne vous sera demandé pour ce dossier.</p>}
               </Alert>
             )}
           </div>
         )}
         {checkoutOpen && canPay && (
-          <Alert tone="info" title={success ? "Confier ce dossier à Atlas — vous ne payez que si c'est réglé" : `Confier ce dossier à Atlas — ${price} € TTC, paiement unique`}>
+          <Alert
+            tone="info"
+            title={success ? "Enregistrez votre carte — vous ne payez que si c'est réglé" : `Confier ce dossier à Atlas — ${price} € TTC, paiement unique`}
+          >
             <p>
-              Atlas prend en charge l&apos;ensemble du dossier : rédaction et vérification des courriers, suivi, relances et escalade.
+              {success
+                ? "Atlas a préparé et vérifié votre courrier. Pour qu'il assure la suite — suivi, relances, escalade — enregistrez votre carte."
+                : "Atlas prend en charge l'ensemble du dossier : rédaction et vérification des courriers, suivi, relances et escalade."}{" "}
               Vous envoyez vous-même les courriers en un clic. Atlas ne donne pas de conseil juridique et ne garantit pas le résultat.
             </p>
             {success && (
@@ -236,7 +248,7 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
             <label className="mt-2 flex items-start gap-2 text-sm">
               <input type="checkbox" checked={immediate} onChange={(e) => setImmediate(e.target.checked)} data-testid="immediate-execution" />
               <span>
-                Je demande qu&apos;Atlas commence immédiatement, sans attendre la fin du délai de rétractation de 14 jours.
+                Je demande qu&apos;Atlas {success ? "poursuive" : "commence"} immédiatement, sans attendre la fin du délai de rétractation de 14 jours.
                 {success
                   ? " Si mon problème est réglé avant la fin de ce délai, la commission reste due."
                   : " Si je me rétracte pendant ce délai, je paierai la part du service déjà réalisée."}

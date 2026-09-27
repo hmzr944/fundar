@@ -163,10 +163,10 @@ describe("paying for a dossier", () => {
   it("does not let Atlas work on an unpaid dossier, and starts it right after payment", async () => {
     const { user, mission } = await plannedMission();
     const mailer = new FakeMailer();
-    const deps = makeDeps(executor(), { requirePayment: true, mailer, appUrl: "https://atlas.example" });
+    const deps = makeDeps(executor(), { paymentPolicy: "upfront", mailer, appUrl: "https://atlas.example" });
     await expect(startExecution(deps, user.id, mission.id)).rejects.toMatchObject({ status: 402 });
     // The free analysis stays available.
-    await expect(startAnalysis(makeDeps(new ScriptedProvider(() => textResult(JSON.stringify(plan))), { requirePayment: true }), user.id, mission.id).then((r) => r.done)).resolves.toBeUndefined();
+    await expect(startAnalysis(makeDeps(new ScriptedProvider(() => textResult(JSON.stringify(plan))), { paymentPolicy: "upfront" }), user.id, mission.id).then((r) => r.done)).resolves.toBeUndefined();
 
     await paidSession(mission.id, user.id);
     await applyStripeEvent(db, cfg, {
@@ -267,18 +267,28 @@ describe("success fee", () => {
     expect(row.payment?.paidAt).toBeUndefined();
     // Replays and foreign sessions change nothing.
     expect(await applyStripeEvent(db, success, setupDone(mission.id), stripe.impl)).toBeNull();
-    const deps = makeDeps(executor(), { requirePayment: true });
+    const deps = makeDeps(executor(), { paymentPolicy: "success" });
     await expect(startExecution(deps, user.id, mission.id).then((r) => r.done)).resolves.toBeUndefined();
   });
 
-  it("ignores a setup session that is not the dossier's own", async () => {
+  it("shows what Atlas can do for free on the first execution, then requires a card to go further", async () => {
     const stripe = stripeOk();
     const { user, mission } = await plannedMission();
     await startCheckout(db, success, user.id, mission.id, stripe.impl);
+    // The setup session was never actually confirmed (wrong id): no card on file.
     const other = setupDone(mission.id);
     other.data.object.id = "cs_autre";
     expect(await applyStripeEvent(db, success, other, stripe.impl)).toBeNull();
-    const deps = makeDeps(executor(), { requirePayment: true });
+    const deps = makeDeps(executor(), { paymentPolicy: "success" });
+    // First run: free, no card required — this is the draft that earns the client's trust.
+    await expect(startExecution(deps, user.id, mission.id).then((r) => r.done)).resolves.toBeUndefined();
+    // A second attempt is the "continue monitoring this dossier" ask: it needs the card the setup session never confirmed.
+    await expect(startExecution(deps, user.id, mission.id)).rejects.toMatchObject({ status: 402 });
+  });
+
+  it("never gives a free run in upfront mode: the paid price is what unlocks everything", async () => {
+    const { user, mission } = await plannedMission();
+    const deps = makeDeps(executor(), { paymentPolicy: "upfront" });
     await expect(startExecution(deps, user.id, mission.id)).rejects.toMatchObject({ status: 402 });
   });
 

@@ -150,7 +150,7 @@ Chaque outil renvoie `{ ok, content, error? }`. Une erreur n'arrête pas la miss
 
 Atlas **n'envoie rien lui-même**. Il prépare, vérifie et suit ; l'utilisateur envoie :
 
-1. Pour un courrier destiné à un tiers, Atlas enregistre le destinataire et l'objet. Quand le livrable est **« Prêt à envoyer »**, l'onglet Résultats propose **« Envoyer depuis ma messagerie »** : un lien `mailto:` qui ouvre le message déjà rempli (destinataire, objet, texte). L'envoi part de la boîte de l'utilisateur, en son nom.
+1. Pour un courrier destiné à un tiers, Atlas enregistre le destinataire et l'objet. Quand le livrable est **« Prêt à envoyer »**, l'onglet Résultats propose des liens de rédaction pré-remplis pour Gmail et Outlook (l'adresse web de composition, sans aucune connexion à ces comptes), un lien `mailto:` en repli pour toute autre messagerie, et un bouton pour copier le texte. L'envoi part de la boîte de l'utilisateur, en son nom.
 2. L'utilisateur clique ensuite sur **« J'ai envoyé »** (`POST /api/artifacts/[id]/sent`). Atlas enregistre la date, l'écrit dans la conversation, ferme l'étape « Envoyer … » qui dépend de la rédaction, et programme sa reprise après le délai prévu (`follow_up_days_after_sending`).
 3. Pendant l'attente, la mission est **« Suivi programmé »** et affiche la date de reprise. À l'échéance, Atlas reprend seul le dossier : nouvelle analyse avec ce qui a changé (réponse reçue ou non), puis exécution du plan mis à jour (relance, saisine du médiateur…) si aucune information indispensable ne manque. Sinon, il pose la question à l'utilisateur.
 
