@@ -42,6 +42,20 @@ describe("authentication", () => {
     expect(await validateSessionToken(db, undefined)).toBeNull();
   });
 
+  it("gives every account a unique referral code, and links a signup to whoever's code it used", async () => {
+    const alice = await createUser(db, { email: "alice-ref@test.local", password: "motdepasse-solide" });
+    expect(alice.referralCode).toMatch(/^[0-9a-f]{6,}$/i);
+    expect(alice.referredByUserId).toBeNull();
+
+    const bob = await createUser(db, { email: "bob-ref@test.local", password: "motdepasse-solide", ref: alice.referralCode });
+    expect(bob.referredByUserId).toBe(alice.id);
+    expect(bob.referralCode).not.toBe(alice.referralCode);
+
+    // An unknown or missing code is silently ignored — never a signup error.
+    const carol = await createUser(db, { email: "carol-ref@test.local", password: "motdepasse-solide", ref: "n'existe-pas" });
+    expect(carol.referredByUserId).toBeNull();
+  });
+
   it("rejects expired sessions and revokes sessions on password change", async () => {
     const user = await createUser(db, { email: "bob@test.local", password: "motdepasse-solide" });
     const { token } = await createSession(db, user.id, 30);

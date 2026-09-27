@@ -12,6 +12,7 @@ import { billingConfig, computeSuccessFee, signStripePayload, verifyStripeSignat
 import { ScriptedProvider, textResult, toolCallsResult } from "@/server/llm/scripted";
 import type { Mailer, MailMessage } from "@/server/mail/mailer";
 import { notifyUser } from "@/server/mail/notify";
+import { createUser } from "@/server/auth";
 import { createMission } from "@/server/missions/service";
 import { POST as webhookRoute } from "@/app/api/payments/stripe-webhook/route";
 import { loadEconomics, stripeFeeCents } from "@/server/admin/economics";
@@ -33,6 +34,7 @@ const cfg: BillingConfig = {
   appUrl: "https://atlas.example",
   termsVersion: "1",
   plus: null,
+  referralCreditCents: 500,
 };
 const legalEnv = {
   ATLAS_LEGAL_NAME: "Atlas EI",
@@ -500,6 +502,81 @@ describe("Atlas Plus", () => {
     const { user, stripe } = await subscribedUser();
     await expect(startPlusCheckout(db, withPlus, user.id, stripe.impl)).rejects.toMatchObject({ status: 409 });
     await expect(startPlusCheckout(db, cfg, user.id)).rejects.toMatchObject({ status: 409 });
+  });
+});
+
+describe("referrals", () => {
+  const success: BillingConfig = { ...cfg, mode: "success", priceCents: 0 };
+  const stripeOk = () =>
+    fakeStripe({
+      customers: () => ({ body: { id: "cus_1" } }),
+      "checkout/sessions": (f) => ({ body: { id: f?.get("mode") === "setup" ? "cs_setup_1" : "cs_fee_1", url: "https://checkout.stripe.com/c/x" } }),
+      "setup_intents/seti_1": () => ({ body: { id: "seti_1", payment_method: "pm_1" } }),
+      payment_intents: () => ({ body: { id: "pi_1", status: "succeeded" } }),
+    });
+
+  async function authorizedReferredMission(referrer: { id: string }, stripe = stripeOk()) {
+    const user = await createUser(db, { email: `friend-${referrer.id}@test.local`, password: "motdepasse-solide", ref: (await db.query.users.findFirst({ where: eq(users.id, referrer.id) }))!.referralCode });
+    const mission = await createMission(db, user.id, "Réclamer 100 € de frais injustifiés");
+    await analyzeMission({ db, llm: new ScriptedProvider(() => textResult(JSON.stringify(plan))), capabilities: { webSearch: false, searchProvider: null } }, mission.id, null);
+    await startCheckout(db, success, user.id, mission.id, stripe.impl);
+    const sess = (await db.query.missions.findFirst({ where: eq(missions.id, mission.id) }))!.payment!.checkoutSessionId;
+    const customerId = (await db.query.users.findFirst({ where: eq(users.id, user.id) }))!.stripeCustomerId!;
+    await applyStripeEvent(db, success, { type: "checkout.session.completed", data: { object: { id: sess, mode: "setup", status: "complete", setup_intent: "seti_1", customer: customerId, metadata: { missionId: mission.id } } } }, stripe.impl);
+    return { user, mission, stripe };
+  }
+
+  it("credits the referrer once their friend pays their first commission, and only once", async () => {
+    const referrer = await createUser(db, { email: "referrer@test.local", password: "motdepasse-solide" });
+    const { user: friend, mission, stripe } = await authorizedReferredMission(referrer);
+
+    const result = await declareOutcome(db, success, friend.id, mission.id, { resolved: true, recoveredEuros: 100 }, stripe.impl);
+    expect(result.charge.status).toBe("charged");
+    let [row] = await db.select().from(users).where(eq(users.id, referrer.id));
+    expect(row.creditCents).toBe(500);
+    [row] = await db.select().from(users).where(eq(users.id, friend.id));
+    expect(row.referralRewarded).toBe(true);
+
+    // A second dossier from the same friend never rewards the referrer twice.
+    const mission2 = await createMission(db, friend.id, "Un deuxième problème");
+    await analyzeMission({ db, llm: new ScriptedProvider(() => textResult(JSON.stringify(plan))), capabilities: { webSearch: false, searchProvider: null } }, mission2.id, null);
+    await startCheckout(db, success, friend.id, mission2.id, stripe.impl);
+    await declareOutcome(db, success, friend.id, mission2.id, { resolved: true, recoveredEuros: 100 }, stripe.impl);
+    [row] = await db.select().from(users).where(eq(users.id, referrer.id));
+    expect(row.creditCents).toBe(500);
+  });
+
+  it("spends the referrer's credit automatically on their own next commission, floored at 1 €", async () => {
+    const referrer = await createUser(db, { email: "referrer2@test.local", password: "motdepasse-solide" });
+    await db.update(users).set({ creditCents: 500 }).where(eq(users.id, referrer.id));
+    const stripe = stripeOk();
+    const mission = await createMission(db, referrer.id, "Réclamer 20 € de frais injustifiés");
+    await analyzeMission({ db, llm: new ScriptedProvider(() => textResult(JSON.stringify(plan))), capabilities: { webSearch: false, searchProvider: null } }, mission.id, null);
+    await startCheckout(db, success, referrer.id, mission.id, stripe.impl);
+    const sess = (await db.query.missions.findFirst({ where: eq(missions.id, mission.id) }))!.payment!.checkoutSessionId;
+    const customerId = (await db.query.users.findFirst({ where: eq(users.id, referrer.id) }))!.stripeCustomerId!;
+    await applyStripeEvent(db, success, { type: "checkout.session.completed", data: { object: { id: sess, mode: "setup", status: "complete", setup_intent: "seti_1", customer: customerId, metadata: { missionId: mission.id } } } }, stripe.impl);
+
+    // 20 € recovered → 5 € commission (the minimum); 5 € of credit would zero it out, so it's floored at 1 €.
+    const result = await declareOutcome(db, success, referrer.id, mission.id, { resolved: true, recoveredEuros: 20 }, stripe.impl);
+    expect(result.charge).toMatchObject({ feeCents: 100, status: "charged" });
+    const [row] = await db.select().from(users).where(eq(users.id, referrer.id));
+    expect(row.creditCents).toBe(100); // 500 - 400 applied
+    const [m] = await db.select().from(missions).where(eq(missions.id, mission.id));
+    expect(m.payment).toMatchObject({ creditAppliedCents: 400, amountCents: 100 });
+  });
+
+  it("never spends credit on a failed charge attempt", async () => {
+    const referrer = await createUser(db, { email: "referrer3@test.local", password: "motdepasse-solide" });
+    const { user: friend, mission } = await authorizedReferredMission(referrer, stripeOk());
+    await db.update(users).set({ creditCents: 500 }).where(eq(users.id, friend.id));
+    const down = (async () => {
+      throw new Error("réseau");
+    }) as unknown as typeof fetch;
+    const result = await declareOutcome(db, success, friend.id, mission.id, { resolved: true, recoveredEuros: 100 }, down);
+    expect(result.charge.status).toBe("failed");
+    const [row] = await db.select().from(users).where(eq(users.id, friend.id));
+    expect(row.creditCents).toBe(500);
   });
 });
 

@@ -78,7 +78,9 @@ export function integrationStatus() {
     search: deps.search ? { available: true, provider: deps.search.name } : { available: false as const },
     billing: (() => {
       const cfg = billingConfig();
-      return cfg ? { enabled: true as const, mode: cfg.mode, priceCents: cfg.priceCents, fee: cfg.fee, plus: cfg.plus } : { enabled: false as const };
+      return cfg
+        ? { enabled: true as const, mode: cfg.mode, priceCents: cfg.priceCents, fee: cfg.fee, plus: cfg.plus, referralCreditCents: cfg.referralCreditCents }
+        : { enabled: false as const };
     })(),
     notifications: { enabled: Boolean(deps.mailer && deps.appUrl) },
   };

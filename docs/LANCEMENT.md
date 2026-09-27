@@ -1,7 +1,37 @@
 # Lancer Atlas — guide pas à pas
 
-> Date : 26 septembre 2026. Ce guide remplace, pour le lancement, la « phase A gratuite » de [`ANALYSE-JURIDIQUE.md`](ANALYSE-JURIDIQUE.md).
+> Date : 27 septembre 2026. Ce guide remplace, pour le lancement, la « phase A gratuite » de [`ANALYSE-JURIDIQUE.md`](ANALYSE-JURIDIQUE.md).
 > Ce document n'est pas un avis juridique ni comptable. Les montants sont des **estimations** à vérifier sur vos propres devis.
+
+---
+
+## 0. Le choix du modèle économique, pour de vrai
+
+Le 27 septembre 2026, on m'a laissé décider seul du modèle économique, avec l'objectif de générer « le plus possible », pas quelques euros par mois. Voici ce que j'ai décidé, et pourquoi — y compris ce que j'ai refusé de faire.
+
+**Ce qui multiplie vraiment le revenu, ce n'est pas le prix.** Un dossier moyen rapporte quelques euros, quel que soit le taux de commission qu'on choisit. Le seul levier qui change l'ordre de grandeur, c'est le **nombre de dossiers**. Tout ce que j'ai construit sert ce seul objectif : faire venir plus de dossiers, sans dépenser en publicité avant d'avoir prouvé que ça rapporte plus que ça ne coûte (revoir la section 1 et la page Économie).
+
+**Ce que j'ai gardé et pourquoi :**
+- **La commission au résultat, avec un deuxième palier sur les grosses sommes.** C'est le socle : sans lui, personne n'essaie Atlas. Le deuxième palier capte plus de valeur sur les dossiers à forte somme récupérée (caution, voyage annulé), sans jamais dépasser un plafond raisonnable.
+- **Atlas Plus, en option.** Un revenu récurrent, mais seulement pour les clients qui reviennent — je ne l'ai pas mis en avant à l'inscription, pour ne pas vendre un abonnement à qui n'en a pas l'usage.
+- **Le parrainage, nouveau.** C'est la vraie réponse à « générer le plus possible » : chaque client devient un canal de distribution gratuit. Voir la section 1 bis.
+
+**Ce que j'ai refusé de faire, et pourquoi :**
+- **Baisser la commission ou l'offrir en promotion pour faire du volume.** C'est très exactement l'erreur de Homejoy : des clients attirés par un prix cassé qui ne reviennent pas, et une entreprise qui grandit avant de s'apercevoir qu'elle perd de l'argent sur chacun d'eux.
+- **Élargir les types de dossiers acceptés au-delà de ce qu'Atlas sait faire, pour capter plus de demande.** C'est l'erreur de DoNotPay, sanctionné pour avoir promis plus que ce qu'il savait prouver. Le périmètre d'Atlas (section 5 des CGV) n'a pas bougé.
+- **Me présenter comme un cabinet de recouvrement de créances** (une rémunération au pourcentage des sommes récupérées y ressemble). Je m'en tiens en dehors tant que le client agit et envoie lui-même, et qu'Atlas ne touche jamais l'argent récupéré (CPCE, art. R124-1 et suivants). Ne changez pas ce point sans avis d'un professionnel.
+- **Inventer un produit d'assurance ou de protection juridique** (« payez une fois, on couvre tous vos litiges de l'année ») pour transformer l'usage occasionnel en revenu garanti. C'est économiquement le levier le plus puissant qui existe pour ce genre de service — c'est aussi une activité d'assurance réglementée (code des assurances), qui demande un agrément que je ne peux pas vous faire obtenir seul depuis ce dépôt de code. Si vous voulez explorer cette voie un jour, c'est un sujet à avocat et à courtier en assurance, pas un réglage de configuration.
+- **Payer pour de la publicité maintenant.** Rien ne dit encore qu'un client coûte moins cher à trouver qu'il ne rapporte. La page Économie vous le dira après vos 20 premiers dossiers clôturés (section 5).
+
+**Ce que ça donne, concrètement :** le modèle ne change pas d'ordre de grandeur du jour au lendemain. Il change la pente : chaque client réglé peut désormais en amener un autre gratuitement, ce qui, avec le temps, pèse plus que n'importe quel ajustement de prix.
+
+### 1 bis. Le parrainage : chaque client devient un canal d'acquisition
+
+**Le mécanisme.** Chaque compte a un lien personnel (visible sur le tableau de bord). Quand un ami invité paie sa première commission, le parrain reçoit un crédit (5 € par défaut, `ATLAS_REFERRAL_CREDIT_CENTS`), déduit automatiquement de sa prochaine commission — jamais en dessous d'1 €, pour que la commission reste toujours une vraie incitation à clôturer le dossier.
+
+**Pourquoi ce n'est pas l'erreur de Homejoy.** Homejoy baissait son prix pour *tous* les nouveaux clients, sans savoir s'ils reviendraient : une remise offerte sur la seule promesse d'un client inconnu. Ici, le crédit n'est **jamais** offert à un client non éprouvé : il est payé au parrain *après coup*, avec l'argent réellement encaissé sur le dossier de l'ami. Le coût est donc toujours couvert par un revenu déjà réalisé — jamais un pari.
+
+**Ce qui reste à surveiller** (page Économie, ligne « Crédit de parrainage dû ») : le total des crédits promis et pas encore dépensés. Tant qu'il reste petit devant vos commissions encaissées, le programme se finance lui-même. S'il grossit plus vite que le nombre de dossiers réglés, c'est le signe que trop de comptes sont créés sans jamais payer de commission — regardez alors si des comptes créés via parrainage n'aboutissent jamais à un dossier réglé, et envisagez de plafonner le crédit accumulable.
 
 ---
 

@@ -15,6 +15,8 @@ export const signupSchema = z.object({
     .min(10, "Le mot de passe doit contenir au moins 10 caractères.")
     .max(200, "Mot de passe trop long."),
   name: z.string().trim().max(80).optional(),
+  /** An existing user's referral code, if they came from a "share" link. Silently ignored if unknown. */
+  ref: z.string().trim().max(20).optional(),
 });
 
 export const loginSchema = z.object({
@@ -34,9 +36,11 @@ export async function createUser(db: Db, input: z.infer<typeof signupSchema>): P
   const existing = await db.query.users.findFirst({ where: eq(users.email, input.email) });
   if (existing) throw new AppError(409, "Un compte existe déjà avec cette adresse.", "email_taken");
   const passwordHash = await bcrypt.hash(input.password, 12);
+  // A code from someone else's own share link (never yourself — nobody has an account yet to compare against).
+  const referrer = input.ref ? await db.query.users.findFirst({ where: eq(users.referralCode, input.ref) }) : null;
   const [user] = await db
     .insert(users)
-    .values({ email: input.email, name: input.name || null, passwordHash })
+    .values({ email: input.email, name: input.name || null, passwordHash, referredByUserId: referrer?.id ?? null })
     .returning();
   return user;
 }

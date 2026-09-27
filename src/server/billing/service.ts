@@ -191,9 +191,17 @@ export async function declareOutcome(
 
   const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
   const baseFeeCents = computeSuccessFee(cfg.fee, recoveredCents);
-  const feeCents = cfg.plus && isPlusActive(user?.plus) ? applyPlusDiscount(cfg.plus, baseFeeCents) : baseFeeCents;
+  const discountedCents = cfg.plus && isPlusActive(user?.plus) ? applyPlusDiscount(cfg.plus, baseFeeCents) : baseFeeCents;
+  // Referral credit, earned by referring paying friends, spent automatically — never below the same 1 € floor as the Plus discount.
+  const creditApplied = Math.min(user?.creditCents ?? 0, Math.max(0, discountedCents - 100));
+  const feeCents = discountedCents - creditApplied;
   charge.feeCents = feeCents;
-  const payment = { ...mission.payment!, feeDueCents: feeCents };
+  // Credit is only actually spent once a price is committed to (charged, or fixed on a payment page) —
+  // never on a bare failure, so a client isn't docked credit for money that never moved.
+  const spendCredit = async () => {
+    if (creditApplied > 0) await db.update(users).set({ creditCents: sql`${users.creditCents} - ${creditApplied}` }).where(eq(users.id, userId));
+  };
+  const payment = { ...mission.payment!, feeDueCents: feeCents, ...(creditApplied > 0 ? { creditAppliedCents: creditApplied } : {}) };
   const description = `Atlas — commission : ${mission.title}`;
   try {
     if (user?.stripeCustomerId && user.stripePaymentMethodId) {
@@ -203,12 +211,26 @@ export async function declareOutcome(
         fetchImpl,
       );
       if (r.status === "succeeded") {
+        await spendCredit();
         await db
           .update(missions)
           .set({ payment: { ...payment, paidAt: new Date().toISOString(), amountCents: feeCents, currency: cfg.currency, paymentIntentId: r.paymentIntentId } })
           .where(eq(missions.id, missionId));
-        await addMessage(db, missionId, "event", `Commission prélevée : ${euros(feeCents)}.`, { kind: "fee_charged" });
+        await addMessage(
+          db,
+          missionId,
+          "event",
+          `Commission prélevée : ${euros(feeCents)}${creditApplied > 0 ? ` (dont ${euros(creditApplied)} de crédit parrainage)` : ""}.`,
+          { kind: "fee_charged" },
+        );
         charge.status = "charged";
+        if (cfg.referralCreditCents > 0 && user.referredByUserId && !user.referralRewarded) {
+          await db
+            .update(users)
+            .set({ creditCents: sql`${users.creditCents} + ${cfg.referralCreditCents}` })
+            .where(eq(users.id, user.referredByUserId));
+          await db.update(users).set({ referralRewarded: true }).where(eq(users.id, userId));
+        }
         return { outcome, charge };
       }
       payment.failure = r.reason;
@@ -219,6 +241,7 @@ export async function declareOutcome(
       { missionId, userId, email: user?.email ?? "", title: mission.title, amountCents: feeCents, kind: "success_fee" },
       fetchImpl,
     );
+    await spendCredit();
     await db
       .update(missions)
       .set({ payment: { ...payment, feeCheckoutSessionId: page.id, payLinkUrl: page.url } })

@@ -1,6 +1,6 @@
 import { and, gte, inArray, sql } from "drizzle-orm";
 import type { Db } from "@/db";
-import { executionLogs, missionRuns, missions, type MissionOutcome, type MissionPayment, type MissionStatus } from "@/db/schema";
+import { executionLogs, missionRuns, missions, users, type MissionOutcome, type MissionPayment, type MissionStatus } from "@/db/schema";
 
 /**
  * The owner's economics dashboard. It exists because of what sank Homejoy
@@ -214,6 +214,12 @@ export async function loadEconomics(db: Db, days: number | null, now = new Date(
     })),
     now,
   );
+}
+
+/** Referral credit owed to users, still unspent — future revenue the referral program has already promised away. */
+export async function referralCreditOutstandingCents(db: Db) {
+  const [row] = await db.select({ total: sql<string>`coalesce(sum(${users.creditCents}), 0)` }).from(users);
+  return Number(row?.total ?? 0);
 }
 
 /** The owner(s), from ATLAS_ADMIN_EMAILS (comma-separated). Nobody when unset. */

@@ -70,6 +70,7 @@ export type MissionDetailDTO = {
       priceCents?: number;
       fee?: import("@/lib/fee").FeeTerms;
       plus?: { priceCents: number; feeDiscountPct: number; costMultiplier: number } | null;
+      referralCreditCents?: number;
     };
     notifications: { enabled: boolean };
   };

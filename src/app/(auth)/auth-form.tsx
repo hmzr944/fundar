@@ -13,6 +13,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const [pending, setPending] = useState(false);
   const next = params.get("next");
   const safeNext = next && next.startsWith("/app") ? next : "/app";
+  const ref = params.get("ref");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -25,7 +26,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         json: {
           email: form.get("email"),
           password: form.get("password"),
-          ...(mode === "signup" ? { name: form.get("name") || undefined } : {}),
+          ...(mode === "signup" ? { name: form.get("name") || undefined, ref: ref || undefined } : {}),
         },
       });
       router.replace(safeNext);

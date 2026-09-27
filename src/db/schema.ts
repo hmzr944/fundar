@@ -86,9 +86,18 @@ export const users = pgTable(
     cardSavedAt: timestamp("card_saved_at", { withTimezone: true }),
     /** "Atlas Plus" subscription: a lower success fee and a higher AI budget per dossier. */
     plus: jsonb("plus").$type<PlusSubscription | null>(),
+    /** Short code this user can share; a friend who signs up with it links back via referredByUserId. */
+    referralCode: text("referral_code")
+      .notNull()
+      .default(sql`substr(md5(random()::text || clock_timestamp()::text), 1, 10)`),
+    referredByUserId: uuid("referred_by_user_id"),
+    /** Whether the referrer has already been credited for THIS referred user's first paid dossier. */
+    referralRewarded: boolean("referral_rewarded").notNull().default(false),
+    /** Earned by referring paying friends; spent automatically on this user's own next commission. */
+    creditCents: integer("credit_cents").notNull().default(0),
     ...timestamps,
   },
-  (t) => [uniqueIndex("users_email_unique").on(t.email)],
+  (t) => [uniqueIndex("users_email_unique").on(t.email), uniqueIndex("users_referral_code_unique").on(t.referralCode)],
 );
 
 export type PlusSubscription = {
@@ -132,6 +141,8 @@ export type MissionPayment = {
   paymentIntentId?: string;
   /** Checkout opened to collect the fee when the saved card could not be charged. */
   feeCheckoutSessionId?: string;
+  /** Referral credit spent on this fee (see users.creditCents). Already deducted from amountCents/feeDueCents. */
+  creditAppliedCents?: number;
   /** Payment page sent when the saved card could not be charged directly. */
   payLinkUrl?: string;
   failure?: string;

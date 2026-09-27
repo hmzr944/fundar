@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getDb } from "@/db";
 import { Card, SectionTitle } from "@/components/ui";
 import { requirePageUser } from "@/lib/http";
-import { isAdmin, loadEconomics, MIN_SAMPLE, UNCLOSED_AFTER_DAYS, type Economics } from "@/server/admin/economics";
+import { isAdmin, loadEconomics, MIN_SAMPLE, referralCreditOutstandingCents, UNCLOSED_AFTER_DAYS, type Economics } from "@/server/admin/economics";
 
 export const metadata: Metadata = { title: "Économie" };
 
@@ -16,7 +16,7 @@ export default async function Admin() {
   const user = await requirePageUser();
   if (!isAdmin(user.email)) notFound();
   const db = getDb();
-  const [month, all] = await Promise.all([loadEconomics(db, 30), loadEconomics(db, null)]);
+  const [month, all, referralCredit] = await Promise.all([loadEconomics(db, 30), loadEconomics(db, null), referralCreditOutstandingCents(db)]);
   return (
     <div className="max-w-5xl space-y-6">
       <div>
@@ -50,6 +50,12 @@ export default async function Admin() {
         <Figures title="30 derniers jours" e={month} />
         <Figures title="Depuis le début" e={all} />
       </div>
+
+      {referralCredit > 0 && (
+        <p className="text-xs text-muted" data-testid="referral-credit-outstanding">
+          Crédit de parrainage dû aux clients, pas encore dépensé : {eur(referralCredit)} (revenu déjà promis sur de futures commissions).
+        </p>
+      )}
     </div>
   );
 }

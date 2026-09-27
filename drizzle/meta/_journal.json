@@ -50,6 +50,13 @@
       "when": 1790497578703,
       "tag": "0006_atlas_plus",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790499770444,
+      "tag": "0007_referrals",
+      "breakpoints": true
     }
   ]
 }

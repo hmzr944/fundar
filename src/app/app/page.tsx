@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { getDb } from "@/db";
+import { users } from "@/db/schema";
 import { MissionComposer } from "@/components/mission-composer";
 import { MissionList } from "@/components/mission-list";
+import { ReferralCard } from "@/components/referral-card";
 import { SectionTitle } from "@/components/ui";
 import { requirePageUser } from "@/lib/http";
 import { integrationStatus } from "@/server/deps";
@@ -14,10 +17,12 @@ export const metadata: Metadata = { title: "Tableau de bord" };
 export default async function Dashboard() {
   const user = await requirePageUser();
   const db = getDb();
-  const [needsAction, active, recent] = await Promise.all([
+  const billing = integrationStatus().billing;
+  const [needsAction, active, recent, referral] = await Promise.all([
     listMissions(db, user.id, { filter: "needs_action", limit: 6 }),
     listMissions(db, user.id, { filter: "active", limit: 6 }),
     listMissions(db, user.id, { limit: 6 }),
+    db.query.users.findFirst({ where: eq(users.id, user.id), columns: { referralCode: true, creditCents: true } }),
   ]);
   const llm = integrationStatus().llm;
   const results = await userResults(db, user.id);
@@ -40,6 +45,10 @@ export default async function Dashboard() {
         )}
         <MissionComposer disabled={!llm.available} />
       </div>
+
+      {billing.enabled && billing.referralCreditCents !== undefined && billing.referralCreditCents > 0 && referral && (
+        <ReferralCard code={referral.referralCode} creditCents={referral.creditCents} rewardCents={billing.referralCreditCents} />
+      )}
 
       <div className="grid gap-8 lg:grid-cols-2">
         <section aria-labelledby="needs-action">

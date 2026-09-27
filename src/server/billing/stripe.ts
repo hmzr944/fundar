@@ -25,6 +25,8 @@ export type BillingConfig = {
   appUrl: string;
   termsVersion: string;
   plus: PlusConfig | null;
+  /** Credited to a referrer when the friend they referred pays their first commission. 0 disables referral rewards. */
+  referralCreditCents: number;
 };
 
 export type PlusConfig = {
@@ -70,7 +72,18 @@ export function billingConfig(env: Record<string, string | undefined> = process.
           costMultiplier: intEnv(env.ATLAS_PLUS_COST_MULTIPLIER, 2),
         }
       : null;
-  return { mode, priceCents, fee, currency: "eur", secretKey, webhookSecret, appUrl, termsVersion: env.ATLAS_TERMS_VERSION?.trim() || "1", plus };
+  return {
+    mode,
+    priceCents,
+    fee,
+    currency: "eur",
+    secretKey,
+    webhookSecret,
+    appUrl,
+    termsVersion: env.ATLAS_TERMS_VERSION?.trim() || "1",
+    plus,
+    referralCreditCents: intEnv(env.ATLAS_REFERRAL_CREDIT_CENTS, 500),
+  };
 }
 
 /**
