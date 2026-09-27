@@ -2,6 +2,7 @@ import { eq, sql } from "drizzle-orm";
 import type { Db } from "@/db";
 import { type PlusSubscription, users } from "@/db/schema";
 import { badRequest, conflict } from "@/server/errors";
+import type { Mailer } from "@/server/mail/mailer";
 import {
   applyPlusDiscount,
   cancelPlusSubscription,
@@ -84,8 +85,14 @@ export async function applyPlusSubscriptionEvent(
   return { userId: user.id, status };
 }
 
-/** Cancels at the end of the period already paid for. */
-export async function cancelPlus(db: Db, cfg: BillingConfig, userId: string, fetchImpl?: typeof fetch) {
+/**
+ * Cancels at the end of the period already paid for. Sends a confirmation
+ * e-mail (the "notification de la résiliation" on a durable medium required
+ * by décret n° 2023-417, taken with code de la consommation art. L215-1-1 —
+ * the "résiliation en 3 clics" law: an online subscription must be
+ * cancellable online, with a confirmation the client can keep).
+ */
+export async function cancelPlus(db: Db, cfg: BillingConfig, userId: string, mailer: Mailer | null | undefined, fetchImpl?: typeof fetch) {
   const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
   if (!user?.plus || !isPlusActive(user.plus)) throw conflict("Vous n'êtes pas abonné à Atlas Plus.");
   if (user.plus.canceledAt) throw conflict("La résiliation est déjà enregistrée.");
@@ -94,6 +101,16 @@ export async function cancelPlus(db: Db, cfg: BillingConfig, userId: string, fet
     .update(users)
     .set({ plus: { ...user.plus, canceledAt: new Date().toISOString() } })
     .where(eq(users.id, userId));
+  if (mailer) {
+    const until = new Date(user.plus.currentPeriodEnd).toLocaleDateString("fr-FR");
+    await mailer
+      .send({
+        to: user.email,
+        subject: "Résiliation d'Atlas Plus enregistrée",
+        text: `Nous confirmons la réception de votre demande de résiliation d'Atlas Plus.\n\nElle prend effet le ${until} : vous gardez l'avantage (commission réduite, budget d'IA plus élevé) jusqu'à cette date, sans nouveau prélèvement ensuite.\n\n— Atlas`,
+      })
+      .catch(() => undefined);
+  }
 }
 
 /** The fee an active subscriber actually pays, and the per-dossier AI budget available to them. */

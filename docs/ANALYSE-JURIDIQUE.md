@@ -17,6 +17,7 @@
 5. [Capacité : 10 heures par semaine](#5-capacité--10-heures-par-semaine)
 6. [Les questions à poser à un avocat avant la phase payante](#6-les-questions-à-poser-à-un-avocat-avant-la-phase-payante)
 7. [Sources](#7-sources)
+8. [Mise à jour du 27 septembre 2026](#8-mise-à-jour-du-27-septembre-2026--nouvelle-passe-de-recherche-deux-non-conformités-trouvées-et-corrigées)
 
 ---
 
@@ -208,3 +209,50 @@ Une seule consultation, préparée avec ce document. Objectif : des réponses pa
 - Code de la consommation, L612-1 (médiation) : https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000032224805 · https://www.economie.gouv.fr/mediation-conso/vous-etes-un-professionnel/vos-principales-obligations-0
 - Code de la consommation, L221-28 (exceptions à la rétractation) : https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000044563170
 - Claude (Anthropic) et RGPD : https://www.donneespersonnelles.fr/claude-ia-rgpd · https://www.leto.legal/guides/claude-anthropic-rgpd-conformite-2026
+
+
+## 8. Mise à jour du 27 septembre 2026 : nouvelle passe de recherche, deux non-conformités trouvées et corrigées
+
+> Même limite que le reste du document : Légifrance reste inaccessible depuis cet environnement (blocage réseau). Cette passe s'appuie sur des extraits de moteurs de recherche et des sites qui reproduisent les textes (Doctrine, Predictice, cabinets d'avocats) — **à revérifier sur Légifrance**, en particulier les deux points ci-dessous puisqu'ils ont conduit à un changement de code.
+
+### Ce qui a changé depuis la rédaction initiale de ce document
+
+Le produit a évolué depuis la première analyse (25 septembre) : mode « commission au résultat », abonnement récurrent « Atlas Plus », parrainage, lettre recommandée payante. Cette passe vérifie ce que ces ajouts déclenchent comme nouvelles obligations.
+
+### 8.1 Faille trouvée et corrigée : l'obligation d'informer que l'on parle à une IA (AI Act, art. 50)
+
+- **FAIT.** Le règlement européen sur l'IA (AI Act) impose, à son article 50 §1, que toute personne interagissant avec un système d'IA en soit informée « de manière claire et distincte », au plus tard au moment de la première interaction, sauf si c'est évident pour un utilisateur normalement informé. Cette obligation est **entrée en application en août 2026** — donc déjà applicable à la date d'aujourd'hui.
+- **CE QUI N'ÉTAIT PAS BON.** Cette mention n'existait que sur la page d'accueil publique (« Atlas est une intelligence artificielle »). **Rien ne le rappelait à l'intérieur même de l'application**, là où l'utilisateur connecté échange réellement avec Atlas — ce qui est l'endroit qui compte pour cette obligation, pas la page marketing.
+- **CORRIGÉ.** Un badge « Assistant IA », visible en permanence à côté du logo sur toutes les pages de l'application (`src/components/app-nav.tsx`), pas seulement sur la page d'accueil.
+- **INFORMATION MANQUANTE.** Le texte précis de l'article 50 et la date exacte d'entrée en application n'ont pas pu être lus directement sur Légifrance ou eur-lex.europa.eu (accès bloqué) ; à vérifier sur eur-lex avant de considérer le sujet clos.
+
+### 8.2 Faille trouvée et corrigée : la résiliation d'un abonnement en ligne doit être « en 3 clics », avec confirmation écrite
+
+- **FAIT.** Depuis le 1er juin 2023, l'article L215-1-1 du code de la consommation (créé par la loi n° 2022-1158, précisé par le décret n° 2023-417) impose que tout contrat souscriptible en ligne soit **résiliable en ligne**, par une fonctionnalité gratuite, directement accessible, sans devoir créer un espace personnel si ce n'était pas nécessaire pour souscrire. Le parcours doit se terminer par une **fonction de « notification de la résiliation »**, et la sanction (DGCCRF) peut aller jusqu'à 75 000 €.
+- **CE QUI N'ÉTAIT PAS BON.** L'abonnement « Atlas Plus » se résiliait déjà en un clic depuis Paramètres — la mécanique était bonne — mais **aucune confirmation n'était envoyée** au client après la résiliation. C'est très précisément l'élément que le décret rend obligatoire (une confirmation sur un support durable, en pratique un e-mail).
+- **CORRIGÉ.** `cancelPlus` (`src/server/billing/plus.ts`) envoie maintenant un e-mail de confirmation, avec la date à laquelle la résiliation prend effet. Le bouton a aussi été reformulé (« Résilier votre contrat », plus proche de la formulation que le décret suggère) plutôt qu'un simple « Résilier ».
+- **INFORMATION MANQUANTE.** Le texte exact du décret n° 2023-417 (les trois étapes précises, l'intitulé exact imposé à chaque bouton) n'a pas pu être lu en entier ; à vérifier sur Légifrance avant un contrôle DGCCRF.
+
+### 8.3 Confirmé sans changement (recherche fraîche, mêmes conclusions que le 25 septembre)
+
+- Loi 71-1130, art. 54 (consultation juridique/rédaction d'actes réservée, à titre habituel et rémunéré) : formulation confirmée par une deuxième source (Predictice, via résumé de recherche). Le montage « le client envoie lui-même » reste, à ce jour, la façon dont ce risque est tenu à distance — **HYPOTHÈSE non validée par un avocat**.
+- CPCE, R124-1 (recouvrement amiable pour autrui) : confirmé qu'une convention écrite et un mandat de recevoir les fonds pour le compte du créancier sont au cœur de ce régime. Comme Atlas ne reçoit jamais mandat d'encaisser et n'encaisse jamais l'argent récupéré par le client, ce régime ne devrait pas s'appliquer — **INTERPRÉTATION**, à confirmer.
+- Code de la consommation, L221-25 (rétractation, exécution partielle, paiement proportionnel) et L221-28 (perte totale du droit si le service est **entièrement exécuté** avec accord exprès) : la distinction entre les deux articles a été revérifiée ; la formulation des CGV, qui cite les deux, reste défendable puisqu'un dossier réglé pendant le délai de rétractation correspond à un service entièrement rendu (L221-28), pas seulement partiel (L221-25).
+- Code de la consommation, L612-1 et **L616-1** (et non L612-1 seul) : L616-1 est l'article qui impose concrètement d'afficher les coordonnées du médiateur sur le site et dans les conditions générales, sous peine d'amende DGCCRF (3 000 € / 15 000 €). Déjà fait dans les CGV et les mentions légales.
+
+### 8.4 Nouvelle question, non résolue : la revente d'un service de lettre recommandée nécessite-t-elle une autorisation Arcep ?
+
+- **FAIT.** En France, l'envoi de plis en distribution régulière nécessite une autorisation Arcep ; une entreprise qui n'est **elle-même** ni distributeur ni exportateur de courrier ne semble pas soumise à ce régime.
+- **INTERPRÉTATION, non confirmée.** Utiliser l'API d'un prestataire (Merci Facteur) qui s'appuie lui-même sur La Poste ressemble, par analogie avec d'autres activités non soumises (presse, colis, prospectus), à une simple prestation de client — pas à une activité de distributeur postal. Rien de trouvé ne le confirme ou l'infirme explicitement pour ce cas précis.
+- **INFORMATION MANQUANTE — action simple, sans avocat.** Une question par e-mail au support de Merci Facteur (« en utilisant votre API, dois-je moi-même détenir une autorisation Arcep ? ») suffit probablement à lever le doute, avant d'ouvrir la lettre recommandée à de vrais clients — à faire en même temps que la lettre test déjà recommandée dans `LANCEMENT.md`.
+
+### Sources de cette mise à jour
+
+- AI Act, art. 50 : https://artificialintelligenceact.eu/article/50/ · https://digital-strategy.ec.europa.eu/en/faqs/transparency-obligations-under-article-50-ai-act
+- Code de la consommation, art. L215-1-1 (résiliation en 3 clics) : https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000046190107
+- Décret n° 2023-417 du 31 mai 2023 : https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000047613963 · https://www.service-public.gouv.fr/particuliers/actualites/A16599
+- Code de la consommation, art. L221-25 (rétractation, exécution partielle) : https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000044563179
+- Code de la consommation, art. L616-1 (affichage des coordonnées du médiateur) : https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000032224762
+- CPCE, art. R124-1 (recouvrement amiable, champ d'application) : https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000025938362
+- Loi 71-1130, art. 54 : https://predictice.com/loi/loi-n-71-1130-du-31-decembre-1971-JORFTEXT000000508793/article/article-54-LEGIARTI000006903347
+- Arcep, autorisation postale (champ d'application) : https://www.arcep.fr/professionnels/operateurs-postaux-et-de-colis.html · https://www.arcep.fr/fileadmin/reprise/secteurpostal/Guide_demande_autorisation_service_postal.pdf

@@ -478,13 +478,17 @@ describe("Atlas Plus", () => {
     await expect(startExecution(deps, user.id, mission.id)).rejects.toMatchObject({ status: 429 });
   });
 
-  it("cancels at the end of the paid period, and stays active until then", async () => {
+  it("cancels at the end of the paid period, stays active until then, and confirms it by e-mail", async () => {
     const { user, stripe } = await subscribedUser();
-    await cancelPlus(db, withPlus, user.id, stripe.impl);
+    const mailer = new FakeMailer();
+    await cancelPlus(db, withPlus, user.id, mailer, stripe.impl);
     const [row] = await db.select().from(users).where(eq(users.id, user.id));
     expect(row.plus).toMatchObject({ canceledAt: expect.any(String), currentPeriodEnd: expect.any(String) });
     expect(isPlusActive(row.plus)).toBe(true);
-    await expect(cancelPlus(db, withPlus, user.id, stripe.impl)).rejects.toMatchObject({ status: 409 });
+    // Décret n° 2023-417 (résiliation en 3 clics) : une confirmation sur support durable.
+    expect(mailer.sent).toHaveLength(1);
+    expect(mailer.sent[0]).toMatchObject({ to: user.email, subject: expect.stringContaining("Résiliation") });
+    await expect(cancelPlus(db, withPlus, user.id, mailer, stripe.impl)).rejects.toMatchObject({ status: 409 });
   });
 
   it("syncs status and renewal date from Stripe's own subscription events", async () => {

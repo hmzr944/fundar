@@ -159,7 +159,7 @@ export function PlusSection({
         </p>
         {!canceledAt && (
           <Button variant="ghost" onClick={cancel} disabled={pending}>
-            {pending && <Spinner />} Résilier
+            {pending && <Spinner />} Résilier votre contrat
           </Button>
         )}
         {msg && <p role={msg.ok ? "status" : "alert"} className={`text-sm ${msg.ok ? "text-success" : "text-danger"}`}>{msg.text}</p>}
