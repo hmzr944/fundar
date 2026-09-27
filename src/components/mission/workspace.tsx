@@ -216,6 +216,7 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
                 {cardSaved
                   ? "Votre carte enregistrée sera utilisée."
                   : "Vous enregistrez votre carte une seule fois, sur la page sécurisée de Stripe : aucun débit aujourd'hui."}
+                {data.account.plusActive && " Avec Atlas Plus, cette commission est déjà réduite."}
               </p>
             )}
             <label className="mt-3 flex items-start gap-2 text-sm">

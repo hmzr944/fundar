@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, Spinner } from "@/components/ui";
 import { api } from "@/lib/client/api";
+import { eurosShort } from "@/lib/fee";
 
 const input =
   "w-full rounded-lg border border-line-strong bg-elev px-3 py-2 text-sm outline-none placeholder:text-faint focus:border-accent";
@@ -97,6 +98,86 @@ export function DangerZone() {
         </Button>
       </form>
       {msg && <p role={msg.ok ? "status" : "alert"} className={`text-sm ${msg.ok ? "text-success" : "text-danger"}`}>{msg.text}</p>}
+    </div>
+  );
+}
+
+export function PlusSection({
+  active,
+  canceledAt,
+  currentPeriodEnd,
+  priceCents,
+  feeDiscountPct,
+  costMultiplier,
+}: {
+  active: boolean;
+  canceledAt?: string;
+  currentPeriodEnd?: string;
+  priceCents: number;
+  feeDiscountPct: number;
+  costMultiplier: number;
+}) {
+  const [pending, setPending] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  async function subscribe() {
+    setPending(true);
+    setMsg(null);
+    try {
+      const { url } = await api<{ url: string }>("/api/account/plus", { method: "POST" });
+      window.location.assign(url);
+    } catch (err) {
+      setMsg({ ok: false, text: (err as Error).message });
+      setPending(false);
+    }
+  }
+
+  async function cancel() {
+    if (!confirm("Résilier Atlas Plus ? Vous garderez l'avantage jusqu'à la fin de la période déjà payée.")) return;
+    setPending(true);
+    setMsg(null);
+    try {
+      await api("/api/account/plus/cancel", { method: "POST" });
+      setMsg({ ok: true, text: "Résiliation enregistrée. L'avantage reste actif jusqu'à la fin de la période en cours." });
+    } catch (err) {
+      setMsg({ ok: false, text: (err as Error).message });
+    } finally {
+      setPending(false);
+    }
+  }
+
+  if (active) {
+    return (
+      <div className="space-y-2 text-sm" data-testid="plus-active">
+        <p>
+          <span className="text-success">●</span> Atlas Plus actif
+          {currentPeriodEnd && !canceledAt && ` — renouvellement le ${new Date(currentPeriodEnd).toLocaleDateString("fr-FR")}`}
+          {canceledAt && currentPeriodEnd && ` — actif jusqu'au ${new Date(currentPeriodEnd).toLocaleDateString("fr-FR")}, puis résilié`}
+        </p>
+        <p className="text-muted">
+          Commission réduite de {feeDiscountPct} % sur chaque dossier réglé, et budget d&apos;IA multiplié par {costMultiplier} par dossier.
+        </p>
+        {!canceledAt && (
+          <Button variant="ghost" onClick={cancel} disabled={pending}>
+            {pending && <Spinner />} Résilier
+          </Button>
+        )}
+        {msg && <p role={msg.ok ? "status" : "alert"} className={`text-sm ${msg.ok ? "text-success" : "text-danger"}`}>{msg.text}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2 text-sm" data-testid="plus-inactive">
+      <p>
+        {eurosShort(priceCents)} € par mois, résiliable à tout moment. Réduit la commission de {feeDiscountPct} % sur chaque dossier réglé et
+        multiplie par {costMultiplier} le budget d&apos;IA disponible par dossier. Se rentabilise dès qu&apos;un dossier de valeur moyenne se
+        règle dans le mois.
+      </p>
+      <Button variant="primary" onClick={subscribe} disabled={pending} data-testid="plus-subscribe">
+        {pending && <Spinner />} Devenir Atlas Plus
+      </Button>
+      {msg && <p role="alert" className="text-sm text-danger">{msg.text}</p>}
     </div>
   );
 }

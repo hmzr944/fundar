@@ -60,7 +60,7 @@ export type MissionDetailDTO = {
     estimatedCostUsd: number | null;
   };
   /** The signed-in user's account, as far as this dossier needs it. */
-  account: { cardSaved: boolean };
+  account: { cardSaved: boolean; plusActive: boolean };
   integrations: {
     llm: { available: boolean; provider?: string; model?: string; testDouble?: boolean };
     search: { available: boolean; provider?: string };
@@ -69,6 +69,7 @@ export type MissionDetailDTO = {
       mode?: "success" | "upfront";
       priceCents?: number;
       fee?: import("@/lib/fee").FeeTerms;
+      plus?: { priceCents: number; feeDiscountPct: number; costMultiplier: number } | null;
     };
     notifications: { enabled: boolean };
   };

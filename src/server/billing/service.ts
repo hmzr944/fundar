@@ -6,7 +6,9 @@ import { startExecution, type AgentDeps } from "@/server/agent/runner";
 import { AppError, badRequest, conflict } from "@/server/errors";
 import { notifyUser } from "@/server/mail/notify";
 import { addMessage, getOwnedMission, hasActiveRun, refreshMissionStatus } from "@/server/missions/service";
+import { isPlusActive } from "./plus";
 import {
+  applyPlusDiscount,
   chargeSavedCard,
   computeSuccessFee,
   createCheckoutSession,
@@ -70,6 +72,8 @@ type CheckoutSession = {
   client_reference_id?: string;
   setup_intent?: string;
   customer?: string;
+  /** Present on a "mode": "subscription" session — the subscription it created. */
+  subscription?: string;
   metadata?: Record<string, string>;
 };
 
@@ -185,9 +189,10 @@ export async function declareOutcome(
   const authorized = mission.payment?.authorizedAt && !mission.payment.paidAt;
   if (!input.resolved || !cfg || cfg.mode !== "success" || !authorized) return { outcome, charge };
 
-  const feeCents = computeSuccessFee(cfg.fee, recoveredCents);
-  charge.feeCents = feeCents;
   const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
+  const baseFeeCents = computeSuccessFee(cfg.fee, recoveredCents);
+  const feeCents = cfg.plus && isPlusActive(user?.plus) ? applyPlusDiscount(cfg.plus, baseFeeCents) : baseFeeCents;
+  charge.feeCents = feeCents;
   const payment = { ...mission.payment!, feeDueCents: feeCents };
   const description = `Atlas — commission : ${mission.title}`;
   try {

@@ -15,6 +15,7 @@ import { notifyUser } from "@/server/mail/notify";
 import { createMission } from "@/server/missions/service";
 import { POST as webhookRoute } from "@/app/api/payments/stripe-webhook/route";
 import { loadEconomics, stripeFeeCents } from "@/server/admin/economics";
+import { applyPlusCheckout, applyPlusSubscriptionEvent, cancelPlus, isPlusActive, startPlusCheckout } from "@/server/billing/plus";
 import { sendOutcomeReminders } from "@/server/billing/reminders";
 import { analysis, planFromBriefing, turn } from "../helpers/agent";
 import { createTestUser, db, makeDeps, resetDb } from "../helpers/db";
@@ -22,7 +23,17 @@ import { createTestUser, db, makeDeps, resetDb } from "../helpers/db";
 beforeEach(resetDb);
 
 const fee = { ratePct: 20, minCents: 500, maxCents: 3000, flatCents: 500, tier2RatePct: 10, tier2CapCents: 15_000 };
-const cfg: BillingConfig = { mode: "upfront", fee, priceCents: 1200, currency: "eur", secretKey: "sk_test_x", webhookSecret: "whsec_test", appUrl: "https://atlas.example", termsVersion: "1" };
+const cfg: BillingConfig = {
+  mode: "upfront",
+  fee,
+  priceCents: 1200,
+  currency: "eur",
+  secretKey: "sk_test_x",
+  webhookSecret: "whsec_test",
+  appUrl: "https://atlas.example",
+  termsVersion: "1",
+  plus: null,
+};
 const legalEnv = {
   ATLAS_LEGAL_NAME: "Atlas EI",
   ATLAS_LEGAL_SIRET: "123 456 789 00010",
@@ -190,23 +201,23 @@ describe("paying for a dossier", () => {
   });
 });
 
+/** A fake Stripe API: records every call, answers from `replies` by path. */
+function fakeStripe(replies: Record<string, (form: URLSearchParams | null) => { status?: number; body: unknown }>) {
+  const calls: { method: string; path: string; form: URLSearchParams | null }[] = [];
+  const impl = (async (url: string, init: RequestInit) => {
+    const path = url.replace("https://api.stripe.com/v1/", "");
+    const form = (init.body as URLSearchParams | undefined) ?? null;
+    calls.push({ method: init.method ?? "GET", path, form });
+    const key = Object.keys(replies).find((k) => path.startsWith(k));
+    if (!key) return new Response(JSON.stringify({ error: { message: `inattendu : ${path}` } }), { status: 400 });
+    const r = replies[key](form);
+    return new Response(JSON.stringify(r.body), { status: r.status ?? 200 });
+  }) as unknown as typeof fetch;
+  return { impl, calls };
+}
+
 describe("success fee", () => {
   const success: BillingConfig = { ...cfg, mode: "success", priceCents: 0 };
-
-  /** A fake Stripe API: records every call, answers from `replies` by path. */
-  function fakeStripe(replies: Record<string, (form: URLSearchParams | null) => { status?: number; body: unknown }>) {
-    const calls: { method: string; path: string; form: URLSearchParams | null }[] = [];
-    const impl = (async (url: string, init: RequestInit) => {
-      const path = url.replace("https://api.stripe.com/v1/", "");
-      const form = (init.body as URLSearchParams | undefined) ?? null;
-      calls.push({ method: init.method ?? "GET", path, form });
-      const key = Object.keys(replies).find((k) => path.startsWith(k));
-      if (!key) return new Response(JSON.stringify({ error: { message: `inattendu : ${path}` } }), { status: 400 });
-      const r = replies[key](form);
-      return new Response(JSON.stringify(r.body), { status: r.status ?? 200 });
-    }) as unknown as typeof fetch;
-    return { impl, calls };
-  }
 
   const stripeOk = () =>
     fakeStripe({
@@ -377,6 +388,118 @@ describe("success fee", () => {
       data: { object: { id: "cs_test_1", payment_status: "paid", amount_total: 1200, currency: "eur", metadata: { missionId: mission.id } } },
     };
     expect(await applyStripeEvent(db, success, event)).toBeNull();
+  });
+});
+
+describe("Atlas Plus", () => {
+  const withPlus: BillingConfig = { ...cfg, mode: "success", priceCents: 0, plus: { priceCents: 490, feeDiscountPct: 30, costMultiplier: 2 } };
+  const stripeOk = () =>
+    fakeStripe({
+      customers: () => ({ body: { id: "cus_1" } }),
+      "checkout/sessions": () => ({ body: { id: "cs_plus_1", url: "https://checkout.stripe.com/c/plus" } }),
+      "subscriptions/sub_1": (f) =>
+        f
+          ? { body: { id: "sub_1", status: "canceled" } } // POST (cancel)
+          : { body: { id: "sub_1", status: "active", current_period_end: Math.floor(Date.now() / 1000) + 30 * 86_400 } },
+      "setup_intents/seti_1": () => ({ body: { id: "seti_1", payment_method: "pm_1" } }),
+      payment_intents: () => ({ body: { id: "pi_1", status: "succeeded" } }),
+    });
+
+  const checkoutDone = () => ({
+    type: "checkout.session.completed",
+    data: { object: { id: "cs_plus_1", mode: "subscription", status: "complete", subscription: "sub_1", metadata: { userId: "" } } },
+  });
+
+  async function subscribedUser(stripe = stripeOk()) {
+    const user = await createTestUser();
+    const { url } = await startPlusCheckout(db, withPlus, user.id, stripe.impl);
+    expect(url).toBe("https://checkout.stripe.com/c/plus");
+    const event = checkoutDone();
+    event.data.object.metadata.userId = user.id;
+    expect(await applyPlusCheckout(db, withPlus, event.data.object, stripe.impl)).toEqual({ userId: user.id });
+    return { user, stripe };
+  }
+
+  it("subscribes without ever charging the fee-flow endpoints, and is idempotent", async () => {
+    const { user, stripe } = await subscribedUser();
+    expect(stripe.calls.map((c) => c.path)).toEqual(["customers", "checkout/sessions", "subscriptions/sub_1"]);
+    const [row] = await db.select().from(users).where(eq(users.id, user.id));
+    expect(row.plus).toMatchObject({ stripeSubscriptionId: "sub_1", status: "active", currentPeriodEnd: expect.any(String) });
+    expect(isPlusActive(row.plus)).toBe(true);
+    const event = checkoutDone();
+    event.data.object.metadata.userId = user.id;
+    expect(await applyPlusCheckout(db, withPlus, event.data.object, stripe.impl)).toBeNull();
+  });
+
+  it("discounts the success fee for an active subscriber, floored so it's never worthless", async () => {
+    const { user, stripe } = await subscribedUser();
+    const mission = await createMission(db, user.id, "Réclamer 180 € de frais injustifiés");
+    await analyzeMission({ db, llm: new ScriptedProvider(() => textResult(JSON.stringify(plan))), capabilities: { webSearch: false, searchProvider: null } }, mission.id, null);
+    await startCheckout(db, withPlus, user.id, mission.id, stripe.impl);
+    await applyStripeEvent(
+      db,
+      withPlus,
+      { type: "checkout.session.completed", data: { object: { id: (await db.query.missions.findFirst({ where: eq(missions.id, mission.id) }))!.payment!.checkoutSessionId, mode: "setup", status: "complete", setup_intent: "seti_1", customer: (await db.query.users.findFirst({ where: eq(users.id, user.id) }))!.stripeCustomerId!, metadata: { missionId: mission.id } } } },
+      stripe.impl,
+    );
+    // 180 € recovered: 33 € without Atlas Plus (see the success-fee tests), 30 % off with it.
+    const result = await declareOutcome(db, withPlus, user.id, mission.id, { resolved: true, recoveredEuros: 180 }, stripe.impl);
+    expect(result.charge).toMatchObject({ feeCents: 2310, status: "charged" });
+  });
+
+  it("gives an active subscriber a higher per-dossier AI budget", async () => {
+    const { user } = await subscribedUser();
+    const mission = await createMission(db, user.id, "Réclamer 180 € de frais injustifiés");
+    await analyzeMission({ db, llm: new ScriptedProvider(() => textResult(JSON.stringify(plan))), capabilities: { webSearch: false, searchProvider: null } }, mission.id, null);
+    await db.insert(executionLogs).values({ missionId: mission.id, kind: "llm:execute", status: "ok", durationMs: 1, estimatedCostUsd: "3.500000" });
+    const deps = makeDeps(executor(), { limits: { ...makeDeps(null).limits, maxMissionCostUsd: 3, plusCostMultiplier: 2 } });
+    // Spent (3.5) is under the doubled cap (6): Atlas Plus keeps working past the base cap.
+    await expect(startExecution(deps, user.id, mission.id).then((r) => r.done)).resolves.toBeUndefined();
+  });
+
+  it("stops a non-subscriber at the base cap, unaffected by the multiplier setting", async () => {
+    const user = await createTestUser();
+    const mission = await createMission(db, user.id, "Réclamer 180 € de frais injustifiés");
+    await analyzeMission({ db, llm: new ScriptedProvider(() => textResult(JSON.stringify(plan))), capabilities: { webSearch: false, searchProvider: null } }, mission.id, null);
+    await db.insert(executionLogs).values({ missionId: mission.id, kind: "llm:execute", status: "ok", durationMs: 1, estimatedCostUsd: "3.500000" });
+    const deps = makeDeps(executor(), { limits: { ...makeDeps(null).limits, maxMissionCostUsd: 3, plusCostMultiplier: 2 } });
+    await expect(startExecution(deps, user.id, mission.id)).rejects.toMatchObject({ status: 429 });
+  });
+
+  it("cancels at the end of the paid period, and stays active until then", async () => {
+    const { user, stripe } = await subscribedUser();
+    await cancelPlus(db, withPlus, user.id, stripe.impl);
+    const [row] = await db.select().from(users).where(eq(users.id, user.id));
+    expect(row.plus).toMatchObject({ canceledAt: expect.any(String), currentPeriodEnd: expect.any(String) });
+    expect(isPlusActive(row.plus)).toBe(true);
+    await expect(cancelPlus(db, withPlus, user.id, stripe.impl)).rejects.toMatchObject({ status: 409 });
+  });
+
+  it("syncs status and renewal date from Stripe's own subscription events", async () => {
+    const { user } = await subscribedUser();
+    const renewed = Math.floor(Date.now() / 1000) + 60 * 86_400;
+    expect(
+      await applyPlusSubscriptionEvent(db, { type: "customer.subscription.updated", data: { object: { id: "sub_1", status: "active", current_period_end: renewed } } }),
+    ).toEqual({ userId: user.id, status: "active" });
+    let [row] = await db.select().from(users).where(eq(users.id, user.id));
+    expect(new Date(row.plus!.currentPeriodEnd).getTime()).toBe(renewed * 1000);
+
+    expect(await applyPlusSubscriptionEvent(db, { type: "customer.subscription.deleted", data: { object: { id: "sub_1" } } })).toEqual({
+      userId: user.id,
+      status: "canceled",
+    });
+    [row] = await db.select().from(users).where(eq(users.id, user.id));
+    expect(row.plus?.status).toBe("canceled");
+    expect(isPlusActive(row.plus)).toBe(false);
+
+    // An unrelated or unknown subscription id is ignored.
+    expect(await applyPlusSubscriptionEvent(db, { type: "customer.subscription.updated", data: { object: { id: "sub_autre", status: "active" } } })).toBeNull();
+  });
+
+  it("never subscribes twice, and Atlas Plus is off unless configured", async () => {
+    const { user, stripe } = await subscribedUser();
+    await expect(startPlusCheckout(db, withPlus, user.id, stripe.impl)).rejects.toMatchObject({ status: 409 });
+    await expect(startPlusCheckout(db, cfg, user.id)).rejects.toMatchObject({ status: 409 });
   });
 });
 

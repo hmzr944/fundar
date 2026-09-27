@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { missionUsage, recoverStaleRuns } from "@/server/agent/runner";
+import { isPlusActive } from "@/server/billing/plus";
 import { getAgentDeps, integrationStatus } from "@/server/deps";
 import { getMissionDetail, getOwnedMission } from "./service";
 
@@ -14,7 +15,7 @@ export async function loadMissionPayload(userId: string, missionId: string) {
   const detail = await getMissionDetail(db, userId, missionId);
   const usage = await missionUsage(db, missionId);
   const activeRun = detail.runs.find((r) => r.status === "RUNNING") ?? null;
-  const user = await db.query.users.findFirst({ where: eq(users.id, userId), columns: { stripePaymentMethodId: true } });
-  const account = { cardSaved: Boolean(user?.stripePaymentMethodId) };
+  const user = await db.query.users.findFirst({ where: eq(users.id, userId), columns: { stripePaymentMethodId: true, plus: true } });
+  const account = { cardSaved: Boolean(user?.stripePaymentMethodId), plusActive: isPlusActive(user?.plus) };
   return { ...detail, usage, activeRun, account, integrations: integrationStatus() };
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
+import { applyPlusCheckout, applyPlusSubscriptionEvent } from "@/server/billing/plus";
 import { applyStripeEvent, startPaidMission } from "@/server/billing/service";
 import { billingConfig, verifyStripeSignature } from "@/server/billing/stripe";
 import { getAgentDeps } from "@/server/deps";
@@ -24,7 +25,11 @@ export async function POST(req: Request) {
   }
   let paid: Awaited<ReturnType<typeof applyStripeEvent>>;
   try {
+    // A dossier's own session (paid, saved card…) and an Atlas Plus session
+    // never share metadata: each call is a no-op for the other's event.
     paid = await applyStripeEvent(getDb(), cfg, event);
+    await applyPlusCheckout(getDb(), cfg, event.data?.object ?? {});
+    await applyPlusSubscriptionEvent(getDb(), event);
   } catch (e) {
     // Stripe retries on a non-2xx answer: a transient failure is not lost.
     console.error("[atlas] stripe event failed", e);

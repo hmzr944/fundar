@@ -84,10 +84,21 @@ export const users = pgTable(
     stripeCustomerId: text("stripe_customer_id"),
     stripePaymentMethodId: text("stripe_payment_method_id"),
     cardSavedAt: timestamp("card_saved_at", { withTimezone: true }),
+    /** "Atlas Plus" subscription: a lower success fee and a higher AI budget per dossier. */
+    plus: jsonb("plus").$type<PlusSubscription | null>(),
     ...timestamps,
   },
   (t) => [uniqueIndex("users_email_unique").on(t.email)],
 );
+
+export type PlusSubscription = {
+  stripeSubscriptionId: string;
+  status: "active" | "past_due" | "canceled";
+  /** Kept even after cancellation: access (and the discount) runs until this date. */
+  currentPeriodEnd: string;
+  startedAt: string;
+  canceledAt?: string;
+};
 
 export const sessions = pgTable(
   "sessions",

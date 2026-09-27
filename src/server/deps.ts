@@ -61,6 +61,7 @@ export function getAgentDeps(): AgentDeps {
       analysesPerDay: l.analysesPerDay,
       staleRunSeconds: l.staleRunSeconds,
       maxMissionCostUsd: l.maxMissionCostUsd,
+      plusCostMultiplier: billingConfig()?.plus?.costMultiplier,
     },
     reviewDeliverables: config.reviewDeliverables,
     requirePayment: Boolean(billingConfig()),
@@ -77,7 +78,7 @@ export function integrationStatus() {
     search: deps.search ? { available: true, provider: deps.search.name } : { available: false as const },
     billing: (() => {
       const cfg = billingConfig();
-      return cfg ? { enabled: true as const, mode: cfg.mode, priceCents: cfg.priceCents, fee: cfg.fee } : { enabled: false as const };
+      return cfg ? { enabled: true as const, mode: cfg.mode, priceCents: cfg.priceCents, fee: cfg.fee, plus: cfg.plus } : { enabled: false as const };
     })(),
     notifications: { enabled: Boolean(deps.mailer && deps.appUrl) },
   };

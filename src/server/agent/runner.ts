@@ -1,6 +1,7 @@
 import { and, count, eq, gte, inArray, lt } from "drizzle-orm";
 import type { Db } from "@/db";
-import { executionLogs, missionRuns, missions, missionSteps, type MissionRun } from "@/db/schema";
+import { executionLogs, missionRuns, missions, missionSteps, users, type MissionRun } from "@/db/schema";
+import { isPlusActive } from "@/server/billing/plus";
 import { AppError, conflict, tooMany, unavailable } from "@/server/errors";
 import { LlmError, type LlmProvider } from "@/server/llm/types";
 import { addMessage, getOwnedMission, refreshMissionStatus } from "@/server/missions/service";
@@ -16,7 +17,14 @@ export type AgentDeps = {
   llm: LlmProvider | null;
   search: SearchProvider | null;
   fetchPage: PageFetcher;
-  limits: RunLimits & { runsPerDay: number; analysesPerDay: number; staleRunSeconds: number; maxMissionCostUsd?: number };
+  limits: RunLimits & {
+    runsPerDay: number;
+    analysesPerDay: number;
+    staleRunSeconds: number;
+    maxMissionCostUsd?: number;
+    /** Atlas Plus: multiplies the per-dossier AI budget for an active subscriber. */
+    plusCostMultiplier?: number;
+  };
   /** Automatic proofreading of deliverables (off unless set). */
   reviewDeliverables?: boolean;
   /** Execution requires the dossier to be paid (billing configured). */
@@ -130,7 +138,7 @@ export async function startAnalysis(deps: AgentDeps, userId: string, missionId: 
   }
   await assertNoActiveRun(deps.db, missionId, deps.limits.staleRunSeconds);
   await assertQuota(deps.db, userId, "analysis", deps.limits.analysesPerDay);
-  await assertMissionBudget(deps, missionId);
+  await assertMissionBudget(deps, userId, missionId);
   const run = await createRun(deps.db, userId, missionId, "analysis");
   const ctrl = track(run.id);
   const llm = deps.llm;
@@ -191,8 +199,7 @@ export async function startExecution(deps: AgentDeps, userId: string, missionId:
   if (!steps.length) throw conflict("Aucun plan n'a encore été établi pour cette mission.");
   if (!runnable.length) throw conflict("Il ne reste aucune étape qu'Atlas puisse exécuter. Les étapes restantes vous reviennent.");
   await assertQuota(deps.db, userId, "execution", deps.limits.runsPerDay);
-  await assertMissionBudget(deps, missionId);
-  const priorSpentUsd = await missionSpentUsd(deps.db, missionId);
+  const { capUsd, spentUsd: priorSpentUsd } = await assertMissionBudget(deps, userId, missionId);
 
   const run = await createRun(deps.db, userId, missionId, "execution");
   const ctrl = track(run.id);
@@ -213,7 +220,7 @@ export async function startExecution(deps: AgentDeps, userId: string, missionId:
           capabilities: capabilitiesOf(deps),
           limits: deps.limits,
           review: Boolean(deps.reviewDeliverables),
-          budget: deps.limits.maxMissionCostUsd ? { maxUsd: deps.limits.maxMissionCostUsd, spentBeforeUsd: priorSpentUsd } : undefined,
+          budget: capUsd ? { maxUsd: capUsd, spentBeforeUsd: priorSpentUsd } : undefined,
         },
         { runId: run.id, missionId, userId, signal: ctrl.signal },
       );
@@ -288,9 +295,19 @@ export async function missionSpentUsd(db: Db, missionId: string) {
 
 export const BUDGET_REACHED = "Le budget de traitement de ce dossier est atteint. Atlas ne peut plus y travailler automatiquement.";
 
-async function assertMissionBudget(deps: AgentDeps, missionId: string) {
-  const cap = deps.limits.maxMissionCostUsd ?? 0;
-  if (cap > 0 && (await missionSpentUsd(deps.db, missionId)) >= cap) throw tooMany(BUDGET_REACHED);
+/** The per-dossier AI budget cap for this user: the base cap, multiplied for an active Atlas Plus subscriber. */
+async function effectiveCostCapUsd(deps: AgentDeps, userId: string): Promise<number> {
+  const base = deps.limits.maxMissionCostUsd ?? 0;
+  if (!base || !deps.limits.plusCostMultiplier || deps.limits.plusCostMultiplier <= 1) return base;
+  const user = await deps.db.query.users.findFirst({ where: eq(users.id, userId), columns: { plus: true } });
+  return isPlusActive(user?.plus) ? base * deps.limits.plusCostMultiplier : base;
+}
+
+async function assertMissionBudget(deps: AgentDeps, userId: string, missionId: string) {
+  const capUsd = await effectiveCostCapUsd(deps, userId);
+  const spentUsd = await missionSpentUsd(deps.db, missionId);
+  if (capUsd > 0 && spentUsd >= capUsd) throw tooMany(BUDGET_REACHED);
+  return { capUsd, spentUsd };
 }
 
 /** Aggregated real usage for one mission (from execution logs). */

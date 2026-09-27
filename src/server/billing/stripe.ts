@@ -24,6 +24,15 @@ export type BillingConfig = {
   webhookSecret: string;
   appUrl: string;
   termsVersion: string;
+  plus: PlusConfig | null;
+};
+
+export type PlusConfig = {
+  priceCents: number;
+  /** Applied to the computed success fee for an active subscriber, after tiering. */
+  feeDiscountPct: number;
+  /** Multiplies the per-dossier AI budget cap for an active subscriber. */
+  costMultiplier: number;
 };
 
 const intEnv = (v: string | undefined, fallback: number) => {
@@ -52,7 +61,25 @@ export function billingConfig(env: Record<string, string | undefined> = process.
     tier2RatePct: intEnv(env.ATLAS_SUCCESS_FEE_TIER2_PCT, 10),
     tier2CapCents: intEnv(env.ATLAS_SUCCESS_FEE_TIER2_CAP_CENTS, 15_000),
   };
-  return { mode, priceCents, fee, currency: "eur", secretKey, webhookSecret, appUrl, termsVersion: env.ATLAS_TERMS_VERSION?.trim() || "1" };
+  const plusPriceCents = intEnv(env.ATLAS_PLUS_PRICE_CENTS, 0);
+  const plus: PlusConfig | null =
+    plusPriceCents > 0
+      ? {
+          priceCents: plusPriceCents,
+          feeDiscountPct: intEnv(env.ATLAS_PLUS_FEE_DISCOUNT_PCT, 30),
+          costMultiplier: intEnv(env.ATLAS_PLUS_COST_MULTIPLIER, 2),
+        }
+      : null;
+  return { mode, priceCents, fee, currency: "eur", secretKey, webhookSecret, appUrl, termsVersion: env.ATLAS_TERMS_VERSION?.trim() || "1", plus };
+}
+
+/**
+ * The fee an active "Atlas Plus" subscriber pays, after the discount — never
+ * below 1 €, so the commission always remains a real incentive to close the
+ * dossier rather than let it drift.
+ */
+export function applyPlusDiscount(plus: PlusConfig, feeCents: number) {
+  return Math.max(100, Math.round((feeCents * (100 - plus.feeDiscountPct)) / 100));
 }
 
 /**
@@ -167,6 +194,55 @@ export async function createSetupSession(
   const data = await stripePost(cfg, "checkout/sessions", form, fetchImpl);
   if (typeof data.url !== "string") throw new StripeError("Le service de paiement n'a pas renvoyé de page d'enregistrement de carte.");
   return { id: data.id!, url: data.url };
+}
+
+/** Checkout for the "Atlas Plus" monthly subscription. */
+export async function createPlusCheckoutSession(
+  cfg: BillingConfig,
+  p: { customerId: string; userId: string; returnPath: string },
+  fetchImpl: typeof fetch = fetch,
+): Promise<{ id: string; url: string }> {
+  if (!cfg.plus) throw new StripeError("Atlas Plus n'est pas activé sur cette instance.");
+  const form = new URLSearchParams({
+    mode: "subscription",
+    customer: p.customerId,
+    "line_items[0][quantity]": "1",
+    "line_items[0][price_data][currency]": cfg.currency,
+    "line_items[0][price_data][unit_amount]": String(cfg.plus.priceCents),
+    "line_items[0][price_data][recurring][interval]": "month",
+    "line_items[0][price_data][product_data][name]": "Atlas Plus",
+    "line_items[0][price_data][product_data][description]": "Commission réduite et budget d'IA plus élevé sur chaque dossier.",
+    "metadata[userId]": p.userId,
+    "metadata[kind]": "atlas_plus",
+    "subscription_data[metadata][userId]": p.userId,
+    success_url: `${cfg.appUrl}${p.returnPath}?plus=ok`,
+    cancel_url: `${cfg.appUrl}${p.returnPath}?plus=annule`,
+  });
+  const data = await stripePost(cfg, "checkout/sessions", form, fetchImpl);
+  if (typeof data.url !== "string") throw new StripeError("Le service de paiement n'a pas renvoyé de page d'abonnement.");
+  return { id: data.id!, url: data.url };
+}
+
+/** The subscription created by a completed Plus checkout. */
+export async function fetchSubscription(cfg: BillingConfig, subscriptionId: string, fetchImpl: typeof fetch = fetch) {
+  const { ok, data } = await stripeCall(cfg, "GET", `subscriptions/${encodeURIComponent(subscriptionId)}`, null, fetchImpl);
+  if (!ok || typeof data.status !== "string" || typeof data.current_period_end !== "number") {
+    throw new StripeError("Abonnement introuvable.");
+  }
+  return { id: subscriptionId, status: data.status, currentPeriodEnd: new Date(data.current_period_end * 1000).toISOString() };
+}
+
+/** Cancels at the end of the period already paid for: access and the discount run out then, never mid-period. */
+export async function cancelPlusSubscription(cfg: BillingConfig, subscriptionId: string, fetchImpl: typeof fetch = fetch) {
+  const { ok, data } = await stripeCall(
+    cfg,
+    "POST",
+    `subscriptions/${encodeURIComponent(subscriptionId)}`,
+    new URLSearchParams({ cancel_at_period_end: "true" }),
+    fetchImpl,
+  );
+  if (!ok) throw new StripeError(`La résiliation a échoué${data.error?.message ? ` : ${data.error.message}` : "."}`);
+  return { status: String(data.status ?? "canceled") };
 }
 
 /** The card saved by a completed setup. */

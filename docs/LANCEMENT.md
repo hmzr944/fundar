@@ -61,6 +61,16 @@ Hypothèses, **à vérifier sur vos 20 premiers dossiers** : commission moyenne 
 
 Le mode « prix d'avance » reste disponible : `ATLAS_BILLING_MODE=upfront` et `ATLAS_PRICE_CENTS=1200`.
 
+### Atlas Plus : un revenu récurrent, en complément — pas à la place
+
+**Pourquoi maintenant, et pas avant.** Un abonnement seul avait été écarté au lancement : la fréquence d'usage d'un particulier est trop faible, et l'abandon (churn) serait rapide — l'erreur que Trim a payée en se refermant sur une seule fonction étroite. Ici, l'abonnement ne remplace rien : il **s'ajoute** à la commission au résultat, et n'a de sens que pour un client qui prévoit d'utiliser Atlas plus d'une fois dans l'année.
+
+**Ce qu'il offre** (`ATLAS_PLUS_PRICE_CENTS`, par défaut désactivé) : une commission réduite (`ATLAS_PLUS_FEE_DISCOUNT_PCT`, 30 % par défaut, jamais sous 1 €) sur chaque dossier réglé, et un budget d'IA par dossier multiplié (`ATLAS_PLUS_COST_MULTIPLIER`, ×2 par défaut) pour les dossiers plus complexes. Résiliable à tout moment ; l'avantage court jusqu'à la fin de la période déjà payée — jamais coupé en cours de route, pour ne pas reproduire l'expérience client dégradée qui a coûté cher à d'autres abonnements mal conçus.
+
+**Est-ce rentable pour le client, et pas juste pour vous ?** À 4,90 € par mois, l'abonnement se rembourse dès qu'un seul dossier dans le mois récupère plus d'une quinzaine d'euros (la réduction de 30 % dépasse alors le prix de l'abonnement). En dessous, l'abonnement coûte plus qu'il ne rapporte au client : ne le mettez pas en avant pour un client qui n'a qu'un seul petit dossier à régler, sous peine de recréer la méfiance que l'absence de promotion de lancement évite déjà.
+
+**Est-ce rentable pour vous ?** Chaque abonné rapporte l'abonnement en revenu récurrent, moins la commission perdue sur ses dossiers (30 % de moins par dossier réglé). Le calcul ne devient positif que si un abonné traite en moyenne plus de deux ou trois dossiers par an — à vérifier une fois que vous avez des abonnés réels, sur la page Économie. Tant que vous n'avez pas de clients qui reviennent naturellement (le signal suivi depuis le début), ne poussez pas cet abonnement : il n'a une valeur réelle que pour ceux-là.
+
 ### Coûts fixes mensuels (estimation)
 
 | Poste | Ordre de grandeur |

@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { DangerZone, PasswordForm } from "@/components/settings-forms";
+import { users } from "@/db/schema";
+import { DangerZone, PasswordForm, PlusSection } from "@/components/settings-forms";
 import { Card, SectionTitle } from "@/components/ui";
 import { config } from "@/lib/config";
 import { requirePageUser } from "@/lib/http";
+import { isPlusActive } from "@/server/billing/plus";
 import { integrationStatus } from "@/server/deps";
 import { usageSummary } from "@/server/missions/service";
 
@@ -11,10 +14,13 @@ export const metadata: Metadata = { title: "Paramètres" };
 
 export default async function Settings() {
   const user = await requirePageUser();
-  const usage = await usageSummary(getDb(), user.id, 30);
+  const db = getDb();
+  const usage = await usageSummary(db, user.id, 30);
   const integ = integrationStatus();
   const limits = config.limits;
   const cost = usage.estimatedCostUsd === null ? null : Number(usage.estimatedCostUsd);
+  const plusRow = await db.query.users.findFirst({ where: eq(users.id, user.id), columns: { plus: true } });
+  const plus = integ.billing.enabled ? integ.billing.plus : null;
   return (
     <div className="max-w-3xl space-y-6">
       <h1 className="text-2xl font-semibold tracking-tight">Paramètres</h1>
@@ -33,6 +39,20 @@ export default async function Settings() {
           <PasswordForm />
         </div>
       </Card>
+
+      {plus && (
+        <Card data-testid="plus-section">
+          <SectionTitle>Atlas Plus</SectionTitle>
+          <PlusSection
+            active={isPlusActive(plusRow?.plus)}
+            canceledAt={plusRow?.plus?.canceledAt}
+            currentPeriodEnd={plusRow?.plus?.currentPeriodEnd}
+            priceCents={plus.priceCents}
+            feeDiscountPct={plus.feeDiscountPct}
+            costMultiplier={plus.costMultiplier}
+          />
+        </Card>
+      )}
 
       <Card>
         <SectionTitle>Capacités de cette instance</SectionTitle>

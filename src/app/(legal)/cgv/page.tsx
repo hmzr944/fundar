@@ -11,6 +11,7 @@ export default function Cgv() {
   const success = !cfg || cfg.mode === "success";
   const price = cfg && cfg.mode === "upfront" ? `${eurosShort(cfg.priceCents)} € TTC` : null;
   const fee = cfg && cfg.mode === "success" ? `${describeFee(cfg.fee)}, TTC` : null;
+  const plus = cfg?.plus ? `${eurosShort(cfg.plus.priceCents)} €` : null;
   return (
     <>
       <h1>Conditions générales de vente</h1>
@@ -86,13 +87,27 @@ export default function Cgv() {
         dossier pris en charge s&apos;avère hors de ce périmètre, Atlas vous le signale ; ce que vous avez éventuellement payé pour ce dossier vous est remboursé.
       </p>
 
-      <h2>6. Réclamations et médiation</h2>
+      {plus && (
+        <>
+          <h2>6. Abonnement optionnel « Atlas Plus »</h2>
+          <p>
+            En plus de la prise en charge décrite à l&apos;article 3, vous pouvez souscrire, à tout moment et sans engagement de durée,
+            l&apos;abonnement optionnel « Atlas Plus » pour <LegalValue value={plus} label="Prix de l'abonnement" /> par mois, reconduit
+            tacitement chaque mois jusqu&apos;à résiliation. Il donne droit à une commission réduite sur chaque dossier réglé et à un
+            budget de traitement plus élevé par dossier, dans les proportions indiquées au moment de la souscription. Vous pouvez
+            résilier à tout moment depuis votre espace : l&apos;abonnement n&apos;est alors pas renouvelé, et l&apos;avantage reste actif
+            jusqu&apos;à la fin de la période déjà payée. Aucun remboursement au prorata n&apos;est dû pour une période déjà entamée.
+          </p>
+        </>
+      )}
+
+      <h2>{plus ? 7 : 6}. Réclamations et médiation</h2>
       <p>
         Pour toute réclamation : <LegalValue value={id.email} label="E-mail de contact" />. À défaut de solution, vous pouvez saisir
         gratuitement le médiateur de la consommation : <LegalValue value={id.mediator} label="Médiateur de la consommation" />.
       </p>
 
-      <h2>7. Données personnelles</h2>
+      <h2>{plus ? 8 : 7}. Données personnelles</h2>
       <p>
         Voir la <a href="/confidentialite" className="underline">politique de confidentialité</a>.
       </p>
