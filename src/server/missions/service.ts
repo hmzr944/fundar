@@ -11,6 +11,7 @@ import {
   missionRuns,
   missions,
   missionSteps,
+  postalLetters,
   sources,
   type Mission,
   type MissionStatus,
@@ -86,7 +87,7 @@ export async function listMissions(db: Db, userId: string, opts: { filter?: Miss
 
 export async function getMissionDetail(db: Db, userId: string, missionId: string) {
   const mission = await getOwnedMission(db, userId, missionId);
-  const [steps, msgs, arts, srcs, docs, runs] = await Promise.all([
+  const [steps, msgs, arts, srcs, docs, runs, letters] = await Promise.all([
     db.select().from(missionSteps).where(eq(missionSteps.missionId, missionId)).orderBy(missionSteps.position),
     db.select().from(messages).where(eq(messages.missionId, missionId)).orderBy(messages.createdAt),
     db
@@ -120,16 +121,22 @@ export async function getMissionDetail(db: Db, userId: string, missionId: string
       .where(eq(documents.missionId, missionId))
       .orderBy(documents.createdAt),
     db.select().from(missionRuns).where(eq(missionRuns.missionId, missionId)).orderBy(desc(missionRuns.startedAt)).limit(10),
+    db.select().from(postalLetters).where(eq(postalLetters.missionId, missionId)).orderBy(desc(postalLetters.createdAt)),
   ]);
+  // The most recent letter per artifact — at most one is ever active (see requestLrar), earlier ones are failed retries.
+  const lettersByArtifact = new Map<string, (typeof letters)[number]>();
+  for (const l of letters) if (!lettersByArtifact.has(l.artifactId)) lettersByArtifact.set(l.artifactId, l);
   // Only the review is exposed from the artifact metadata.
   const artifactsOut = arts.map(({ metadata, ...a }) => {
     const review = reviewFromMetadata(metadata);
+    const letter = lettersByArtifact.get(a.id);
     return {
       ...a,
       review,
       readyToSend: isReadyToSend(review, a.content),
       send: sendInfoOf(metadata),
       sentAt: typeof metadata.sentAt === "string" ? metadata.sentAt : null,
+      postalLetter: letter ? { status: letter.status, trackingUrl: letter.trackingUrl, failure: letter.failure } : null,
     };
   });
   return { mission, steps, messages: msgs, artifacts: artifactsOut, sources: srcs, documents: docs, runs };

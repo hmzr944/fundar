@@ -375,7 +375,9 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
             </div>
             <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="p-4 sm:p-5">
               {tab === "plan" && <PlanPanel missionId={id} steps={steps} artifacts={data.artifacts} locked={locked} onChanged={refresh} />}
-              {tab === "results" && <ResultsPanel mission={mission} artifacts={data.artifacts} locked={locked} onChanged={refresh} />}
+              {tab === "results" && (
+                <ResultsPanel mission={mission} artifacts={data.artifacts} locked={locked} onChanged={refresh} postal={integrations.postal} account={data.account} />
+              )}
               {tab === "sources" && <SourcesPanel sources={data.sources} searchAvailable={integrations.search.available} />}
               {tab === "documents" && <DocumentsPanel missionId={id} documents={data.documents} locked={locked} onChanged={refresh} />}
               {tab === "journal" && <JournalPanel runs={data.runs} usage={data.usage} />}

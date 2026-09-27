@@ -15,7 +15,7 @@ export async function loadMissionPayload(userId: string, missionId: string) {
   const detail = await getMissionDetail(db, userId, missionId);
   const usage = await missionUsage(db, missionId);
   const activeRun = detail.runs.find((r) => r.status === "RUNNING") ?? null;
-  const user = await db.query.users.findFirst({ where: eq(users.id, userId), columns: { stripePaymentMethodId: true, plus: true } });
-  const account = { cardSaved: Boolean(user?.stripePaymentMethodId), plusActive: isPlusActive(user?.plus) };
+  const user = await db.query.users.findFirst({ where: eq(users.id, userId), columns: { stripePaymentMethodId: true, plus: true, postalAddress: true } });
+  const account = { cardSaved: Boolean(user?.stripePaymentMethodId), plusActive: isPlusActive(user?.plus), hasPostalAddress: Boolean(user?.postalAddress) };
   return { ...detail, usage, activeRun, account, integrations: integrationStatus() };
 }

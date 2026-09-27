@@ -22,11 +22,15 @@ export function ResultsPanel({
   artifacts,
   locked,
   onChanged,
+  postal,
+  account,
 }: {
   mission: MissionDTO;
   artifacts: ArtifactDTO[];
   locked: boolean;
   onChanged: () => void;
+  postal: { enabled: boolean; priceCents?: number };
+  account: { hasPostalAddress: boolean };
 }) {
   return (
     <div className="space-y-6">
@@ -68,7 +72,7 @@ export function ResultsPanel({
         ) : (
           <div className="space-y-3">
             {artifacts.map((a) => (
-              <ArtifactCard key={a.id} artifact={a} locked={locked} onChanged={onChanged} />
+              <ArtifactCard key={a.id} artifact={a} locked={locked} onChanged={onChanged} postal={postal} account={account} />
             ))}
           </div>
         )}
@@ -77,7 +81,19 @@ export function ResultsPanel({
   );
 }
 
-function ArtifactCard({ artifact, locked, onChanged }: { artifact: ArtifactDTO; locked: boolean; onChanged: () => void }) {
+function ArtifactCard({
+  artifact,
+  locked,
+  onChanged,
+  postal,
+  account,
+}: {
+  artifact: ArtifactDTO;
+  locked: boolean;
+  onChanged: () => void;
+  postal: { enabled: boolean; priceCents?: number };
+  account: { hasPostalAddress: boolean };
+}) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(artifact.content);
@@ -164,6 +180,7 @@ function ArtifactCard({ artifact, locked, onChanged }: { artifact: ArtifactDTO; 
             <Markdown>{artifact.content}</Markdown>
           )}
           {artifact.send && <SendPanel artifact={artifact} locked={locked} onChanged={onChanged} />}
+          {artifact.readyToSend && postal.enabled && <LrarPanel artifact={artifact} postal={postal} account={account} />}
           <ReviewDetails artifactId={artifact.id} review={artifact.review} ready={artifact.readyToSend} locked={locked} onChanged={onChanged} />
           <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-3">
             <Button className="px-2.5 py-1 text-xs" onClick={copy}>
@@ -319,6 +336,118 @@ function plainText(markdown: string) {
     .replace(/__(.+?)__/g, "$1")
     .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, "$1 ($2)")
     .trim();
+}
+
+const LRAR_STATUS_LABEL: Record<NonNullable<ArtifactDTO["postalLetter"]>["status"], string> = {
+  PENDING_PAYMENT: "En attente de paiement",
+  PAID: "Payée, envoi en cours",
+  SENT: "Envoyée par La Poste",
+  FAILED: "Échec de l'envoi",
+};
+
+function LrarPanel({
+  artifact,
+  postal,
+  account,
+}: {
+  artifact: ArtifactDTO;
+  postal: { enabled: boolean; priceCents?: number };
+  account: { hasPostalAddress: boolean };
+}) {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const price = ((postal.priceCents ?? 0) / 100).toFixed(2).replace(".", ",");
+  const letter = artifact.postalLetter;
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    setBusy(true);
+    setError(null);
+    try {
+      const { url } = await api<{ url: string }>(`/api/artifacts/${artifact.id}/lrar`, {
+        method: "POST",
+        json: {
+          name: f.get("name"),
+          address1: f.get("address1"),
+          address2: f.get("address2") || undefined,
+          postalCode: f.get("postalCode"),
+          city: f.get("city"),
+          country: f.get("country") || "France",
+        },
+      });
+      window.location.assign(url);
+    } catch (err) {
+      setError((err as Error).message);
+      setBusy(false);
+    }
+  }
+
+  if (letter && letter.status !== "FAILED") {
+    return (
+      <section className="mt-3 rounded-lg border border-line bg-bg/40 p-3 text-sm" data-testid="lrar-panel">
+        <p className="font-semibold text-muted">Lettre recommandée (LRAR)</p>
+        <p className="mt-1">
+          {LRAR_STATUS_LABEL[letter.status]}
+          {letter.trackingUrl && (
+            <>
+              {" — "}
+              <a href={letter.trackingUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                suivi
+              </a>
+            </>
+          )}
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mt-3 rounded-lg border border-line bg-bg/40 p-3 text-sm" data-testid="lrar-panel">
+      <p className="font-semibold text-muted">Aller plus loin : lettre recommandée avec accusé de réception</p>
+      <p className="mt-1 text-xs text-muted">
+        Un e-mail est souvent ignoré. Pour {price} €, Atlas envoie ce courrier en recommandé physique par La Poste, à votre nom.
+        {letter?.status === "FAILED" && (
+          <span className="mt-1 block text-danger">L&apos;envoi précédent a échoué ({letter.failure}) : contactez le support, la lettre est payée.</span>
+        )}
+      </p>
+      {!account.hasPostalAddress ? (
+        <p className="mt-2">
+          Renseignez d&apos;abord{" "}
+          <a href="/app/settings" className="underline">
+            votre adresse postale d&apos;expéditeur
+          </a>{" "}
+          dans Paramètres.
+        </p>
+      ) : !open ? (
+        <Button className="mt-2 px-2.5 py-1 text-xs" onClick={() => setOpen(true)} data-testid="lrar-open">
+          Envoyer en recommandé — {price} €
+        </Button>
+      ) : (
+        <form onSubmit={submit} className="mt-2 grid gap-2 sm:grid-cols-2">
+          <input name="name" placeholder="Destinataire (société)" required className="rounded-lg border border-line bg-bg px-2 py-1 sm:col-span-2" />
+          <input name="address1" placeholder="Adresse" required className="rounded-lg border border-line bg-bg px-2 py-1 sm:col-span-2" />
+          <input name="address2" placeholder="Complément (facultatif)" className="rounded-lg border border-line bg-bg px-2 py-1 sm:col-span-2" />
+          <input name="postalCode" placeholder="Code postal" required className="rounded-lg border border-line bg-bg px-2 py-1" />
+          <input name="city" placeholder="Ville" required className="rounded-lg border border-line bg-bg px-2 py-1" />
+          {error && (
+            <p role="alert" className="text-xs text-danger sm:col-span-2">
+              {error}
+            </p>
+          )}
+          <div className="flex gap-2 sm:col-span-2">
+            <Button type="submit" variant="primary" className="px-2.5 py-1 text-xs" disabled={busy} data-testid="lrar-submit">
+              {busy ? "…" : `Payer ${price} € et envoyer`}
+            </Button>
+            <Button type="button" variant="ghost" className="px-2.5 py-1 text-xs" onClick={() => setOpen(false)} disabled={busy}>
+              Annuler
+            </Button>
+          </div>
+        </form>
+      )}
+    </section>
+  );
 }
 
 function SendPanel({ artifact, locked, onChanged }: { artifact: ArtifactDTO; locked: boolean; onChanged: () => void }) {

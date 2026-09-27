@@ -86,6 +86,8 @@ export const users = pgTable(
     cardSavedAt: timestamp("card_saved_at", { withTimezone: true }),
     /** "Atlas Plus" subscription: a lower success fee and a higher AI budget per dossier. */
     plus: jsonb("plus").$type<PlusSubscription | null>(),
+    /** Return address for registered letters (LRAR) sent on this user's behalf. Collected only if they ever use that feature. */
+    postalAddress: jsonb("postal_address").$type<PostalAddress | null>(),
     /** Short code this user can share; a friend who signs up with it links back via referredByUserId. */
     referralCode: text("referral_code")
       .notNull()
@@ -276,6 +278,9 @@ export const documents = pgTable(
   (t) => [index("documents_mission_idx").on(t.missionId), index("documents_user_idx").on(t.userId)],
 );
 
+/** A postal address, as required by any registered-mail provider. */
+export type PostalAddress = { name: string; address1: string; address2?: string; postalCode: string; city: string; country: string };
+
 export const artifactType = pgEnum("artifact_type", [
   "letter",
   "email",
@@ -304,6 +309,41 @@ export const artifacts = pgTable(
     ...timestamps,
   },
   (t) => [index("artifacts_mission_idx").on(t.missionId)],
+);
+
+export const postalLetterStatus = pgEnum("postal_letter_status", ["PENDING_PAYMENT", "PAID", "SENT", "FAILED"]);
+
+/**
+ * A registered letter (LRAR), paid upfront and independent of the success
+ * fee: it costs Atlas real money the moment it's sent, whatever the dispute's
+ * outcome, so — unlike the dossier itself — there is no "no cure, no pay"
+ * here. One deliverable can have at most one non-failed request.
+ */
+export const postalLetters = pgTable(
+  "postal_letters",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    missionId: uuid("mission_id")
+      .notNull()
+      .references(() => missions.id, { onDelete: "cascade" }),
+    artifactId: uuid("artifact_id")
+      .notNull()
+      .references(() => artifacts.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: postalLetterStatus("status").notNull().default("PENDING_PAYMENT"),
+    recipientAddress: jsonb("recipient_address").$type<PostalAddress>().notNull(),
+    priceCents: integer("price_cents").notNull(),
+    checkoutSessionId: text("checkout_session_id"),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    /** The postal provider's own id for this letter, and any tracking page it gives. */
+    providerId: text("provider_id"),
+    trackingUrl: text("tracking_url"),
+    failure: text("failure"),
+    ...timestamps,
+  },
+  (t) => [index("postal_letters_mission_idx").on(t.missionId), index("postal_letters_artifact_idx").on(t.artifactId)],
 );
 
 export const sources = pgTable(

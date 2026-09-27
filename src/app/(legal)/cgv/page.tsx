@@ -1,6 +1,7 @@
 import { LegalValue } from "@/components/legal-value";
 import { describeFee, eurosShort } from "@/lib/fee";
 import { billingConfig, legalIdentity } from "@/server/billing/stripe";
+import { postalConfig } from "@/server/postal/config";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Conditions générales de vente — Atlas" };
@@ -12,6 +13,13 @@ export default function Cgv() {
   const price = cfg && cfg.mode === "upfront" ? `${eurosShort(cfg.priceCents)} € TTC` : null;
   const fee = cfg && cfg.mode === "success" ? `${describeFee(cfg.fee)}, TTC` : null;
   const plus = cfg?.plus ? `${eurosShort(cfg.plus.priceCents)} €` : null;
+  const postal = postalConfig();
+  const lrarPrice = postal ? `${eurosShort(postal.priceCents)} € TTC` : null;
+  let n = 5; // last fixed section above is "5. Dossiers qu'Atlas ne traite pas"
+  const plusSection = plus ? ++n : null;
+  const lrarSection = postal ? ++n : null;
+  const complaintsSection = ++n;
+  const dataSection = ++n;
   return (
     <>
       <h1>Conditions générales de vente</h1>
@@ -91,7 +99,7 @@ export default function Cgv() {
 
       {plus && (
         <>
-          <h2>6. Abonnement optionnel « Atlas Plus »</h2>
+          <h2>{plusSection}. Abonnement optionnel « Atlas Plus »</h2>
           <p>
             En plus de la prise en charge décrite à l&apos;article 3, vous pouvez souscrire, à tout moment et sans engagement de durée,
             l&apos;abonnement optionnel « Atlas Plus » pour <LegalValue value={plus} label="Prix de l'abonnement" /> par mois, reconduit
@@ -103,13 +111,28 @@ export default function Cgv() {
         </>
       )}
 
-      <h2>{plus ? 7 : 6}. Réclamations et médiation</h2>
+      {postal && (
+        <>
+          <h2>{lrarSection}. Option payante : lettre recommandée (LRAR)</h2>
+          <p>
+            Indépendamment de la prise en charge du dossier, vous pouvez demander qu&apos;Atlas envoie un courrier qu&apos;il a rédigé et
+            vérifié en lettre recommandée avec accusé de réception, par voie postale, pour <LegalValue value={lrarPrice} label="Prix de la LRAR" />
+            , payable immédiatement par carte. Ce service est distinct de la commission au résultat : il est dû et facturé que le litige
+            aboutisse ou non, car son coût (l&apos;affranchissement) est engagé dès l&apos;envoi. Vous fournissez l&apos;adresse du
+            destinataire et votre propre adresse d&apos;expéditeur ; Atlas n&apos;en vérifie pas l&apos;exactitude. En payant, vous demandez
+            expressément l&apos;exécution immédiate du service : une fois le courrier remis à La Poste, aucun remboursement n&apos;est
+            possible.
+          </p>
+        </>
+      )}
+
+      <h2>{complaintsSection}. Réclamations et médiation</h2>
       <p>
         Pour toute réclamation : <LegalValue value={id.email} label="E-mail de contact" />. À défaut de solution, vous pouvez saisir
         gratuitement le médiateur de la consommation : <LegalValue value={id.mediator} label="Médiateur de la consommation" />.
       </p>
 
-      <h2>{plus ? 8 : 7}. Données personnelles</h2>
+      <h2>{dataSection}. Données personnelles</h2>
       <p>
         Voir la <a href="/confidentialite" className="underline">politique de confidentialité</a>.
       </p>

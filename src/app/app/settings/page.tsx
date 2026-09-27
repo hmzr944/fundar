@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
-import { DangerZone, PasswordForm, PlusSection } from "@/components/settings-forms";
+import { DangerZone, PasswordForm, PlusSection, PostalAddressForm } from "@/components/settings-forms";
 import { Card, SectionTitle } from "@/components/ui";
 import { config } from "@/lib/config";
 import { requirePageUser } from "@/lib/http";
@@ -19,7 +19,7 @@ export default async function Settings() {
   const integ = integrationStatus();
   const limits = config.limits;
   const cost = usage.estimatedCostUsd === null ? null : Number(usage.estimatedCostUsd);
-  const plusRow = await db.query.users.findFirst({ where: eq(users.id, user.id), columns: { plus: true } });
+  const account = await db.query.users.findFirst({ where: eq(users.id, user.id), columns: { plus: true, postalAddress: true } });
   const plus = integ.billing.enabled ? integ.billing.plus : null;
   return (
     <div className="max-w-3xl space-y-6">
@@ -44,13 +44,20 @@ export default async function Settings() {
         <Card data-testid="plus-section">
           <SectionTitle>Atlas Plus</SectionTitle>
           <PlusSection
-            active={isPlusActive(plusRow?.plus)}
-            canceledAt={plusRow?.plus?.canceledAt}
-            currentPeriodEnd={plusRow?.plus?.currentPeriodEnd}
+            active={isPlusActive(account?.plus)}
+            canceledAt={account?.plus?.canceledAt}
+            currentPeriodEnd={account?.plus?.currentPeriodEnd}
             priceCents={plus.priceCents}
             feeDiscountPct={plus.feeDiscountPct}
             costMultiplier={plus.costMultiplier}
           />
+        </Card>
+      )}
+
+      {integ.postal.enabled && (
+        <Card data-testid="postal-address-section">
+          <SectionTitle>Adresse postale (lettre recommandée)</SectionTitle>
+          <PostalAddressForm address={account?.postalAddress ?? null} />
         </Card>
       )}
 

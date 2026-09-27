@@ -153,17 +153,21 @@ async function stripePost(cfg: BillingConfig, path: string, form: URLSearchParam
 /** Creates a Checkout Session for a one-off payment (upfront price, or a success fee the card could not cover). */
 export async function createCheckoutSession(
   cfg: BillingConfig,
-  p: { missionId: string; userId: string; email: string; title: string; amountCents?: number; kind?: "upfront" | "success_fee" },
+  p: { missionId: string; userId: string; email: string; title: string; amountCents?: number; kind?: "upfront" | "success_fee" | "lrar" },
   fetchImpl: typeof fetch = fetch,
 ): Promise<{ id: string; url: string }> {
   const kind = p.kind ?? "upfront";
+  const productName = {
+    success_fee: "Atlas — commission sur votre dossier réglé",
+    lrar: "Atlas — lettre recommandée avec accusé de réception",
+    upfront: "Atlas — prise en charge de votre dossier",
+  }[kind];
   const form = new URLSearchParams({
     mode: "payment",
     "line_items[0][quantity]": "1",
     "line_items[0][price_data][currency]": cfg.currency,
     "line_items[0][price_data][unit_amount]": String(p.amountCents ?? cfg.priceCents),
-    "line_items[0][price_data][product_data][name]":
-      kind === "success_fee" ? "Atlas — commission sur votre dossier réglé" : "Atlas — prise en charge de votre dossier",
+    "line_items[0][price_data][product_data][name]": productName,
     "line_items[0][price_data][product_data][description]": p.title.slice(0, 200),
     customer_email: p.email,
     client_reference_id: p.missionId,
@@ -171,8 +175,8 @@ export async function createCheckoutSession(
     "metadata[userId]": p.userId,
     "metadata[kind]": kind,
     "payment_intent_data[metadata][missionId]": p.missionId,
-    success_url: `${cfg.appUrl}/app/missions/${p.missionId}?paiement=ok`,
-    cancel_url: `${cfg.appUrl}/app/missions/${p.missionId}?paiement=annule`,
+    success_url: kind === "lrar" ? `${cfg.appUrl}/app/missions/${p.missionId}?lrar=ok` : `${cfg.appUrl}/app/missions/${p.missionId}?paiement=ok`,
+    cancel_url: kind === "lrar" ? `${cfg.appUrl}/app/missions/${p.missionId}?lrar=annule` : `${cfg.appUrl}/app/missions/${p.missionId}?paiement=annule`,
   });
   const data = await stripePost(cfg, "checkout/sessions", form, fetchImpl);
   if (typeof data.url !== "string") throw new StripeError("Le service de paiement n'a pas renvoyé de page de paiement.");

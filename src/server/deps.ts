@@ -9,6 +9,8 @@ import { createPageFetcher } from "@/server/search/fetch-page";
 import { BraveSearch, TavilySearch, type SearchProvider } from "@/server/search/providers";
 import { billingConfig } from "@/server/billing/stripe";
 import { mailerFromEnv } from "@/server/mail/mailer";
+import { buildPostalProvider, postalConfig } from "@/server/postal/config";
+import type { PostalProvider } from "@/server/postal/provider";
 
 const g = globalThis as unknown as { __atlasLlm?: LlmProvider | null; __atlasSearch?: SearchProvider | null };
 
@@ -83,5 +85,14 @@ export function integrationStatus() {
         : { enabled: false as const };
     })(),
     notifications: { enabled: Boolean(deps.mailer && deps.appUrl) },
+    postal: (() => {
+      const cfg = postalConfig();
+      return cfg ? { enabled: true as const, priceCents: cfg.priceCents } : { enabled: false as const };
+    })(),
   };
+}
+
+/** The configured registered-mail provider (LRAR), or null when unconfigured. */
+export function getPostalProvider(): PostalProvider | null {
+  return buildPostalProvider();
 }

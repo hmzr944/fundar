@@ -164,6 +164,10 @@ Sans `ATLAS_CRON_SECRET` (32 caractères au moins), le point d'entrée répond 5
 
 Le même appel déclenche aussi, sans coût de modèle, les **rappels de clôture** : un e-mail à un client dont le dossier est terminé côté Atlas mais jamais clôturé (« votre problème est-il réglé ? »), 10 jours puis 35 jours après la dernière activité — avant qu'il ne remonte comme « jamais clôturé » sur la page Économie (voir `src/server/billing/reminders.ts`).
 
+### Lettre recommandée (LRAR), en option payante
+
+En plus de l'envoi en un clic, l'utilisateur peut demander qu'Atlas envoie le même courrier, vérifié, en recommandé physique avec accusé de réception par La Poste — un service payé d'avance (`ATLAS_LRAR_PRICE_CENTS`), indépendant de la commission au résultat, via un prestataire (`src/server/postal/provider.ts`, une implémentation pour Merci Facteur fournie). **Non essayé avec un vrai compte** : voir `docs/LANCEMENT.md` avant de l'activer en production.
+
 **Limite actuelle :** aucune notification n'est envoyée. L'utilisateur voit la relance préparée ou la question posée en ouvrant son dossier.
 
 ### Relecture automatique des livrables

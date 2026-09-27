@@ -181,3 +181,71 @@ export function PlusSection({
     </div>
   );
 }
+
+export function PostalAddressForm({ address }: { address: { name: string; address1: string; address2?: string; postalCode: string; city: string; country: string } | null }) {
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    setPending(true);
+    setMsg(null);
+    try {
+      await api("/api/account/postal-address", {
+        method: "POST",
+        json: {
+          name: f.get("name"),
+          address1: f.get("address1"),
+          address2: f.get("address2") || undefined,
+          postalCode: f.get("postalCode"),
+          city: f.get("city"),
+          country: f.get("country") || "France",
+        },
+      });
+      setMsg({ ok: true, text: "Adresse enregistrée." });
+    } catch (err) {
+      setMsg({ ok: false, text: (err as Error).message });
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="grid max-w-md gap-3">
+      <p className="text-xs text-muted">
+        Utilisée comme adresse d&apos;expéditeur si vous demandez à Atlas d&apos;envoyer une lettre recommandée (LRAR).
+      </p>
+      <label className="text-sm">
+        Nom
+        <input name="name" defaultValue={address?.name} required className={`${input} mt-1`} />
+      </label>
+      <label className="text-sm">
+        Adresse
+        <input name="address1" defaultValue={address?.address1} required className={`${input} mt-1`} />
+      </label>
+      <label className="text-sm">
+        Complément (facultatif)
+        <input name="address2" defaultValue={address?.address2} className={`${input} mt-1`} />
+      </label>
+      <div className="grid grid-cols-2 gap-3">
+        <label className="text-sm">
+          Code postal
+          <input name="postalCode" defaultValue={address?.postalCode} required className={`${input} mt-1`} />
+        </label>
+        <label className="text-sm">
+          Ville
+          <input name="city" defaultValue={address?.city} required className={`${input} mt-1`} />
+        </label>
+      </div>
+      <label className="text-sm">
+        Pays
+        <input name="country" defaultValue={address?.country ?? "France"} className={`${input} mt-1`} />
+      </label>
+      {msg && <p role={msg.ok ? "status" : "alert"} className={`text-sm ${msg.ok ? "text-success" : "text-danger"}`}>{msg.text}</p>}
+      <Button type="submit" disabled={pending} className="justify-self-start">
+        {pending && <Spinner />} Enregistrer
+      </Button>
+    </form>
+  );
+}
