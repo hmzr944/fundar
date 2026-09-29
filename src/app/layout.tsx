@@ -10,7 +10,7 @@ export const viewport: Viewport = { themeColor: "#05070d", width: "device-width"
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
       <body className="bg-bg text-fg">{children}</body>
     </html>
   );
