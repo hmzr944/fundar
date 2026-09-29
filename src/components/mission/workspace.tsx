@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Button, Card, cx, MissionStatusBadge, Spinner } from "@/components/ui";
+import { Alert, Button, Card, cx, MissionStatusBadge, Reveal, Spinner } from "@/components/ui";
 import { api } from "@/lib/client/api";
 import { describeFee, eurosShort } from "@/lib/fee";
 import type { MissionDetailDTO } from "@/lib/client/types";
@@ -135,7 +135,7 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
 
   return (
     <div className="space-y-6">
-      <div>
+      <Reveal>
         <Link href="/app/history" className="text-sm text-muted hover:text-fg">
           ← Missions
         </Link>
@@ -178,7 +178,7 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
             )}
           </div>
         </div>
-      </div>
+      </Reveal>
 
       <div className="space-y-3" aria-live="polite">
         {active && (
