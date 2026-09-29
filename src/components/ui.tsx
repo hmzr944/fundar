@@ -15,7 +15,7 @@ const variants: Record<Variant, string> = {
   danger: "bg-danger/10 text-danger border border-danger/40 hover:bg-danger/20",
 };
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap";
+  "inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm transition-[color,background-color,border-color,transform] duration-150 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 whitespace-nowrap";
 
 export function Button({ variant = "secondary", className, ...props }: ComponentProps<"button"> & { variant?: Variant }) {
   return <button className={cx(base, variants[variant], className)} {...props} />;

@@ -24,7 +24,12 @@ export function Photo({
   const [failed, setFailed] = useState(false);
   return (
     <div
-      className={cx("relative overflow-hidden bg-surface-2", wipeIn && "photo-wipe wipe-in", className)}
+      className={cx(
+        !className?.includes("absolute") && "relative",
+        "overflow-hidden bg-surface-2",
+        wipeIn && "photo-wipe wipe-in",
+        className,
+      )}
       style={wipeIn ? { ["--reveal-delay" as string]: `${delay}ms` } : undefined}
     >
       {!failed ? (
