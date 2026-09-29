@@ -40,7 +40,7 @@ export async function sendOutcomeReminders(db: Db, mailer: Mailer | null | undef
       if (already.some((m) => m.metadata?.kind === "notification" && m.metadata.key === stage.key)) continue;
 
       const user = await db.query.users.findFirst({ where: eq(users.id, mission.userId) });
-      if (!user) continue;
+      if (!user?.emailVerifiedAt) continue;
       const link = `${appUrl}/app/missions/${mission.id}`;
       // A commission is only at stake when a card was saved and nothing charged yet.
       const feeAtStake = Boolean(mission.payment.authorizedAt) && !mission.payment.paidAt;

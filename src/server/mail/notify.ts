@@ -18,7 +18,7 @@ export async function notifyUser(db: Db, mailer: Mailer | null | undefined, appU
     const mission = await db.query.missions.findFirst({ where: eq(missions.id, missionId) });
     if (!mission) return null;
     const user = await db.query.users.findFirst({ where: eq(users.id, mission.userId) });
-    if (!user) return null;
+    if (!user?.emailVerifiedAt) return null;
     const arts = await db.select().from(artifacts).where(eq(artifacts.missionId, missionId));
     const toSend = arts.filter((a) => sendInfoOf(a.metadata) && typeof a.metadata.sentAt !== "string" && isReadyToSend(reviewFromMetadata(a.metadata), a.content));
     const link = `${appUrl}/app/missions/${missionId}`;

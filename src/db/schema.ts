@@ -80,6 +80,8 @@ export const users = pgTable(
     email: text("email").notNull(),
     name: text("name"),
     passwordHash: text("password_hash").notNull(),
+    /** Set when the user clicked the link sent to their address; notifications go only to verified addresses. */
+    emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
     /** Card saved once with Stripe for success fees (never card data itself). */
     stripeCustomerId: text("stripe_customer_id"),
     stripePaymentMethodId: text("stripe_payment_method_id"),
@@ -123,6 +125,25 @@ export const sessions = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("sessions_user_idx").on(t.userId)],
+);
+
+/**
+ * Single-use links sent by e-mail: password reset and address verification.
+ * Only a SHA-256 of the token is stored; the raw token lives in the e-mail.
+ */
+export const authTokens = pgTable(
+  "auth_tokens",
+  {
+    id: text("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    purpose: text("purpose").$type<"reset_password" | "verify_email">().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("auth_tokens_user_idx").on(t.userId, t.purpose)],
 );
 
 export type Constraint = { label: string; value: string };

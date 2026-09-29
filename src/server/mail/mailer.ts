@@ -1,8 +1,9 @@
 /**
- * E-mails to Atlas' own users (notifications about their dossier). Atlas
- * never e-mails third parties: the user sends those messages themselves.
+ * E-mails to Atlas' own users (notifications, account links) and to the
+ * operator (contact form). Atlas never e-mails third parties: the user sends
+ * those messages themselves.
  */
-export type MailMessage = { to: string; subject: string; text: string };
+export type MailMessage = { to: string; subject: string; text: string; replyTo?: string };
 
 export interface Mailer {
   readonly name: string;
@@ -26,7 +27,7 @@ export class ResendMailer implements Mailer {
       res = await this.fetchImpl("https://api.resend.com/emails", {
         method: "POST",
         headers: { authorization: `Bearer ${this.apiKey}`, "content-type": "application/json" },
-        body: JSON.stringify({ from: this.from, to: [msg.to], subject: msg.subject, text: msg.text }),
+        body: JSON.stringify({ from: this.from, to: [msg.to], subject: msg.subject, text: msg.text, ...(msg.replyTo ? { reply_to: msg.replyTo } : {}) }),
       });
     } catch {
       throw new MailError("Service d'e-mail injoignable.");

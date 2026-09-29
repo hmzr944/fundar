@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { FeeTerms } from "@/lib/fee";
+import { discountedFee, feeFor, type FeeTerms } from "@/lib/fee";
 
 /**
  * Billing through Stripe (plain HTTPS calls, no SDK): a success fee charged
@@ -92,7 +92,7 @@ export function billingConfig(env: Record<string, string | undefined> = process.
  * dossier rather than let it drift.
  */
 export function applyPlusDiscount(plus: PlusConfig, feeCents: number) {
-  return Math.max(100, Math.round((feeCents * (100 - plus.feeDiscountPct)) / 100));
+  return discountedFee(feeCents, plus.feeDiscountPct);
 }
 
 /**
@@ -100,16 +100,7 @@ export function applyPlusDiscount(plus: PlusConfig, feeCents: number) {
  * a result with no money involved (a cancellation obtained, a service back).
  */
 export function computeSuccessFee(fee: SuccessFee, recoveredCents: number) {
-  if (recoveredCents <= 0) return fee.flatCents;
-  // Tier 1: ratePct, bounded to [minCents, maxCents]. Tier 2 starts at the
-  // recovered amount where tier 1 alone would already be worth maxCents.
-  const tier1ThresholdCents = Math.ceil((fee.maxCents * 100) / fee.ratePct);
-  if (recoveredCents <= tier1ThresholdCents) {
-    const share = Math.round((recoveredCents * fee.ratePct) / 100);
-    return Math.min(fee.maxCents, Math.max(fee.minCents, share));
-  }
-  const beyond = Math.round(((recoveredCents - tier1ThresholdCents) * fee.tier2RatePct) / 100);
-  return Math.min(fee.tier2CapCents, fee.maxCents + beyond);
+  return feeFor(fee, recoveredCents);
 }
 
 /** Seller identity shown in the legal pages (mentions légales, CGV). */
@@ -181,6 +172,21 @@ export async function createCheckoutSession(
   const data = await stripePost(cfg, "checkout/sessions", form, fetchImpl);
   if (typeof data.url !== "string") throw new StripeError("Le service de paiement n'a pas renvoyé de page de paiement.");
   return { id: data.id!, url: data.url };
+}
+
+/**
+ * Stripe's hosted customer portal: change the saved card, download invoices.
+ * The portal itself is configured once in the Stripe dashboard.
+ */
+export async function createPortalSession(cfg: BillingConfig, p: { customerId: string; returnPath: string }, fetchImpl: typeof fetch = fetch) {
+  const data = await stripePost(
+    cfg,
+    "billing_portal/sessions",
+    new URLSearchParams({ customer: p.customerId, return_url: `${cfg.appUrl}${p.returnPath}` }),
+    fetchImpl,
+  );
+  if (typeof data.url !== "string") throw new StripeError("Le service de paiement n'a pas renvoyé de page de gestion.");
+  return data.url;
 }
 
 /** A Stripe customer for this user (created once). */

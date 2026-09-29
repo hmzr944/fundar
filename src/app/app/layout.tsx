@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { AppNav } from "@/components/app-nav";
 import { Ambient } from "@/components/ui";
+import { VerifyEmailBanner } from "@/components/verify-email-banner";
 import { currentUser } from "@/lib/http";
 import { isAdmin } from "@/server/admin/economics";
 import { integrationStatus } from "@/server/deps";
@@ -15,7 +16,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-dvh">
       <Ambient />
-      <AppNav email={user.email} admin={isAdmin(user.email)} />
+      <AppNav email={user.email} admin={isAdmin(user.email)} billing={integrations.billing.enabled} />
+      {integrations.notifications.enabled && !user.emailVerifiedAt && <VerifyEmailBanner email={user.email} />}
       {!integrations.llm.available && (
         <div role="status" className="border-b border-warning/30 bg-warning/5 px-4 py-2 text-center text-sm text-warning">
           Aucun modèle de langage n&apos;est configuré : Atlas ne peut ni analyser ni exécuter de mission. Voir Paramètres.

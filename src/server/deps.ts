@@ -72,6 +72,11 @@ export function getAgentDeps(): AgentDeps {
   };
 }
 
+/** Mail service and public URL, for account e-mails (reset, verification, contact). */
+export function mailContext() {
+  return { mailer: mailerFromEnv(), appUrl: process.env.ATLAS_APP_URL?.trim().replace(/\/+$/, "") || null };
+}
+
 /** What the UI may say about the configured integrations (never secrets). */
 export function integrationStatus() {
   const deps = getAgentDeps();

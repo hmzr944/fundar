@@ -1,11 +1,12 @@
 import { currentUser } from "@/lib/http";
 import { LegalFooter } from "@/components/legal-footer";
+import { SiteHeader } from "@/components/site-header";
 import { Photo } from "@/components/illustrations";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { InkField } from "@/components/landing/ink-field";
 import { LandingMotion } from "@/components/landing/landing-motion";
 import { ParallaxBand } from "@/components/landing/parallax-band";
-import { Ambient, LinkButton, Logo, LOGO_PATH, cx } from "@/components/ui";
+import { Ambient, LinkButton, LOGO_PATH, cx } from "@/components/ui";
 import { describeFee, eurosShort } from "@/lib/fee";
 import { unsplash } from "@/lib/photos";
 import { billingConfig } from "@/server/billing/stripe";
@@ -80,21 +81,7 @@ export default async function Landing() {
   return (
     <div className="min-h-dvh overflow-x-clip">
       <Ambient />
-      <div className="glass sticky top-0 z-40 rounded-none border-x-0 border-t-0">
-      <header className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
-        <Logo className="text-lg" />
-        <nav className="flex items-center gap-2">
-          {!user && (
-            <LinkButton href="/login" variant="ghost">
-              Se connecter
-            </LinkButton>
-          )}
-          <LinkButton href={cta.href} variant="primary">
-            {cta.label}
-          </LinkButton>
-        </nav>
-      </header>
-      </div>
+      <SiteHeader signedIn={Boolean(user)} />
 
       <main>
         {/* 1. Split hero; the photo bleeds off the right edge on large screens. */}

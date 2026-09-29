@@ -12,7 +12,7 @@ const links = [
   { href: "/app/settings", label: "Paramètres" },
 ];
 
-export function AppNav({ email, admin = false }: { email: string; admin?: boolean }) {
+export function AppNav({ email, admin = false, billing = false }: { email: string; admin?: boolean; billing?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [leaving, setLeaving] = useState(false);
@@ -33,7 +33,7 @@ export function AppNav({ email, admin = false }: { email: string; admin?: boolea
           <span className="rounded-full border border-line-strong px-2 py-0.5 text-xs font-medium text-faint">Assistant IA</span>
         </Link>
         <nav aria-label="Navigation principale" className="order-last -mx-1 flex w-full min-w-0 gap-1 overflow-x-auto sm:order-none sm:mx-0 sm:ml-2 sm:w-auto sm:flex-1">
-          {(admin ? [...links, { href: "/app/admin", label: "Économie" }] : links).map((l) => {
+          {[...links, ...(billing ? [{ href: "/app/paiements", label: "Paiements" }] : []), ...(admin ? [{ href: "/app/admin", label: "Économie" }] : [])].map((l) => {
             const active = l.href === "/app" ? pathname === "/app" : pathname.startsWith(l.href);
             return (
               <Link

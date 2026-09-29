@@ -20,3 +20,25 @@ export function describeFee(fee: FeeTerms) {
       : "";
   return `${base}${beyond}, ou ${eurosShort(fee.flatCents)} € si le résultat n'est pas une somme d'argent`;
 }
+
+/**
+ * The commission for a given result, in cents: ratePct bounded to
+ * [minCents, maxCents], then tier2RatePct beyond the amount where the first
+ * tier reaches maxCents, capped at tier2CapCents. flatCents for a result with
+ * no money involved (a cancellation obtained, a service back).
+ */
+export function feeFor(fee: FeeTerms, recoveredCents: number) {
+  if (recoveredCents <= 0) return fee.flatCents;
+  const tier1ThresholdCents = Math.ceil((fee.maxCents * 100) / fee.ratePct);
+  if (recoveredCents <= tier1ThresholdCents) {
+    const share = Math.round((recoveredCents * fee.ratePct) / 100);
+    return Math.min(fee.maxCents, Math.max(fee.minCents, share));
+  }
+  const beyond = Math.round(((recoveredCents - tier1ThresholdCents) * fee.tier2RatePct) / 100);
+  return Math.min(fee.tier2CapCents, fee.maxCents + beyond);
+}
+
+/** The commission after the "Atlas Plus" discount, never below 1 €. */
+export function discountedFee(feeCents: number, discountPct: number) {
+  return Math.max(100, Math.round((feeCents * (100 - discountPct)) / 100));
+}

@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
+import { FirstSteps } from "@/components/first-steps";
 import { MissionComposer } from "@/components/mission-composer";
 import { MissionList } from "@/components/mission-list";
 import { ReferralCard } from "@/components/referral-card";
@@ -51,9 +52,7 @@ export default async function Dashboard() {
       )}
 
       {recent.length === 0 ? (
-        <p className="border-t border-line pt-6 text-sm text-muted">
-          Vos dossiers apparaîtront ici. Commencez par décrire votre problème ci-dessus, ou partez d&apos;un des exemples.
-        </p>
+        <FirstSteps />
       ) : (
         <>
         <div className="grid gap-8 lg:grid-cols-2">

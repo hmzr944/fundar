@@ -17,7 +17,7 @@ export async function resetDb() {
 }
 
 export async function createTestUser(email = `u-${randomUUID().slice(0, 8)}@test.local`) {
-  const [u] = await db.insert(users).values({ email, passwordHash: "x" }).returning();
+  const [u] = await db.insert(users).values({ email, passwordHash: "x", emailVerifiedAt: new Date() }).returning();
   return u;
 }
 

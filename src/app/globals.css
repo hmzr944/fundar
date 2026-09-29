@@ -280,12 +280,43 @@ h1, h2, h3, .font-display {
   transform: scaleX(1);
 }
 
+/* Below the fold on the info pages: each block settles in as it enters the
+   viewport (scroll-driven, no JS). Without support, it is simply there. */
+@supports (animation-timeline: view()) {
+  .view-in {
+    animation: view-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 55%;
+  }
+  @keyframes view-in { from { opacity: 0; transform: translateY(28px); } }
+}
+
+/* FAQ accordion: native <details>, the answer's height eases open where the
+   browser can interpolate to auto; the marker turns into a close sign. */
+.faq-item { interpolate-size: allow-keywords; }
+.faq-item::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition: block-size 0.45s cubic-bezier(0.16, 1, 0.3, 1), content-visibility 0.45s allow-discrete;
+}
+.faq-item[open]::details-content { block-size: auto; }
+.faq-item summary { list-style: none; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item .faq-mark { transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+.faq-item[open] .faq-mark { transform: rotate(45deg); }
+
+/* Commission simulator: the figure ticks when the amount changes. */
+.tick { animation: tick 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes tick { from { opacity: 0.35; transform: translateY(6px); } }
+
 @media (prefers-reduced-motion: reduce) {
   .hero-in { opacity: 1; transform: none; animation: none; }
   .line-mask > span { transform: none; animation: none; }
   .ambient span, .page-in, .tile-in, .msg-in, .float-a, .float-b, .float-c, .marquee { animation: none; }
   .shine:hover::after { animation: none; }
   .step-number { animation: none; }
+  .view-in, .tick { animation: none; }
+  .faq-item::details-content, .faq-item .faq-mark { transition: none; }
   .photo-wipe.wipe-in, .photo-wipe.wipe-in img { animation: none; clip-path: inset(0); transform: none; }
   .photo-card img { transition: none; }
   .photo-card:hover img { transform: none; }
