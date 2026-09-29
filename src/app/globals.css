@@ -1,38 +1,39 @@
 @import "tailwindcss";
 
 /*
- * Nimbrel — design tokens.
- * Direction: the case file. Atlas's whole job is correspondence — writing,
- * sending, and tracking official letters (notably LRAR, registered mail).
- * The palette is grounded in that: a quiet paper ground (cool, not cream —
- * cream+terracotta is the generic-AI tell), a deep registered-mail red as
- * the one deliberate accent, ink-blue as the secondary/link color.
+ * Nimbrel — design tokens. Three colours, nothing else:
+ *   1. Paper  — the neutral ground (cool, not cream).
+ *   2. Ink    — text, links, information, success: a deep night blue.
+ *   3. Seal   — the registered-mail red: actions, warnings, errors.
+ * Every state is a shade of one of these three; meaning is carried by the
+ * label and icon, never by a fourth hue.
  */
 :root {
-  --bg: #eef0ea;
+  /* Paper */
+  --bg: #eef1f4;
   --bg-elev: #ffffff;
-  --surface: #f8f9f4;
-  --surface-2: #e2e5da;
-  --border: #cdd2c1;
-  --border-strong: #aeb59d;
-  --text: #16211b;
-  --text-muted: #4c5b4f;
-  --text-faint: #5f6e61;
+  --surface: #f7f8fa;
+  --surface-2: #e1e6ec;
+  --border: #cfd6de;
+  --border-strong: #aab4c0;
 
-  /* Primary: registered-mail red (the "recommandé" stamp). Secondary: ink blue. */
+  /* Ink */
+  --text: #14202e;
+  --text-muted: #46546a;
+  --text-faint: #5a6779;
+  --sky: #1f3a52;
+  --sky-strong: #16293c;
+  --info: #1f3a52;
+  --success: #1f3a52;
+  --violet: #1f3a52;
+
+  /* Seal */
   --accent: #9c2b2e;
   --accent-strong: #7c2124;
   --accent-contrast: #fdf3ee;
-  --sky: #1f3a52;
-  --sky-strong: #16293c;
+  --warning: #9c2b2e;
+  --danger: #7c2124;
 
-  --success: #1f6b3a;
-  --warning: #8a5a0b;
-  --danger: #b8412a;
-  --info: #1f3a52;
-  --violet: #6a4f8a;
-
-  /* Self-hosted via next/font/local in app/layout.tsx. */
   --font-display: var(--font-heading-face), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-body-face), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -65,22 +66,22 @@
   --font-mono: var(--font-mono);
 }
 
-html,
-body {
-  background: var(--bg);
-  color: var(--text);
-}
-
-body {
-  position: relative;
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  min-height: 100dvh;
+html {
+  background-color: var(--bg);
   background-image:
     radial-gradient(ellipse 1000px 560px at 8% -12%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 60%),
     radial-gradient(ellipse 800px 560px at 104% 4%, color-mix(in srgb, var(--sky) 6%, transparent), transparent 60%);
   background-repeat: no-repeat;
   background-attachment: fixed;
+}
+
+/* Body stays transparent so the fixed ambient layer (z-index -1) shows through. */
+body {
+  position: relative;
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
 }
 
 /* A faint paper grain — the difference between "flat CSS gradient" and "printed page". */
@@ -159,6 +160,86 @@ h1, h2, h3, .font-display {
   to { transform: scale(1); }
 }
 
+/* ─── Glass ────────────────────────────────────────────────────────────── */
+/* Translucent paper over the ambient ink: blur + a lit top edge + ink shadow.
+   Solid fallback when the system asks for reduced transparency. */
+.glass {
+  background: color-mix(in srgb, var(--bg-elev) 56%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid color-mix(in srgb, var(--bg-elev) 80%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--bg-elev) 90%, transparent),
+    0 20px 44px -28px color-mix(in srgb, var(--sky-strong) 55%, transparent);
+}
+.glass-ink {
+  background: color-mix(in srgb, var(--sky-strong) 82%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  backdrop-filter: blur(22px) saturate(140%);
+  border: 1px solid color-mix(in srgb, var(--bg-elev) 16%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--bg-elev) 22%, transparent), 0 20px 44px -24px color-mix(in srgb, var(--sky-strong) 70%, transparent);
+  color: var(--bg-elev);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .glass-ink { background: var(--sky-strong); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+/* A light sweep crosses a tile on hover: feedback that it is interactive. */
+.shine { position: relative; overflow: hidden; isolation: isolate; }
+.shine::after {
+  content: "";
+  position: absolute;
+  inset: -40% auto -40% -60%;
+  width: 45%;
+  transform: translateX(-120%) rotate(18deg);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--bg-elev) 55%, transparent), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+.shine:hover::after { animation: shine-sweep 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes shine-sweep { to { transform: translateX(420%) rotate(18deg); } }
+
+/* ─── Ambient light ───────────────────────────────────────────────────── */
+/* Three blurred pools of ink and seal red drift very slowly behind the app. */
+.ambient { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.ambient span {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  will-change: transform;
+}
+.ambient span:nth-child(1) { width: 46vw; height: 46vw; left: -10vw; top: -14vw; background: color-mix(in srgb, var(--sky) 30%, transparent); animation: drift-a 38s ease-in-out infinite alternate; }
+.ambient span:nth-child(2) { width: 34vw; height: 34vw; right: -8vw; top: 18vh; background: color-mix(in srgb, var(--accent) 22%, transparent); animation: drift-b 44s ease-in-out infinite alternate; }
+.ambient span:nth-child(3) { width: 40vw; height: 40vw; left: 30vw; bottom: -22vw; background: color-mix(in srgb, var(--sky) 20%, transparent); animation: drift-c 52s ease-in-out infinite alternate; }
+@keyframes drift-a { to { transform: translate(18vw, 12vh) scale(1.15); } }
+@keyframes drift-b { to { transform: translate(-22vw, 26vh) scale(0.9); } }
+@keyframes drift-c { to { transform: translate(-14vw, -18vh) scale(1.2); } }
+
+/* ─── Entrances ───────────────────────────────────────────────────────── */
+.page-in { animation: page-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes page-in { from { opacity: 0; transform: translateY(10px); } }
+
+.tile-in {
+  animation: tile-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+@keyframes tile-in { from { opacity: 0; transform: translateY(18px) scale(0.985); } }
+
+.msg-in { animation: msg-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes msg-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } }
+
+/* Gentle float for the hero's status chips. */
+.float-a { animation: float 7s ease-in-out infinite; }
+.float-b { animation: float 9s ease-in-out -3s infinite; }
+.float-c { animation: float 8s ease-in-out -5s infinite; }
+@keyframes float { 50% { transform: translateY(-10px); } }
+
+/* One marquee on the page: the kinds of problems Atlas takes on. */
+.marquee { display: flex; width: max-content; animation: marquee 48s linear infinite; }
+.marquee:hover { animation-play-state: paused; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
 /* Hero headline: each line rises out of its own mask, staggered. Pure CSS so
    the text is never hidden waiting for JS. Padding keeps ç/p descenders clear. */
 .line-mask {
@@ -202,6 +283,8 @@ h1, h2, h3, .font-display {
 @media (prefers-reduced-motion: reduce) {
   .hero-in { opacity: 1; transform: none; animation: none; }
   .line-mask > span { transform: none; animation: none; }
+  .ambient span, .page-in, .tile-in, .msg-in, .float-a, .float-b, .float-c, .marquee { animation: none; }
+  .shine:hover::after { animation: none; }
   .step-number { animation: none; }
   .photo-wipe.wipe-in, .photo-wipe.wipe-in img { animation: none; clip-path: inset(0); transform: none; }
   .photo-card img { transition: none; }

@@ -88,7 +88,7 @@ export function InkField({ className }: { className?: string }) {
         uTime: { value: 0 },
         uRes: { value: new THREE.Vector2(1, 1) },
         uMouse: { value: new THREE.Vector2(0.75, 0.5) },
-        uPaper: { value: new THREE.Color(cssColor("--bg", "#eef0ea")) },
+        uPaper: { value: new THREE.Color(cssColor("--bg", "#eef1f4")) },
         uInk: { value: new THREE.Color(cssColor("--sky", "#1f3a52")) },
         uSeal: { value: new THREE.Color(cssColor("--accent", "#9c2b2e")) },
       };

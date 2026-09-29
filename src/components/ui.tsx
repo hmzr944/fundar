@@ -26,7 +26,7 @@ export function LinkButton({ variant = "secondary", className, ...props }: Compo
 }
 
 export function Card({ className, ...props }: ComponentProps<"section">) {
-  return <section className={cx("rounded-2xl border border-line bg-surface/70 p-5", className)} {...props} />;
+  return <section className={cx("glass rounded-2xl p-5", className)} {...props} />;
 }
 
 export function SectionTitle({ children, action, id }: { children: ReactNode; action?: ReactNode; id?: string }) {
@@ -89,7 +89,7 @@ export function Alert({ tone = "info", title, children }: { tone?: "info" | "war
   };
   const titleTone = { info: "text-info", warning: "text-warning", danger: "text-danger", success: "text-success" };
   return (
-    <div role={tone === "danger" ? "alert" : "status"} className={cx("rounded-xl border px-4 py-3 text-sm", tones[tone])}>
+    <div role={tone === "danger" ? "alert" : "status"} className={cx("rounded-2xl border px-4 py-3 text-sm backdrop-blur-xl", tones[tone])}>
       {title && <p className={cx("mb-1 font-semibold", titleTone[tone])}>{title}</p>}
       <div className="text-fg/90">{children}</div>
     </div>
@@ -153,6 +153,17 @@ export function Reveal({
   return (
     <div className={cx("hero-in", className)} style={{ ["--reveal-delay" as string]: `${delay}ms`, ...style }}>
       {children}
+    </div>
+  );
+}
+
+/** Slowly drifting pools of ink and seal red behind the glass (fixed, decorative). */
+export function Ambient() {
+  return (
+    <div className="ambient" aria-hidden>
+      <span />
+      <span />
+      <span />
     </div>
   );
 }

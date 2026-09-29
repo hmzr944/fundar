@@ -44,6 +44,23 @@ export function LandingMotion() {
         );
       }
 
+      // Section titles rise line by line out of a mask as they enter the screen.
+      gsap.utils.toArray<HTMLElement>("[data-split-heading]").forEach((el) => {
+        SplitText.create(el, {
+          type: "lines",
+          mask: "lines",
+          autoSplit: true,
+          onSplit: (self) =>
+            gsap.from(self.lines, { yPercent: 110, duration: 1, ease: EASE, stagger: 0.08, scrollTrigger: { trigger: el, start: "top 85%", once: true } }),
+        });
+      });
+
+      // The limits' rules draw themselves in, one after the other.
+      const rules = gsap.utils.toArray<HTMLElement>("[data-rule]");
+      if (rules.length) {
+        gsap.from(rules, { scaleX: 0, duration: 1.1, ease: EASE, stagger: 0.12, scrollTrigger: { trigger: rules[0], start: "top 85%", once: true } });
+      }
+
       // The band's statement is read word by word as it crosses the screen.
       gsap.utils.toArray<HTMLElement>("[data-scrub-words]").forEach((el) => {
         SplitText.create(el, {
@@ -80,7 +97,28 @@ export function LandingMotion() {
           el.removeEventListener("pointerleave", leave);
         };
       });
-      return () => offs.forEach((off) => off());
+      // Case tiles tilt toward the pointer, like cards held in the hand.
+      const tilts = gsap.utils.toArray<HTMLElement>("[data-tilt]").map((el) => {
+        const rx = gsap.quickTo(el, "rotationX", { duration: 0.6, ease: "power3.out" });
+        const ry = gsap.quickTo(el, "rotationY", { duration: 0.6, ease: "power3.out" });
+        const move = (e: PointerEvent) => {
+          const b = el.getBoundingClientRect();
+          ry(((e.clientX - b.left) / b.width - 0.5) * 8);
+          rx(-((e.clientY - b.top) / b.height - 0.5) * 8);
+        };
+        const leave = () => {
+          rx(0);
+          ry(0);
+        };
+        el.addEventListener("pointermove", move);
+        el.addEventListener("pointerleave", leave);
+        return () => {
+          el.removeEventListener("pointermove", move);
+          el.removeEventListener("pointerleave", leave);
+        };
+      });
+
+      return () => [...offs, ...tilts].forEach((off) => off());
     });
   });
 

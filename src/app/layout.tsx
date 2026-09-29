@@ -23,12 +23,12 @@ export const metadata: Metadata = {
   description: "Dites à Atlas, votre agent Nimbrel, ce que vous voulez accomplir. Il vous aide à le faire avancer, étape par étape.",
 };
 
-export const viewport: Viewport = { themeColor: "#eef0ea", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#eef1f4", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fr" className={`${heading.variable} ${body.variable}`} suppressHydrationWarning>
-      <body className="bg-bg text-fg">{children}</body>
+      <body className="text-fg">{children}</body>
     </html>
   );
 }

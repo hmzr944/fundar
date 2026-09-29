@@ -15,12 +15,12 @@ export type MissionRow = {
 export function MissionList({ missions, empty }: { missions: MissionRow[]; empty: string }) {
   if (!missions.length) return <EmptyState title={empty} />;
   return (
-    <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line">
+    <ul className="glass divide-y divide-line/70 overflow-hidden rounded-2xl">
       {missions.map((m) => (
         <li key={m.id}>
           <Link
             href={`/app/missions/${m.id}`}
-            className="flex flex-col gap-2 bg-surface/40 px-4 py-3.5 transition-colors hover:bg-surface-2/70 sm:flex-row sm:items-center sm:gap-4"
+            className="group flex flex-col gap-2 px-4 py-3.5 transition-[background-color,padding] duration-300 hover:bg-[color-mix(in_srgb,var(--bg-elev)_60%,transparent)] hover:pl-6 sm:flex-row sm:items-center sm:gap-4"
           >
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium">{m.title}</p>

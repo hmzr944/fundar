@@ -123,6 +123,7 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
   const feeText = integrations.billing.fee ? describeFee(integrations.billing.fee) : "";
   const cardSaved = data.account.cardSaved;
   const lastRun = data.runs[0];
+  const doneSteps = steps.filter((st) => st.status === "DONE" || st.status === "SKIPPED").length;
   const analysisFailed = !locked && lastRun?.kind === "analysis" && lastRun.status === "FAILED";
 
   const tabs: { key: Tab; label: string; count?: number }[] = [
@@ -134,22 +135,38 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link href="/app/history" className="text-sm text-muted hover:text-fg">
-          ← Missions
-        </Link>
-        <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-semibold tracking-tight" data-testid="mission-title">
-                {mission.title}
-              </h1>
-              <MissionStatusBadge status={mission.status} />
-            </div>
-            {mission.objective && <p className="mt-2 max-w-3xl text-muted">{mission.objective}</p>}
+    <div className="space-y-4">
+      <Link href="/app/history" className="inline-block text-sm text-muted hover:text-fg">
+        ← Missions
+      </Link>
+
+      {/* Bento header: the case on the left, progress and actions on an ink tile. */}
+      <div className="grid gap-4 lg:grid-cols-12">
+        <header className="glass tile-in shine rounded-3xl p-6 lg:col-span-8 lg:p-7" style={{ ["--i" as string]: 0 }}>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl" data-testid="mission-title">
+              {mission.title}
+            </h1>
+            <MissionStatusBadge status={mission.status} />
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
+          {mission.objective && <p className="mt-3 max-w-3xl text-muted">{mission.objective}</p>}
+        </header>
+
+        <div className="glass-ink tile-in flex flex-col justify-between gap-5 rounded-3xl p-6 lg:col-span-4" style={{ ["--i" as string]: 1 }}>
+          <div>
+            <p className="font-sans text-5xl font-bold leading-none tracking-tight tabular-nums">
+              {doneSteps}
+              <span className="text-2xl opacity-60">/{steps.length}</span>
+            </p>
+            <p className="mt-2 text-sm opacity-75">étapes closes</p>
+            <div className="mt-4 h-1 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--bg-elev)_18%,transparent)]" aria-hidden>
+              <div
+                className="h-full rounded-full bg-accent transition-[width] duration-700"
+                style={{ width: `${steps.length ? (doneSteps / steps.length) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
             {locked ? (
               <Button variant="danger" onClick={() => act("cancel")} disabled={busy !== null || active?.cancelRequested}>
                 {busy === "cancel" && <Spinner />} {active?.cancelRequested ? "Interruption…" : "Interrompre"}
@@ -171,7 +188,12 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
                     {busy === "analyze" && <Spinner />} Relancer l&apos;analyse
                   </Button>
                 )}
-                <Button variant="ghost" onClick={remove} disabled={busy !== null}>
+                <Button
+                  variant="ghost"
+                  onClick={remove}
+                  disabled={busy !== null}
+                  className="text-elev/80! hover:bg-elev/10! hover:text-elev!"
+                >
                   Supprimer
                 </Button>
               </>
@@ -308,20 +330,20 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
         )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
-        <div className="min-w-0 space-y-6">
+      <div className="grid gap-4 lg:grid-cols-12">
+        <div className="min-w-0 space-y-4 lg:col-span-7">
           {(mission.reformulation || mission.constraints.length > 0 || mission.unsupported.length > 0 || optional.length > 0) && (
-            <Card>
+            <Card className="tile-in rounded-3xl p-6" style={{ ["--i" as string]: 2 }}>
               {mission.reformulation && (
                 <>
-                  <h2 className="text-sm font-semibold text-muted">Ce qu&apos;Atlas a compris</h2>
-                  <p className="mt-1.5 text-sm">{mission.reformulation}</p>
+                  <h2 className="font-display text-lg font-bold tracking-tight">Ce qu&apos;Atlas a compris</h2>
+                  <p className="mt-2 text-sm leading-relaxed">{mission.reformulation}</p>
                 </>
               )}
               {mission.constraints.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-2">
                   {mission.constraints.map((c) => (
-                    <span key={`${c.label}-${c.value}`} className="rounded-lg border border-line bg-elev px-2.5 py-1 text-xs">
+                    <span key={`${c.label}-${c.value}`} className="glass rounded-full px-3 py-1 text-xs">
                       <span className="text-faint">{c.label} :</span> {c.value}
                     </span>
                   ))}
@@ -353,8 +375,8 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
             </Card>
           )}
 
-          <Card className="p-0">
-            <div role="tablist" aria-label="Sections de la mission" className="flex gap-1 overflow-x-auto border-b border-line px-3 pt-3">
+          <Card className="tile-in rounded-3xl p-0" style={{ ["--i" as string]: 3 }}>
+            <div role="tablist" aria-label="Sections de la mission" className="m-3 flex gap-1 overflow-x-auto rounded-full bg-[color-mix(in_srgb,var(--surface-2)_70%,transparent)] p-1">
               {tabs.map((t) => (
                 <button
                   key={t.key}
@@ -364,16 +386,16 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
                   aria-controls={`panel-${t.key}`}
                   onClick={() => setTab(t.key)}
                   className={cx(
-                    "-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm transition-colors",
-                    tab === t.key ? "border-accent text-fg" : "border-transparent text-muted hover:text-fg",
+                    "whitespace-nowrap rounded-full px-4 py-1.5 text-sm transition-[color,background-color,box-shadow] duration-300",
+                    tab === t.key ? "bg-sky-strong text-elev shadow-sm" : "text-muted hover:text-fg",
                   )}
                 >
                   {t.label}
-                  {t.count !== undefined && <span className="ml-1.5 text-xs text-faint">{t.count}</span>}
+                  {t.count !== undefined && <span className={cx("ml-1.5 text-xs", tab === t.key ? "opacity-70" : "text-faint")}>{t.count}</span>}
                 </button>
               ))}
             </div>
-            <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="p-4 sm:p-5">
+            <div key={tab} role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="page-in px-4 pb-5 sm:px-6">
               {tab === "plan" && <PlanPanel missionId={id} steps={steps} artifacts={data.artifacts} locked={locked} onChanged={refresh} />}
               {tab === "results" && (
                 <ResultsPanel mission={mission} artifacts={data.artifacts} locked={locked} onChanged={refresh} postal={integrations.postal} account={data.account} />
@@ -385,9 +407,9 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
           </Card>
         </div>
 
-        <aside aria-label="Conversation">
-          <Card className="lg:sticky lg:top-20">
-            <h2 className="mb-3 font-display text-lg font-bold tracking-tight">Conversation</h2>
+        <aside aria-label="Conversation" className="lg:col-span-5">
+          <Card className="tile-in rounded-3xl p-5 lg:sticky lg:top-20 lg:p-6" style={{ ["--i" as string]: 4 }}>
+            <h2 className="mb-4 font-display text-lg font-bold tracking-tight">Conversation</h2>
             <Conversation
               missionId={id}
               messages={data.messages}

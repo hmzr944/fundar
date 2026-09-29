@@ -25,7 +25,7 @@ export function AppNav({ email, admin = false }: { email: string; admin?: boolea
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur">
+    <header className="glass sticky top-0 z-20 rounded-none border-x-0 border-t-0">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:flex-nowrap sm:px-6">
         <Link href="/app" aria-label="Accueil Atlas" className="flex items-center gap-2">
           <Logo />
