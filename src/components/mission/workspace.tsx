@@ -387,7 +387,7 @@ export function MissionWorkspace({ initial }: { initial: MissionDetailDTO }) {
 
         <aside aria-label="Conversation">
           <Card className="lg:sticky lg:top-20">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Conversation</h2>
+            <h2 className="mb-3 font-display text-lg font-bold tracking-tight">Conversation</h2>
             <Conversation
               missionId={id}
               messages={data.messages}

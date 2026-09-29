@@ -43,7 +43,7 @@ function SourceList({ title, hint, items }: { title: string; hint: string; items
             </a>
             <p className="truncate text-xs text-faint">{s.url}</p>
             {s.excerpt && <p className="mt-1 line-clamp-2 text-xs text-muted">{s.excerpt}</p>}
-            <p className="mt-1 text-[11px] text-faint">
+            <p className="mt-1 text-xs text-faint">
               Consultée le {formatDate(s.retrievedAt)}
               {s.publishedAt ? ` · publiée : ${s.publishedAt}` : ""}
             </p>
@@ -189,7 +189,7 @@ export function JournalPanel({ runs, usage }: { runs: RunDTO[]; usage: MissionDe
           ],
         ].map(([k, v]) => (
           <div key={k as string} className="rounded-lg border border-line bg-elev/60 px-3 py-2">
-            <dt className="text-[11px] text-faint">{k}</dt>
+            <dt className="text-xs text-faint">{k}</dt>
             <dd className="mt-0.5 text-sm font-medium">{v}</dd>
           </div>
         ))}

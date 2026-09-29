@@ -36,7 +36,7 @@ export function MissionComposer({ disabled }: { disabled?: boolean }) {
   }
 
   return (
-    <form onSubmit={submit} className="rounded-2xl border border-line-strong bg-surface p-4 shadow-[0_0_0_1px_rgba(110,168,255,0.04)] sm:p-5">
+    <form onSubmit={submit} className="rounded-2xl border border-line-strong bg-surface p-4 sm:p-5">
       <label htmlFor="mission-request" className="text-lg font-semibold">
         Quel problème voulez-vous régler ?
       </label>

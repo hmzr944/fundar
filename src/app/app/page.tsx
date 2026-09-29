@@ -29,7 +29,7 @@ export default async function Dashboard() {
   return (
     <div className="space-y-10">
       <div>
-        <h1 className="mb-4 text-2xl font-semibold tracking-tight">Bonjour{user.name ? ` ${user.name}` : ""}</h1>
+        <h1 className="mb-5 font-display text-3xl font-bold tracking-tight">Bonjour{user.name ? ` ${user.name}` : ""}</h1>
         {results.resolvedCount > 0 && (
           <p className="mb-4 rounded-2xl border border-line bg-surface/60 px-5 py-3 text-sm" data-testid="results-counter">
             {results.recoveredCents > 0 ? (
@@ -50,30 +50,38 @@ export default async function Dashboard() {
         <ReferralCard code={referral.referralCode} creditCents={referral.creditCents} rewardCents={billing.referralCreditCents} />
       )}
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <section aria-labelledby="needs-action">
-          <SectionTitle id="needs-action">Nécessitent votre attention</SectionTitle>
-          <MissionList missions={needsAction} empty="Aucune mission n'attend votre action." />
-        </section>
-        <section aria-labelledby="active">
-          <SectionTitle id="active">En cours</SectionTitle>
-          <MissionList missions={active} empty="Aucune mission en cours." />
-        </section>
-      </div>
+      {recent.length === 0 ? (
+        <p className="border-t border-line pt-6 text-sm text-muted">
+          Vos dossiers apparaîtront ici. Commencez par décrire votre problème ci-dessus, ou partez d&apos;un des exemples.
+        </p>
+      ) : (
+        <>
+        <div className="grid gap-8 lg:grid-cols-2">
+          <section aria-labelledby="needs-action">
+            <SectionTitle id="needs-action">Nécessitent votre attention</SectionTitle>
+            <MissionList missions={needsAction} empty="Aucune mission n'attend votre action." />
+          </section>
+          <section aria-labelledby="active">
+            <SectionTitle id="active">En cours</SectionTitle>
+            <MissionList missions={active} empty="Aucune mission en cours." />
+          </section>
+        </div>
 
-      <section aria-labelledby="recent">
-        <SectionTitle
-          id="recent"
-          action={
-            <Link href="/app/history" className="text-sm text-accent hover:underline">
-              Tout l&apos;historique →
-            </Link>
-          }
-        >
-          Missions récentes
-        </SectionTitle>
-        <MissionList missions={recent} empty="Vous n'avez pas encore de mission. Décrivez votre premier objectif ci-dessus." />
-      </section>
+        <section aria-labelledby="recent">
+          <SectionTitle
+            id="recent"
+            action={
+              <Link href="/app/history" className="text-sm text-accent hover:underline">
+                Tout l&apos;historique →
+              </Link>
+            }
+          >
+            Missions récentes
+          </SectionTitle>
+          <MissionList missions={recent} empty="Vous n'avez pas encore de mission. Décrivez votre premier objectif ci-dessus." />
+        </section>
+        </>
+      )}
     </div>
   );
 }

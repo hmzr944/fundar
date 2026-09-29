@@ -2,16 +2,17 @@ import { currentUser } from "@/lib/http";
 import { LegalFooter } from "@/components/legal-footer";
 import { Photo } from "@/components/illustrations";
 import { HowItWorks } from "@/components/landing/how-it-works";
+import { InkField } from "@/components/landing/ink-field";
+import { LandingMotion } from "@/components/landing/landing-motion";
 import { ParallaxBand } from "@/components/landing/parallax-band";
 import { LinkButton, Logo, cx } from "@/components/ui";
 import { describeFee, eurosShort } from "@/lib/fee";
 import { unsplash } from "@/lib/photos";
 import { billingConfig } from "@/server/billing/stripe";
 
-type Case = { title: string; text: string } & ({ photo: string } | { tone: "accent" | "ink" });
-
-// Bento: six cells for six cases; the big tile and two colour tiles break the grid's rhythm.
-const cases: (Case & { cell: string })[] = [
+// Bento: six cells for six cases, each with a photo of what the text describes.
+// The big tile and the two colour/photo splits break the grid's rhythm.
+const cases: { title: string; text: string; photo: string; tone?: "accent" | "ink"; cell: string }[] = [
   {
     title: "Un colis jamais arrivé",
     text: "Le vendeur ne rembourse pas, le transporteur renvoie vers le vendeur.",
@@ -21,24 +22,26 @@ const cases: (Case & { cell: string })[] = [
   {
     title: "Une facture contestée",
     text: "Frais injustifiés, régularisation énorme, erreur de facturation.",
-    photo: "zR7nFjjIAWE",
+    photo: "3CLPBgNuX40",
     cell: "lg:col-span-3",
   },
   {
     title: "Une caution non rendue",
     text: "Le délai est dépassé et le bailleur ne répond plus.",
+    photo: "3HfGnyPfWqQ",
     tone: "accent",
     cell: "lg:col-span-3",
   },
   {
     title: "Un abonnement impossible à arrêter",
     text: "Les prélèvements continuent malgré la résiliation.",
-    photo: "JSk0OT2Klac",
+    photo: "Q59HmzK38eQ",
     cell: "lg:col-span-2",
   },
   {
     title: "Un remboursement qui n'arrive pas",
     text: "Vol annulé, commande annulée, avoir imposé au lieu d'un remboursement.",
+    photo: "mqvE1ctiW6Y",
     tone: "ink",
     cell: "lg:col-span-2",
   },
@@ -92,8 +95,8 @@ export default async function Landing() {
 
       <main>
         {/* 1. Split hero; the photo bleeds off the right edge on large screens. */}
-        <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-16 pt-8 sm:px-6 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-12 lg:gap-0 lg:px-10 lg:pb-12 lg:pt-4">
-          <div className="lg:col-span-6 lg:pr-12">
+        <section data-hero className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-16 pt-8 sm:px-6 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-12 lg:gap-0 lg:px-10 lg:pb-12 lg:pt-4">
+          <div data-hero-copy className="lg:col-span-6 lg:pr-12">
             <h1 className="font-display text-5xl font-bold leading-[1.02] tracking-[-0.035em] sm:text-7xl xl:text-8xl">
               <span className="line-mask">
                 <span>Règle ça</span>
@@ -106,7 +109,7 @@ export default async function Landing() {
               Un litige avec une entreprise ? Décrivez-le. Atlas rédige les courriers, les vérifie et relance jusqu&apos;au bout.
             </p>
             <div className="hero-in mt-9 flex flex-wrap items-center gap-6" style={{ ["--reveal-delay" as string]: "500ms" }}>
-              <LinkButton href={cta.href} variant="primary" className="px-6 py-3 text-base">
+              <LinkButton href={cta.href} variant="primary" className="px-6 py-3 text-base" data-magnetic>
                 {cta.label}
               </LinkButton>
               <a href="#fonctionnement" className="text-sm font-medium text-fg underline decoration-line-strong underline-offset-4 hover:decoration-accent">
@@ -114,7 +117,7 @@ export default async function Landing() {
               </a>
             </div>
           </div>
-          <div className="relative h-[52vh] min-h-[340px] lg:col-span-6 lg:-mr-[max(2.5rem,calc((100vw_-_80rem)/2_+_2.5rem))] lg:h-[78vh]">
+          <div data-hero-photo className="relative h-[52vh] min-h-[340px] origin-left lg:col-span-6 lg:-mr-[max(2.5rem,calc((100vw_-_80rem)/2_+_2.5rem))] lg:h-[78vh]">
             <Photo
               src={unsplash("EahB9XZt310", 1600)}
               alt="Une personne rédige un courrier à son bureau"
@@ -130,11 +133,24 @@ export default async function Landing() {
           <h2 id="exemples" className="max-w-xl font-display text-3xl font-bold tracking-tight sm:text-4xl">
             Ce qu&apos;on confie à Atlas
           </h2>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:auto-rows-[15rem] lg:grid-cols-6">
+          <div data-tiles className="mt-10 grid gap-4 sm:grid-cols-2 lg:auto-rows-[15rem] lg:grid-cols-6">
             {cases.map((c) => (
-              <article key={c.title} className={cx("group relative overflow-hidden rounded-2xl", c.cell, "photo" in c ? "photo-card min-h-64" : "")}>
-                {"photo" in c ? (
-                  <>
+              <article key={c.title} data-tile className={cx("photo-card group relative overflow-hidden rounded-2xl", c.cell)}>
+                {c.tone ? (
+                  <div
+                    className={cx(
+                      "grid h-full min-h-64 grid-rows-[1fr_auto] sm:grid-cols-[1.35fr_1fr] sm:grid-rows-1",
+                      c.tone === "accent" ? "bg-accent text-accent-contrast" : "bg-sky-strong text-white",
+                    )}
+                  >
+                    <Photo src={unsplash(c.photo, 700)} alt="" className="min-h-36 sm:order-2 sm:h-full" />
+                    <div lang="fr" className="flex flex-col justify-end p-5 sm:p-6">
+                      <h3 className="hyphens-auto font-display text-xl font-bold leading-tight lg:text-2xl">{c.title}</h3>
+                      <p className="mt-2 text-sm opacity-85">{c.text}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative h-full min-h-64">
                     <Photo src={unsplash(c.photo, 900)} alt="" className="absolute inset-0 h-full w-full" />
                     <div
                       aria-hidden
@@ -145,16 +161,6 @@ export default async function Landing() {
                       <h3 className="font-display text-xl font-bold leading-tight">{c.title}</h3>
                       <p className="mt-1.5 max-w-sm text-sm text-white/80">{c.text}</p>
                     </div>
-                  </>
-                ) : (
-                  <div
-                    className={cx(
-                      "flex h-full min-h-48 flex-col justify-end p-6",
-                      c.tone === "accent" ? "bg-accent text-accent-contrast" : "bg-sky-strong text-white",
-                    )}
-                  >
-                    <h3 className="font-display text-2xl font-bold leading-tight">{c.title}</h3>
-                    <p className="mt-2 max-w-sm text-sm opacity-85">{c.text}</p>
                   </div>
                 )}
               </article>
@@ -171,9 +177,9 @@ export default async function Landing() {
         </section>
 
         {/* 4. Full-bleed band: one statement, scale shift. */}
-        <ParallaxBand src={unsplash("rimgdHH0I_E", 1920)}>
+        <ParallaxBand src={unsplash("qIjGJgZOpsM", 1920)}>
           <div className="mx-auto max-w-7xl px-4 py-28 sm:px-6 lg:px-10 lg:py-40">
-            <p className="max-w-3xl font-display text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-6xl">
+            <p data-scrub-words className="max-w-3xl font-display text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-6xl">
               Les délais, c&apos;est Atlas qui les surveille.
             </p>
             <p className="mt-6 max-w-md text-lg text-white/80">
@@ -198,13 +204,14 @@ export default async function Landing() {
           </p>
         </section>
 
-        {/* 6. Closing call to action. */}
-        <section className="border-t border-line bg-surface-2/60">
-          <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-4 py-20 sm:px-6 md:flex-row md:items-end lg:px-10">
-            <p className="max-w-2xl font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
+        {/* 6. Closing call to action over the WebGL ink field (the page's ambient layer). */}
+        <section className="relative isolate overflow-hidden border-t border-line bg-bg">
+          <InkField className="absolute inset-0 -z-10" />
+          <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-4 py-24 sm:px-6 md:flex-row md:items-end lg:px-10 lg:py-32">
+            <p className="max-w-xl font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
               Un problème qui traîne ? Décrivez-le.
             </p>
-            <LinkButton href={cta.href} variant="primary" className="px-6 py-3 text-base">
+            <LinkButton href={cta.href} variant="primary" className="px-6 py-3 text-base" data-magnetic>
               {cta.label}
             </LinkButton>
           </div>
@@ -212,6 +219,7 @@ export default async function Landing() {
       </main>
 
       <LegalFooter />
+      <LandingMotion />
     </div>
   );
 }

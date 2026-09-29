@@ -17,7 +17,7 @@
   --border-strong: #aeb59d;
   --text: #16211b;
   --text-muted: #4c5b4f;
-  --text-faint: #7c8a7a;
+  --text-faint: #5f6e61;
 
   /* Primary: registered-mail red (the "recommandé" stamp). Secondary: ink blue. */
   --accent: #9c2b2e;
@@ -28,7 +28,7 @@
 
   --success: #1f6b3a;
   --warning: #8a5a0b;
-  --danger: #c8492f;
+  --danger: #b8412a;
   --info: #1f3a52;
   --violet: #6a4f8a;
 

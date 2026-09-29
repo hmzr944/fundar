@@ -10,7 +10,7 @@ export function cx(...c: (string | false | null | undefined)[]) {
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 const variants: Record<Variant, string> = {
   primary: "bg-accent text-accent-contrast hover:bg-accent-strong font-semibold",
-  secondary: "bg-surface-2 text-fg border border-line-strong hover:border-accent/60",
+  secondary: "bg-elev text-fg border border-line-strong shadow-[0_1px_0_color-mix(in_srgb,var(--text)_6%,transparent)] hover:border-fg/40",
   ghost: "text-muted hover:text-fg hover:bg-surface-2",
   danger: "bg-danger/10 text-danger border border-danger/40 hover:bg-danger/20",
 };
@@ -32,7 +32,7 @@ export function Card({ className, ...props }: ComponentProps<"section">) {
 export function SectionTitle({ children, action, id }: { children: ReactNode; action?: ReactNode; id?: string }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
-      <h2 id={id} className="text-sm font-semibold uppercase tracking-wide text-muted">
+      <h2 id={id} className="font-display text-lg font-bold tracking-tight text-fg">
         {children}
       </h2>
       {action}

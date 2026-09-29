@@ -100,7 +100,7 @@ export default async function Settings() {
             ["Coût estimé", cost === null ? "non disponible" : `≈ ${cost.toFixed(2)} $`],
           ].map(([k, v]) => (
             <div key={k as string} className="rounded-lg border border-line bg-elev/60 px-3 py-2">
-              <dt className="text-[11px] text-faint">{k}</dt>
+              <dt className="text-xs text-faint">{k}</dt>
               <dd className="mt-0.5 text-sm font-medium">{v}</dd>
             </div>
           ))}

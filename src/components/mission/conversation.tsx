@@ -89,7 +89,7 @@ function MessageBubble({ m }: { m: MessageDTO }) {
         <div className="whitespace-pre-wrap">
           <Markdown>{m.content}</Markdown>
         </div>
-        <p className="mt-1 text-[10px] text-faint">{formatDate(m.createdAt)}</p>
+        <p className="mt-1 text-xs text-faint">{formatDate(m.createdAt)}</p>
       </div>
     );
   }
@@ -99,10 +99,10 @@ function MessageBubble({ m }: { m: MessageDTO }) {
       <div
         className={cx(
           "max-w-[92%] rounded-2xl px-4 py-3 text-sm",
-          mine ? "rounded-br-sm bg-accent/15 text-fg" : "rounded-bl-sm border border-line bg-elev",
+          mine ? "rounded-br-sm bg-sky/10 text-fg" : "rounded-bl-sm border border-line bg-elev",
         )}
       >
-        <p className="mb-1 text-[11px] font-medium text-faint">
+        <p className="mb-1 text-xs font-medium text-faint">
           {mine ? "Vous" : "Atlas"} · {formatDate(m.createdAt)}
         </p>
         {mine ? <p className="whitespace-pre-wrap">{m.content}</p> : <Markdown>{m.content}</Markdown>}

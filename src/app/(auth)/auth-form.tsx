@@ -44,7 +44,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     <div className="grid min-h-dvh lg:grid-cols-2">
       <div className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between lg:p-10">
         <div className="absolute inset-0">
-          <Photo src={unsplash("skhrNNKW740", 1200)} alt="" wipeIn className="h-full w-full" />
+          <Photo src={unsplash("snNHKZ-mGfE", 1200)} alt="" wipeIn className="h-full w-full" />
         </div>
         <div
           className="pointer-events-none absolute inset-0"

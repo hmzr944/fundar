@@ -30,7 +30,7 @@ export function AppNav({ email, admin = false }: { email: string; admin?: boolea
         <Link href="/app" aria-label="Accueil Atlas" className="flex items-center gap-2">
           <Logo />
           {/* AI Act, art. 50 §1 : information claire, à chaque interaction, que l'utilisateur échange avec un système d'IA. */}
-          <span className="rounded-full border border-line-strong px-2 py-0.5 text-[11px] font-medium text-faint">Assistant IA</span>
+          <span className="rounded-full border border-line-strong px-2 py-0.5 text-xs font-medium text-faint">Assistant IA</span>
         </Link>
         <nav aria-label="Navigation principale" className="order-last -mx-1 flex w-full min-w-0 gap-1 overflow-x-auto sm:order-none sm:mx-0 sm:ml-2 sm:w-auto sm:flex-1">
           {(admin ? [...links, { href: "/app/admin", label: "Économie" }] : links).map((l) => {

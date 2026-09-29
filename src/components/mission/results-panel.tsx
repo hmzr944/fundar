@@ -132,11 +132,11 @@ function ArtifactCard({
         aria-expanded={open}
         className="flex w-full items-center gap-3 px-4 py-3 text-left"
       >
-        <span className="rounded-md bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">{TYPE_LABELS[artifact.type]}</span>
+        <span className="rounded-md bg-accent/10 px-2 py-0.5 text-xs font-medium text-accent">{TYPE_LABELS[artifact.type]}</span>
         <span className="min-w-0 flex-1 truncate font-medium">{artifact.name}</span>
-        {artifact.editedByUser && <span className="text-[11px] text-faint">modifié par vous</span>}
+        {artifact.editedByUser && <span className="text-xs text-faint">modifié par vous</span>}
         {artifact.sentAt ? (
-          <span className="rounded-md border border-success/40 bg-success/5 px-2 py-0.5 text-[11px] font-medium text-success">
+          <span className="rounded-md border border-success/40 bg-success/5 px-2 py-0.5 text-xs font-medium text-success">
             Envoyé le {new Date(artifact.sentAt).toLocaleDateString("fr-FR")}
           </span>
         ) : (
@@ -237,7 +237,7 @@ const CATEGORY_LABELS: Record<ReviewDTO["issues"][number]["category"], string> =
 function ReviewBadge({ review }: { review: ReviewDTO }) {
   const v = VERDICT[review.verdict];
   return (
-    <span className={`rounded-md border px-2 py-0.5 text-[11px] font-medium ${review.stale ? "border-line-strong text-faint" : v.tone}`} data-testid="review-badge">
+    <span className={`rounded-md border px-2 py-0.5 text-xs font-medium ${review.stale ? "border-line-strong text-faint" : v.tone}`} data-testid="review-badge">
       {review.stale ? "Relecture à refaire" : v.label}
     </span>
   );
@@ -246,7 +246,7 @@ function ReviewBadge({ review }: { review: ReviewDTO }) {
 function ReadinessBadge({ ready }: { ready: boolean }) {
   return (
     <span
-      className={`rounded-md border px-2 py-0.5 text-[11px] font-medium ${ready ? "border-success/40 bg-success/5 text-success" : "border-warning/40 bg-warning/5 text-warning"}`}
+      className={`rounded-md border px-2 py-0.5 text-xs font-medium ${ready ? "border-success/40 bg-success/5 text-success" : "border-warning/40 bg-warning/5 text-warning"}`}
       data-testid="readiness"
       data-ready={ready}
     >
@@ -316,7 +316,7 @@ function ReviewDetails({
           ))}
         </ul>
       )}
-      <p className="mt-2 text-[11px] text-faint">
+      <p className="mt-2 text-xs text-faint">
         Relecture par règles fixes et par un second passage du modèle. Elle aide à repérer les erreurs, mais ne remplace pas votre vérification avant envoi.
       </p>
       {error && (

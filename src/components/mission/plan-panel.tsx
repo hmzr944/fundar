@@ -106,14 +106,14 @@ function StepItem({
               <span className="text-faint">{index + 1}.</span> {step.title}
             </p>
             <StepStatusText status={step.status} />
-            <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[11px] text-muted">{STEP_KIND_LABELS[step.kind]}</span>
+            <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-xs text-muted">{STEP_KIND_LABELS[step.kind]}</span>
             {step.completedBy === "user" && closed && (
-              <span className="rounded-md border border-warning/40 px-1.5 py-0.5 text-[11px] text-warning" title="Action déclarée par vous, non exécutée par Atlas">
+              <span className="rounded-md border border-warning/40 px-1.5 py-0.5 text-xs text-warning" title="Action déclarée par vous, non exécutée par Atlas">
                 Déclarée par vous
               </span>
             )}
             {step.completedBy === "atlas" && step.status === "DONE" && (
-              <span className="rounded-md border border-success/40 px-1.5 py-0.5 text-[11px] text-success">Exécutée par Atlas</span>
+              <span className="rounded-md border border-success/40 px-1.5 py-0.5 text-xs text-success">Exécutée par Atlas</span>
             )}
           </div>
           {step.description && <p className="mt-1 text-sm text-muted">{step.description}</p>}
