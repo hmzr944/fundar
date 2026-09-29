@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, Spinner } from "@/components/ui";
+import { PasswordField } from "@/components/password-field";
 import { api } from "@/lib/client/api";
 import { eurosShort } from "@/lib/fee";
 
@@ -29,14 +30,8 @@ export function PasswordForm() {
   }
   return (
     <form onSubmit={submit} className="grid max-w-md gap-3">
-      <label className="text-sm">
-        Mot de passe actuel
-        <input name="current" type="password" autoComplete="current-password" required className={`${input} mt-1`} />
-      </label>
-      <label className="text-sm">
-        Nouveau mot de passe (10 caractères minimum)
-        <input name="next" type="password" autoComplete="new-password" required minLength={10} className={`${input} mt-1`} />
-      </label>
+      <PasswordField label="Mot de passe actuel" name="current" autoComplete="current-password" required />
+      <PasswordField label="Nouveau mot de passe" name="next" autoComplete="new-password" required minLength={10} hint="10 caractères minimum." />
       {msg && <p role={msg.ok ? "status" : "alert"} className={`text-sm ${msg.ok ? "text-success" : "text-danger"}`}>{msg.text}</p>}
       <Button type="submit" disabled={pending} className="justify-self-start">
         {pending && <Spinner />} Modifier le mot de passe
@@ -89,10 +84,13 @@ export function DangerZone() {
       </div>
       <form onSubmit={deleteAccount} className="max-w-md space-y-2">
         <p className="text-sm">Supprimer le compte et toutes les données associées.</p>
-        <label className="block text-sm">
-          Confirmez avec votre mot de passe
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" className={`${input} mt-1`} />
-        </label>
+        <PasswordField
+          label="Confirmez avec votre mot de passe"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          autoComplete="current-password"
+        />
         <Button type="submit" variant="danger" disabled={pending !== null || !password}>
           {pending === "account" && <Spinner />} Supprimer mon compte
         </Button>

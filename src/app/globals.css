@@ -1,23 +1,40 @@
 @import "tailwindcss";
 
+/*
+ * Nimbrel — design tokens.
+ * Direction: a clearing night sky. Deep indigo base, a warm "breaking light"
+ * amber as the primary action color (not another blue SaaS gradient), a cool
+ * sky blue kept as the secondary/informational accent. Headings set in a
+ * system serif stack for editorial warmth; UI text stays a clean grotesk.
+ */
 :root {
-  --bg: #070b14;
-  --bg-elev: #0c1322;
-  --surface: #101a2e;
-  --surface-2: #15213a;
-  --border: #1f2c47;
-  --border-strong: #2c3d61;
-  --text: #e6ecf7;
-  --text-muted: #9aa8c2;
-  --text-faint: #6b7a96;
-  --accent: #6ea8ff;
-  --accent-strong: #4f8dfb;
-  --accent-contrast: #06101f;
+  --bg: #05070d;
+  --bg-elev: #0a0e18;
+  --surface: #0e1422;
+  --surface-2: #141c2f;
+  --border: #1e273c;
+  --border-strong: #2c3752;
+  --text: #eef1f8;
+  --text-muted: #a3adc4;
+  --text-faint: #6d7690;
+
+  /* Primary: warm breaking light. Secondary: cool sky, kept for links/info/IA badge. */
+  --accent: #eab054;
+  --accent-strong: #f0c179;
+  --accent-contrast: #1a1103;
+  --sky: #7fa8ff;
+  --sky-strong: #9fbdff;
+
   --success: #4fd1a1;
-  --warning: #f5c26b;
-  --danger: #ff7b7b;
-  --info: #8fb8ff;
-  --violet: #b59cff;
+  --warning: #f0c179;
+  --danger: #ff8080;
+  --info: #7fa8ff;
+  --violet: #c3a6ff;
+
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Avenir Next", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
   color-scheme: dark;
 }
 
@@ -34,13 +51,16 @@
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
   --color-accent-contrast: var(--accent-contrast);
+  --color-sky: var(--sky);
+  --color-sky-strong: var(--sky-strong);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-info: var(--info);
   --color-violet: var(--violet);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
 html,
@@ -53,6 +73,16 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   min-height: 100dvh;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 12% -10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 0%, color-mix(in srgb, var(--sky) 8%, transparent), transparent 60%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 ::selection {
@@ -70,8 +100,55 @@ body {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+}
+
+/* ─── Motion system ────────────────────────────────────────────────────── */
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(1.5%, -2.5%); }
+}
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.reveal {
+  opacity: 0;
+  animation: rise-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+.drift-slow {
+  animation: drift 14s ease-in-out infinite;
+}
+.drift-slower {
+  animation: drift 20s ease-in-out infinite reverse;
+}
+.hover-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-strong);
+  box-shadow: 0 12px 30px -12px color-mix(in srgb, var(--bg) 70%, black);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; animation: none; }
+  .drift-slow, .drift-slower { animation: none; }
+  .hover-lift:hover { transform: none; }
 }
 
 /* Rendered markdown (deliverables, reports, messages) */
@@ -95,7 +172,7 @@ body {
 .prose-atlas h2 { font-size: 1.1rem; }
 .prose-atlas h3 { font-size: 1rem; }
 .prose-atlas a {
-  color: var(--accent);
+  color: var(--sky);
   text-decoration: underline;
   text-underline-offset: 2px;
 }

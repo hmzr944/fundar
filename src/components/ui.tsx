@@ -117,12 +117,24 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
 export function Logo({ className }: { className?: string }) {
   return (
     <span className={cx("inline-flex items-center gap-2 font-semibold tracking-tight", className)}>
-      <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
-        <circle cx="12" cy="12" r="10" fill="none" stroke="var(--accent)" strokeWidth="1.6" />
-        <path d="M2 12h20M12 2c3 3.2 3 16.8 0 20M12 2c-3 3.2-3 16.8 0 20" fill="none" stroke="var(--accent)" strokeWidth="1.2" opacity=".7" />
+      <svg viewBox="0 0 28 28" className="h-6 w-6 shrink-0" aria-hidden>
+        <circle cx="18.5" cy="9.5" r="5.5" fill="var(--accent)" opacity="0.9" />
+        <path
+          d="M7 20.5a4.6 4.6 0 0 1 .3-9.18 6 6 0 0 1 11.6-1.3 4.9 4.9 0 0 1-.9 9.98A5 5 0 0 1 17 21H8a5.6 5.6 0 0 1-1-.5Z"
+          fill="var(--sky)"
+        />
       </svg>
-      Atlas
+      Nimbrel
     </span>
+  );
+}
+
+/** A small, reusable scroll/mount-in wrapper — the motion half of the design system. */
+export function Reveal({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
+  return (
+    <div className={cx("reveal", className)} style={{ ["--reveal-delay" as string]: `${delay}ms` }}>
+      {children}
+    </div>
   );
 }
 

@@ -6,7 +6,7 @@ import { users } from "@/db/schema";
 import { MissionComposer } from "@/components/mission-composer";
 import { MissionList } from "@/components/mission-list";
 import { ReferralCard } from "@/components/referral-card";
-import { SectionTitle } from "@/components/ui";
+import { Reveal, SectionTitle } from "@/components/ui";
 import { requirePageUser } from "@/lib/http";
 import { integrationStatus } from "@/server/deps";
 import { userResults } from "@/server/billing/service";
@@ -28,13 +28,13 @@ export default async function Dashboard() {
   const results = await userResults(db, user.id);
   return (
     <div className="space-y-10">
-      <div>
+      <Reveal>
         <h1 className="mb-4 text-2xl font-semibold tracking-tight">Bonjour{user.name ? ` ${user.name}` : ""}</h1>
         {results.resolvedCount > 0 && (
           <p className="mb-4 rounded-2xl border border-line bg-surface/60 px-5 py-3 text-sm" data-testid="results-counter">
             {results.recoveredCents > 0 ? (
               <>
-                Récupéré avec Atlas : <strong>{(results.recoveredCents / 100).toFixed(2).replace(".", ",")} €</strong>
+                Récupéré avec Atlas : <strong className="text-accent">{(results.recoveredCents / 100).toFixed(2).replace(".", ",")} €</strong>
                 {` sur ${results.resolvedCount} dossier${results.resolvedCount > 1 ? "s" : ""} réglé${results.resolvedCount > 1 ? "s" : ""}.`}
               </>
             ) : (
@@ -44,36 +44,44 @@ export default async function Dashboard() {
           </p>
         )}
         <MissionComposer disabled={!llm.available} />
-      </div>
+      </Reveal>
 
       {billing.enabled && billing.referralCreditCents !== undefined && billing.referralCreditCents > 0 && referral && (
-        <ReferralCard code={referral.referralCode} creditCents={referral.creditCents} rewardCents={billing.referralCreditCents} />
+        <Reveal delay={80}>
+          <ReferralCard code={referral.referralCode} creditCents={referral.creditCents} rewardCents={billing.referralCreditCents} />
+        </Reveal>
       )}
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <section aria-labelledby="needs-action">
-          <SectionTitle id="needs-action">Nécessitent votre attention</SectionTitle>
-          <MissionList missions={needsAction} empty="Aucune mission n'attend votre action." />
-        </section>
-        <section aria-labelledby="active">
-          <SectionTitle id="active">En cours</SectionTitle>
-          <MissionList missions={active} empty="Aucune mission en cours." />
-        </section>
+        <Reveal delay={120}>
+          <section aria-labelledby="needs-action">
+            <SectionTitle id="needs-action">Nécessitent votre attention</SectionTitle>
+            <MissionList missions={needsAction} empty="Aucune mission n'attend votre action." />
+          </section>
+        </Reveal>
+        <Reveal delay={160}>
+          <section aria-labelledby="active">
+            <SectionTitle id="active">En cours</SectionTitle>
+            <MissionList missions={active} empty="Aucune mission en cours." />
+          </section>
+        </Reveal>
       </div>
 
-      <section aria-labelledby="recent">
-        <SectionTitle
-          id="recent"
-          action={
-            <Link href="/app/history" className="text-sm text-accent hover:underline">
-              Tout l&apos;historique →
-            </Link>
-          }
-        >
-          Missions récentes
-        </SectionTitle>
-        <MissionList missions={recent} empty="Vous n'avez pas encore de mission. Décrivez votre premier objectif ci-dessus." />
-      </section>
+      <Reveal delay={200}>
+        <section aria-labelledby="recent">
+          <SectionTitle
+            id="recent"
+            action={
+              <Link href="/app/history" className="text-sm text-accent hover:underline">
+                Tout l&apos;historique →
+              </Link>
+            }
+          >
+            Missions récentes
+          </SectionTitle>
+          <MissionList missions={recent} empty="Vous n'avez pas encore de mission. Décrivez votre premier objectif ci-dessus." />
+        </section>
+      </Reveal>
     </div>
   );
 }
