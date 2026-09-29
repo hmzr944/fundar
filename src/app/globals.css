@@ -32,8 +32,9 @@
   --info: #1f3a52;
   --violet: #6a4f8a;
 
-  --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Avenir Next", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Self-hosted via next/font/local in app/layout.tsx. */
+  --font-display: var(--font-heading-face), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-body-face), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   color-scheme: light;

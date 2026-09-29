@@ -114,10 +114,23 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
   );
 }
 
-export function Logo({ className }: { className?: string }) {
+/** One continuous pen stroke looping through an abstract N — a signature flourish. The lower loop is the upper one rotated 180°. */
+export const LOGO_PATH =
+  "M4 28C8 28 9 4 16 4C23 4 23 14 16 14C9 14 12 5 19 8C22 10 23 14 24 17C25 20 26 24 29 26C36 29 39 20 32 20C25 20 25 30 32 30C39 30 40 6 44 6";
+
+export function Logo({ className, tone = "default" }: { className?: string; tone?: "default" | "light" }) {
   return (
-    <span className={cx("font-display font-semibold tracking-tight", className)}>
-      Nimbrel<span style={{ color: "var(--accent)" }}>.</span>
+    <span className={cx("inline-flex items-center gap-2 font-display font-bold tracking-tight", className)}>
+      <svg viewBox="0 0 48 34" className="h-[1.15em] w-auto shrink-0" fill="none" aria-hidden>
+        <path
+          d={LOGO_PATH}
+          stroke={tone === "light" ? "#ffffff" : "var(--accent)"}
+          strokeWidth="3.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      Nimbrel
     </span>
   );
 }

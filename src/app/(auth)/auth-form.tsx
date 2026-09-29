@@ -55,7 +55,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           aria-hidden
         />
         <Link href="/" className="relative z-10">
-          <Logo className="text-lg text-white" />
+          <Logo className="text-lg text-white" tone="light" />
         </Link>
         <Reveal delay={200} className="relative z-10 max-w-md">
           <p className="font-display text-3xl leading-tight text-white">
