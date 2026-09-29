@@ -26,7 +26,7 @@ export function AuthShell({ tagline, children }: { tagline: string; children: Re
         <Reveal delay={200} className="relative z-10 max-w-md">
           <p className="font-display text-3xl leading-tight text-white">{tagline}</p>
           <p className="mt-3 text-sm text-white/80">
-            Nimbrel garde vos dossiers en mémoire, relance à votre place, et vous prévient quand quelque chose bouge.
+            Nimbrel suit vos dossiers, prépare chaque relance et vous prévient dès que quelque chose bouge.
           </p>
         </Reveal>
       </div>

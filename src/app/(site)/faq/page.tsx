@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CtaLink, mainCta } from "@/components/ui";
+import { currentUser } from "@/lib/http";
 import { eurosShort } from "@/lib/fee";
 import { integrationStatus } from "@/server/deps";
 
@@ -41,8 +43,8 @@ function groups(): { id: string; title: string; items: QA[] }[] {
       id: "service",
       title: "Le service",
       items: [
-        { q: "Quels problèmes Atlas peut-il régler ?", a: "Les litiges avec une entreprise : colis perdu, facture contestée, caution non rendue, abonnement impossible à résilier, remboursement qui n'arrive pas, service client qui ne répond plus. L'analyse gratuite vous dit si votre cas en fait partie." },
-        { q: "Est-ce qu'Atlas envoie les courriers à ma place ?", a: "Non. Atlas prépare et vérifie les courriers, puis c'est vous qui les envoyez, en un clic. Rien ne part sans votre accord." },
+        { q: "Quels problèmes Atlas peut-il régler ?", a: "Les litiges avec une entreprise : colis perdu, facture contestée, caution non rendue, abonnement impossible à résilier, remboursement qui n'arrive pas, service client muet. L'analyse gratuite vous dit en quelques instants si votre cas en fait partie." },
+        { q: "Est-ce qu'Atlas envoie les courriers à ma place ?", a: `Atlas prépare et vérifie chaque courrier, puis c'est vous qui l'envoyez, en un clic. Rien ne part sans votre accord.${postal.enabled ? " Pour une lettre recommandée, Atlas peut aussi l'imprimer et la poster pour vous." : ""}` },
         { q: "Atlas est-il un avocat ?", a: "Non. Atlas est une intelligence artificielle. Il ne donne pas de conseil juridique personnalisé, ne vous représente pas en justice et ne garantit pas le résultat." },
         { q: "Que se passe-t-il si l'entreprise ne répond pas ?", a: "Atlas surveille les délais. À l'échéance, il reprend le dossier seul et prépare la suite : relance, mise en demeure, saisine du médiateur." },
         { q: "Quels documents puis-je ajouter ?", a: "Factures, e-mails, contrats, captures : PDF texte, DOCX, TXT, MD ou CSV. Atlas vérifie chaque montant et chaque date dans vos pièces." },
@@ -61,8 +63,9 @@ function groups(): { id: string; title: string; items: QA[] }[] {
   ];
 }
 
-export default function Faq() {
+export default async function Faq() {
   const all = groups();
+  const cta = mainCta(Boolean(await currentUser()));
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -128,6 +131,10 @@ export default function Faq() {
             </div>
           </section>
         ))}
+        <div className="glass view-in flex flex-col items-start justify-between gap-5 rounded-3xl p-7 sm:flex-row sm:items-center">
+          <p className="font-display text-2xl font-bold leading-tight">Le plus simple, c&apos;est d&apos;essayer.<br />L&apos;analyse de votre cas est gratuite.</p>
+          <CtaLink href={cta.href}>{cta.label}</CtaLink>
+        </div>
         <p className="text-sm text-muted lg:hidden">
           Pas de réponse ici ?{" "}
           <Link href="/contact" className="text-sky underline underline-offset-4">

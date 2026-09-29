@@ -6,7 +6,7 @@ import { HowItWorks } from "@/components/landing/how-it-works";
 import { InkField } from "@/components/landing/ink-field";
 import { LandingMotion } from "@/components/landing/landing-motion";
 import { ParallaxBand } from "@/components/landing/parallax-band";
-import { Ambient, LinkButton, LOGO_PATH, cx } from "@/components/ui";
+import { Ambient, CtaLink, LOGO_PATH, cx, mainCta } from "@/components/ui";
 import { describeFee, eurosShort } from "@/lib/fee";
 import { unsplash } from "@/lib/photos";
 import { billingConfig } from "@/server/billing/stripe";
@@ -76,7 +76,7 @@ export default async function Landing() {
     : billing.mode === "success"
       ? ` Premier courrier rédigé gratuitement, sans carte bancaire. Vous ne payez que si votre problème est réglé : ${describeFee(billing.fee)}. Sinon, rien.`
       : ` Prise en charge du dossier : ${eurosShort(billing.priceCents)} € TTC, paiement unique.`;
-  const cta = user ? { href: "/app", label: "Ouvrir mon espace" } : { href: "/signup", label: "Commencer" };
+  const cta = mainCta(Boolean(user));
 
   return (
     <div className="min-h-dvh overflow-x-clip">
@@ -96,13 +96,13 @@ export default async function Landing() {
               </span>
             </h1>
             <p className="hero-in mt-7 max-w-md text-lg text-muted sm:text-xl" style={{ ["--reveal-delay" as string]: "350ms" }}>
-              Un litige avec une entreprise ? Décrivez-le. Atlas rédige les courriers, les vérifie et relance jusqu&apos;au bout.
+              Un litige avec une entreprise ? Décrivez-le, c&apos;est gratuit. Atlas rédige, vérifie chaque chiffre et prépare chaque relance.
             </p>
             <div className="hero-in mt-9 flex flex-wrap items-center gap-6" style={{ ["--reveal-delay" as string]: "500ms" }}>
-              <LinkButton href={cta.href} variant="primary" className="px-6 py-3 text-base" data-magnetic>
+              <CtaLink href={cta.href} size="lg">
                 {cta.label}
-              </LinkButton>
-              <a href="#fonctionnement" className="text-sm font-medium text-fg underline decoration-line-strong underline-offset-4 hover:decoration-accent">
+              </CtaLink>
+              <a href="#fonctionnement" className="text-link text-sm">
                 Voir comment ça marche
               </a>
             </div>
@@ -273,9 +273,9 @@ export default async function Landing() {
             <p className="max-w-xl font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
               Un problème qui traîne ? Décrivez-le.
             </p>
-            <LinkButton href={cta.href} variant="primary" className="px-6 py-3 text-base" data-magnetic>
+            <CtaLink href={cta.href} size="lg">
               {cta.label}
-            </LinkButton>
+            </CtaLink>
           </div>
         </section>
       </main>

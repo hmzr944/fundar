@@ -25,6 +25,36 @@ export function LinkButton({ variant = "secondary", className, ...props }: Compo
   return <Link className={cx(base, variants[variant], className)} {...props} />;
 }
 
+/**
+ * The site's call to action: seal red, an ink fill that wipes in on hover,
+ * an arrow that moves toward where the click leads. `data-magnetic` lets the
+ * page's motion layer add a slight pull on precise pointers.
+ */
+export function CtaLink({ size = "md", children, className, ...props }: ComponentProps<typeof Link> & { size?: "md" | "lg" }) {
+  return (
+    <Link
+      data-magnetic
+      className={cx("cta", size === "lg" ? "cta-lg" : "cta-md", className)}
+      {...props}
+    >
+      <span className="relative z-10">{children}</span>
+      <span aria-hidden className="cta-arrow">
+        →
+      </span>
+    </Link>
+  );
+}
+
+/** Secondary action: plain text, the underline draws in under the pointer. */
+export function TextLink({ className, ...props }: ComponentProps<typeof Link>) {
+  return <Link className={cx("text-link", className)} {...props} />;
+}
+
+/** The one wording per intent, shared by every public page. */
+export function mainCta(signedIn: boolean) {
+  return signedIn ? { href: "/app", label: "Mon espace" } : { href: "/signup", label: "Régler mon litige" };
+}
+
 export function Card({ className, ...props }: ComponentProps<"section">) {
   return <section className={cx("glass rounded-2xl p-5", className)} {...props} />;
 }

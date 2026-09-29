@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { InkField } from "@/components/landing/ink-field";
 import { FeeSimulator } from "@/components/site/fee-simulator";
-import { LinkButton } from "@/components/ui";
+import { CtaLink, TextLink, mainCta } from "@/components/ui";
 import { currentUser } from "@/lib/http";
 import { eurosShort, feeFor } from "@/lib/fee";
 import { integrationStatus } from "@/server/deps";
@@ -12,11 +11,10 @@ export const metadata: Metadata = {
   description: "Analyse gratuite. Une commission seulement si votre problème est réglé.",
 };
 
-
 export default async function Pricing() {
   const [user, integ] = [await currentUser(), integrationStatus()];
   const billing = integ.billing;
-  const cta = user ? { href: "/app", label: "Ouvrir mon espace" } : { href: "/signup", label: "Commencer" };
+  const cta = mainCta(Boolean(user));
 
   return (
     <div className="space-y-24 lg:space-y-32">
@@ -27,14 +25,14 @@ export default async function Pricing() {
             <div className="lg:col-span-6">
               <h1 className="font-display text-5xl font-bold leading-[1.02] tracking-[-0.035em] sm:text-6xl xl:text-7xl">
                 <span className="line-mask">
-                  <span>Vous payez</span>
+                  <span>Vous ne payez</span>
                 </span>{" "}
                 <span className="line-mask">
-                  <span style={{ ["--reveal-delay" as string]: "90ms" }}>si ça marche.</span>
+                  <span style={{ ["--reveal-delay" as string]: "90ms" }}>que si c&apos;est réglé.</span>
                 </span>
               </h1>
               <p className="hero-in mt-7 max-w-md text-lg text-muted" style={{ ["--reveal-delay" as string]: "300ms" }}>
-                L&apos;analyse et le premier courrier sont gratuits. Une commission seulement quand vous déclarez le problème réglé.
+                Analyse et premier courrier offerts. Une commission uniquement le jour où vous déclarez le problème réglé.
               </p>
             </div>
             <div className="hero-in lg:col-span-6" style={{ ["--reveal-delay" as string]: "200ms" }}>
@@ -64,7 +62,7 @@ export default async function Pricing() {
                 </p>
               </article>
               <article className="glass view-in rounded-3xl p-6 md:col-span-3 lg:col-span-2">
-                <h3 className="font-display text-xl font-bold">Résultat sans argent</h3>
+                <h3 className="font-display text-xl font-bold">Pas de somme en jeu</h3>
                 <p className="mt-2 text-sm text-muted">
                   Résiliation obtenue, service rétabli : forfait de {eurosShort(billing.fee.flatCents)} €.
                 </p>
@@ -90,10 +88,10 @@ export default async function Pricing() {
             </h2>
             <dl className="mt-12 grid gap-x-12 gap-y-10 sm:grid-cols-2">
               {[
-                { t: "Un dossier qui n'aboutit pas", d: "Pas de résultat, pas de commission. Votre carte n'est pas débitée." },
+                { t: "Un dossier qui n'aboutit pas", d: "Pas de résultat, pas de commission. Votre carte n'est jamais débitée." },
                 { t: "Les relances", d: "Atlas relance autant de fois que nécessaire, sans supplément." },
-                { t: "Un abonnement imposé", d: "Aucun engagement. Vous payez dossier par dossier, seulement s'il est réglé." },
-                { t: "La décision", d: "C'est vous qui déclarez le problème réglé, et le montant obtenu." },
+                { t: "Un abonnement obligatoire", d: "Aucun engagement : vous payez dossier par dossier, et seulement s'il est réglé." },
+                { t: "Des frais cachés", d: "Les conditions s'affichent avant que vous confiiez votre dossier. Rien ne s'y ajoute ensuite." },
               ].map((l) => (
                 <div key={l.t} className="view-in relative pt-5">
                   <span aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-fg" />
@@ -162,18 +160,16 @@ export default async function Pricing() {
         <InkField className="absolute inset-0 -z-10" />
         <div className="flex flex-col items-start justify-between gap-8 px-6 py-16 sm:px-10 md:flex-row md:items-end lg:py-20">
           <div>
-            <p className="max-w-xl font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">Un problème qui traîne ? Décrivez-le.</p>
+            <p className="max-w-xl font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">Un litige qui traîne ? Voyons ce que vous pouvez récupérer.</p>
             <p className="mt-4 text-sm text-muted">
               Une question sur les tarifs ?{" "}
-              <Link href="/faq" className="text-sky underline underline-offset-4 hover:no-underline">
-                Consultez les questions fréquentes
-              </Link>
+              <TextLink href="/faq">Consultez les questions fréquentes</TextLink>
               .
             </p>
           </div>
-          <LinkButton href={cta.href} variant="primary" className="px-6 py-3 text-base">
+          <CtaLink href={cta.href} size="lg">
             {cta.label}
-          </LinkButton>
+          </CtaLink>
         </div>
       </section>
     </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getDb } from "@/db";
-import { LinkButton } from "@/components/ui";
+import { CtaLink } from "@/components/ui";
 import { currentUser } from "@/lib/http";
 import { verifyEmail } from "@/server/account-links";
 import { AuthShell } from "../auth-shell";
@@ -14,7 +14,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ j
   // A link scanner may have opened the link first: an already verified account still gets the good news.
   const user = verified ?? (await currentUser());
   const ok = Boolean(verified ?? user?.emailVerifiedAt);
-  const next = user ? { href: "/app", label: "Ouvrir mon espace" } : { href: "/login", label: "Se connecter" };
+  const next = user ? { href: "/app", label: "Mon espace" } : { href: "/login", label: "Se connecter" };
 
   return (
     <AuthShell tagline={ok ? "Tout est en ordre." : "Encore une petite étape."}>
@@ -25,9 +25,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ j
             ? "Vous recevrez désormais par e-mail les nouvelles de vos dossiers : courrier prêt, réponse attendue, relance."
             : "Il a peut-être expiré (48 heures) ou déjà servi. Depuis votre espace, vous pouvez en recevoir un nouveau."}
         </p>
-        <LinkButton href={next.href} variant="primary" className="mt-8 w-full py-2.5">
+        <CtaLink href={next.href} className="mt-8">
           {next.label}
-        </LinkButton>
+        </CtaLink>
       </div>
     </AuthShell>
   );
