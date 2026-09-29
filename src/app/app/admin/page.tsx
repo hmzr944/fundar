@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDb } from "@/db";
-import { Card, Reveal, SectionTitle } from "@/components/ui";
+import { Card, SectionTitle } from "@/components/ui";
 import { requirePageUser } from "@/lib/http";
 import { isAdmin, loadEconomics, MIN_SAMPLE, referralCreditOutstandingCents, UNCLOSED_AFTER_DAYS, type Economics } from "@/server/admin/economics";
 
@@ -19,42 +19,36 @@ export default async function Admin() {
   const [month, all, referralCredit] = await Promise.all([loadEconomics(db, 30), loadEconomics(db, null), referralCreditOutstandingCents(db)]);
   return (
     <div className="max-w-5xl space-y-6">
-      <Reveal>
+      <div>
         <h1 className="text-2xl font-semibold tracking-tight">Économie d&apos;Atlas</h1>
         <p className="mt-1 text-sm text-muted">
           Chaque dossier rapporte-t-il plus qu&apos;il ne coûte ? Homejoy et Magic ont grandi avant de le savoir. Chiffres tirés de ce
           qu&apos;Atlas a enregistré ; coûts IA, frais Stripe et cotisations estimés. Stripe fait foi pour l&apos;argent encaissé. Les dossiers
           supprimés ne sont pas comptés.
         </p>
-      </Reveal>
+      </div>
 
-      <Reveal delay={60}>
-        <Card data-testid="economics-alerts">
-          <SectionTitle>Leçons des autres : où en est Atlas (depuis le début)</SectionTitle>
-          {all.alerts.length === 0 ? (
-            <p className="text-sm text-muted">Aucune alerte.</p>
-          ) : (
-            <ul className="space-y-2">
-              {all.alerts.map((a) => (
-                <li key={a.lesson + a.message} className={`rounded-lg border p-3 text-sm ${tone[a.level]}`} data-level={a.level}>
-                  <p className="font-medium">
-                    {label[a.level]} — {a.lesson}
-                  </p>
-                  <p className="mt-1">{a.message}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </Reveal>
+      <Card data-testid="economics-alerts">
+        <SectionTitle>Leçons des autres : où en est Atlas (depuis le début)</SectionTitle>
+        {all.alerts.length === 0 ? (
+          <p className="text-sm text-muted">Aucune alerte.</p>
+        ) : (
+          <ul className="space-y-2">
+            {all.alerts.map((a) => (
+              <li key={a.lesson + a.message} className={`rounded-lg border p-3 text-sm ${tone[a.level]}`} data-level={a.level}>
+                <p className="font-medium">
+                  {label[a.level]} — {a.lesson}
+                </p>
+                <p className="mt-1">{a.message}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Reveal delay={100}>
-          <Figures title="30 derniers jours" e={month} />
-        </Reveal>
-        <Reveal delay={140}>
-          <Figures title="Depuis le début" e={all} />
-        </Reveal>
+        <Figures title="30 derniers jours" e={month} />
+        <Figures title="Depuis le début" e={all} />
       </div>
 
       {referralCredit > 0 && (

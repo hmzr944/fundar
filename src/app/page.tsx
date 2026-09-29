@@ -1,40 +1,41 @@
 import { currentUser } from "@/lib/http";
 import { LegalFooter } from "@/components/legal-footer";
-import { CloudWisp, SkyBurst, StepGlow } from "@/components/illustrations";
+import { Photo } from "@/components/illustrations";
 import { LinkButton, Logo, Reveal } from "@/components/ui";
 import { describeFee, eurosShort } from "@/lib/fee";
+import { unsplash } from "@/lib/photos";
 import { billingConfig } from "@/server/billing/stripe";
 
 const examples = [
   {
     title: "Un colis jamais arrivé",
     text: "Le vendeur ne rembourse pas, le transporteur renvoie vers le vendeur.",
-    icon: "M4 8.5 12 4l8 4.5V17L12 21l-8-4V8.5Zm0 0 8 4.2m0 0 8-4.2M12 12.7V21",
+    photo: "ICaUOZ0PL70",
   },
   {
     title: "Une facture contestée",
     text: "Frais injustifiés, régularisation énorme, erreur de facturation.",
-    icon: "M7 3h10v18l-2.5-1.5L12 21l-2.5-1.5L7 21V3Zm2.5 6h5M9.5 12h5",
+    photo: "zR7nFjjIAWE",
   },
   {
     title: "Une caution non rendue",
     text: "Le délai est dépassé et le bailleur ne répond plus.",
-    icon: "M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6l-8-3Zm-2.2 9.3 1.6 1.6L15.5 10",
+    photo: "3HfGnyPfWqQ",
   },
   {
     title: "Un abonnement impossible à arrêter",
     text: "Les prélèvements continuent malgré la résiliation.",
-    icon: "M4 12a8 8 0 0 1 13.66-5.66M20 12a8 8 0 0 1-13.66 5.66M17.5 3v4h-4M6.5 21v-4h4",
+    photo: "JSk0OT2Klac",
   },
   {
     title: "Un remboursement qui n'arrive pas",
     text: "Vol annulé, commande annulée, avoir imposé au lieu d'un remboursement.",
-    icon: "M4 7h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7Zm0 0 2-3h12l2 3M9 12h6",
+    photo: "mqvE1ctiW6Y",
   },
   {
     title: "Une réclamation sans réponse",
     text: "Service client muet, relances ignorées, médiateur à saisir.",
-    icon: "M4 5h16v10H8l-4 4V5Zm3 4h10m-10 3h6",
+    photo: "WEmqaN6eh8o",
   },
 ];
 
@@ -44,14 +45,6 @@ const how = [
   { n: "3", title: "Atlas prépare et vérifie tout", text: "Courriers relus et vérifiés : chaque montant et chaque date sont contrôlés dans vos pièces." },
   { n: "4", title: "Vous envoyez en un clic, Atlas suit", text: "Il reprend le dossier seul à l'échéance : relance, médiateur, jusqu'au bout." },
 ];
-
-function Glyph({ path }: { path: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d={path} />
-    </svg>
-  );
-}
 
 export default async function Landing() {
   const user = await currentUser();
@@ -79,12 +72,9 @@ export default async function Landing() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 sm:px-6">
-        <section className="relative grid gap-10 py-14 sm:py-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <Reveal>
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-line-strong bg-surface/60 px-3 py-1 text-xs font-medium text-muted">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
-              Nimbrel · votre agent, Atlas
-            </p>
+        <section className="relative grid gap-10 py-10 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
+          <Reveal className="flex flex-col justify-center">
+            <p className="mb-3 text-sm text-muted">Nimbrel · votre agent, Atlas</p>
             <h1 className="max-w-2xl font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
               Règle ça pour moi.
             </h1>
@@ -95,90 +85,69 @@ export default async function Landing() {
             <p className="mt-3 max-w-xl text-sm text-faint">
               Atlas est une intelligence artificielle. Analyse gratuite.{pricing} Aucun mot de passe demandé.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-5">
               <LinkButton href={cta.href} variant="primary" className="px-5 py-2.5 text-base">
                 {cta.label}
               </LinkButton>
-              <a href="#fonctionnement" className="inline-flex items-center px-3 py-2.5 text-sm text-muted hover:text-fg">
+              <a href="#fonctionnement" className="text-sm text-muted hover:text-fg">
                 Comment ça marche ↓
               </a>
             </div>
           </Reveal>
-          <Reveal delay={200} className="relative mx-auto aspect-square w-full max-w-md lg:max-w-none">
-            <SkyBurst className="h-full w-full" />
+          <Reveal delay={150} className="min-h-[320px] lg:min-h-0">
+            <Photo
+              src={unsplash("EahB9XZt310", 1200)}
+              alt="Courrier en cours de rédaction"
+              wipeIn
+              delay={150}
+              className="h-full w-full rounded-2xl"
+            />
           </Reveal>
         </section>
 
         <section aria-labelledby="exemples" className="pb-16">
-          <Reveal>
-            <h2 id="exemples" className="mb-5 text-sm font-semibold uppercase tracking-wide text-muted">
-              Ce qu&apos;on confie à Atlas
-            </h2>
-          </Reveal>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {examples.map((e, i) => (
-              <Reveal key={e.title} delay={i * 60}>
-                <article className="hover-lift h-full rounded-2xl border border-line bg-surface/60 p-5">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10">
-                    <Glyph path={e.icon} />
-                  </span>
-                  <h3 className="mt-3 font-medium">{e.title}</h3>
-                  <p className="mt-2 text-sm text-muted">{e.text}</p>
-                </article>
-              </Reveal>
+          <h2 id="exemples" className="mb-5 text-lg font-medium">
+            Ce qu&apos;on confie à Atlas
+          </h2>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {examples.map((e) => (
+              <article key={e.title} className="photo-card group">
+                <Photo src={unsplash(e.photo, 640)} alt="" className="aspect-[4/3] w-full rounded-xl" />
+                <span className="rule mt-3 block h-px w-full bg-border-strong" aria-hidden />
+                <h3 className="mt-3 font-medium">{e.title}</h3>
+                <p className="mt-1.5 text-sm text-muted">{e.text}</p>
+              </article>
             ))}
           </div>
         </section>
 
-        <div className="flex justify-center pb-16 text-muted/40">
-          <CloudWisp className="h-10 w-48" />
-        </div>
-
         <section id="fonctionnement" aria-labelledby="fonctionnement-titre" className="pb-16">
-          <Reveal>
-            <h2 id="fonctionnement-titre" className="mb-8 text-sm font-semibold uppercase tracking-wide text-muted">
-              Fonctionnement
-            </h2>
-          </Reveal>
+          <h2 id="fonctionnement-titre" className="mb-8 text-lg font-medium">
+            Fonctionnement
+          </h2>
           <ol className="grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
-            {how.map((h, i) => (
-              <Reveal key={h.n} delay={i * 90}>
-                <li className="relative">
-                  {i < how.length - 1 && (
-                    <span
-                      aria-hidden
-                      className="absolute left-5 top-5 hidden h-px w-full bg-gradient-to-r from-line-strong to-transparent lg:block"
-                    />
-                  )}
-                  <span className="relative block h-10 w-10">
-                    <StepGlow n={h.n} className="absolute inset-0" />
-                  </span>
-                  <h3 className="mt-3 font-medium">{h.title}</h3>
-                  <p className="mt-1.5 text-sm text-muted">{h.text}</p>
-                </li>
-              </Reveal>
+            {how.map((h) => (
+              <li key={h.n}>
+                <span className="font-display text-4xl text-accent">{h.n}</span>
+                <span className="mt-2 block h-px w-10 bg-border-strong" aria-hidden />
+                <h3 className="mt-3 font-medium">{h.title}</h3>
+                <p className="mt-1.5 text-sm text-muted">{h.text}</p>
+              </li>
             ))}
           </ol>
         </section>
 
-        <Reveal className="mb-20">
-          <section className="relative overflow-hidden rounded-2xl border border-line bg-surface/60 p-6 sm:p-8">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full opacity-30"
-              style={{ background: "radial-gradient(circle, var(--sky), transparent 70%)" }}
-            />
-            <h2 className="text-lg font-semibold">Ce qu&apos;Atlas ne fait pas</h2>
-            <p className="relative mt-2 max-w-3xl text-sm text-muted">
-              Atlas ne donne pas de conseil juridique, ne vous représente pas en justice et ne garantit pas le résultat. Il n&apos;envoie
-              rien à votre place : c&apos;est vous qui envoyez, en un clic, les courriers qu&apos;il a préparés. Il ne se connecte à aucun de
-              vos comptes. Un dossier n&apos;est marqué réglé que lorsque vous le confirmez.
-            </p>
-            <LinkButton href={cta.href} variant="primary" className="relative mt-5">
-              {cta.label}
-            </LinkButton>
-          </section>
-        </Reveal>
+        <section className="relative mb-20 overflow-hidden rounded-2xl border border-line bg-surface/60 p-6 sm:p-8">
+          <h2 className="text-lg font-semibold">Ce qu&apos;Atlas ne fait pas</h2>
+          <p className="mt-2 max-w-3xl text-sm text-muted">
+            Atlas ne donne pas de conseil juridique, ne vous représente pas en justice et ne garantit pas le résultat. Il n&apos;envoie
+            rien à votre place : c&apos;est vous qui envoyez, en un clic, les courriers qu&apos;il a préparés. Il ne se connecte à aucun de
+            vos comptes. Un dossier n&apos;est marqué réglé que lorsque vous le confirmez.
+          </p>
+          <LinkButton href={cta.href} variant="primary" className="mt-5">
+            {cta.label}
+          </LinkButton>
+        </section>
       </main>
 
       <LegalFooter />

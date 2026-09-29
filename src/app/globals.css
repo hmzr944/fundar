@@ -2,40 +2,41 @@
 
 /*
  * Nimbrel — design tokens.
- * Direction: a clearing night sky. Deep indigo base, a warm "breaking light"
- * amber as the primary action color (not another blue SaaS gradient), a cool
- * sky blue kept as the secondary/informational accent. Headings set in a
- * system serif stack for editorial warmth; UI text stays a clean grotesk.
+ * Direction: the case file. Atlas's whole job is correspondence — writing,
+ * sending, and tracking official letters (notably LRAR, registered mail).
+ * The palette is grounded in that: a quiet paper ground (cool, not cream —
+ * cream+terracotta is the generic-AI tell), a deep registered-mail red as
+ * the one deliberate accent, ink-blue as the secondary/link color.
  */
 :root {
-  --bg: #05070d;
-  --bg-elev: #0a0e18;
-  --surface: #0e1422;
-  --surface-2: #141c2f;
-  --border: #1e273c;
-  --border-strong: #2c3752;
-  --text: #eef1f8;
-  --text-muted: #a3adc4;
-  --text-faint: #6d7690;
+  --bg: #eef0ea;
+  --bg-elev: #ffffff;
+  --surface: #f8f9f4;
+  --surface-2: #e2e5da;
+  --border: #cdd2c1;
+  --border-strong: #aeb59d;
+  --text: #16211b;
+  --text-muted: #4c5b4f;
+  --text-faint: #7c8a7a;
 
-  /* Primary: warm breaking light. Secondary: cool sky, kept for links/info/IA badge. */
-  --accent: #eab054;
-  --accent-strong: #f0c179;
-  --accent-contrast: #1a1103;
-  --sky: #7fa8ff;
-  --sky-strong: #9fbdff;
+  /* Primary: registered-mail red (the "recommandé" stamp). Secondary: ink blue. */
+  --accent: #9c2b2e;
+  --accent-strong: #7c2124;
+  --accent-contrast: #fdf3ee;
+  --sky: #1f3a52;
+  --sky-strong: #16293c;
 
-  --success: #4fd1a1;
-  --warning: #f0c179;
-  --danger: #ff8080;
-  --info: #7fa8ff;
-  --violet: #c3a6ff;
+  --success: #1f6b3a;
+  --warning: #8a5a0b;
+  --danger: #c8492f;
+  --info: #1f3a52;
+  --violet: #6a4f8a;
 
-  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Avenir Next", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -70,14 +71,28 @@ body {
 }
 
 body {
+  position: relative;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   min-height: 100dvh;
   background-image:
-    radial-gradient(ellipse 900px 500px at 12% -10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
-    radial-gradient(ellipse 700px 500px at 100% 0%, color-mix(in srgb, var(--sky) 8%, transparent), transparent 60%);
+    radial-gradient(ellipse 1000px 560px at 8% -12%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 60%),
+    radial-gradient(ellipse 800px 560px at 104% 4%, color-mix(in srgb, var(--sky) 6%, transparent), transparent 60%);
   background-repeat: no-repeat;
   background-attachment: fixed;
+}
+
+/* A faint paper grain — the difference between "flat CSS gradient" and "printed page". */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
 }
 
 h1, h2, h3, .font-display {
@@ -86,13 +101,13 @@ h1, h2, h3, .font-display {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--accent) 35%, transparent);
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: 4px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -107,48 +122,62 @@ h1, h2, h3, .font-display {
 }
 
 /* ─── Motion system ────────────────────────────────────────────────────── */
+/* One orchestrated entrance on the hero (the masthead photo wipes open, the
+   headline and byline settle in behind it) — not fade-up-on-every-section,
+   which is the generic tell. Everywhere else, motion answers an action:
+   a photo zooms and a rule draws in on hover, a tab panel swaps, a checkout
+   panel opens. */
 
-@keyframes rise-in {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes drift {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(1.5%, -2.5%); }
-}
-@keyframes glow-pulse {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 1; }
-}
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.reveal {
+.hero-in {
   opacity: 0;
-  animation: rise-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform: translateY(16px);
+  animation: hero-settle 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   animation-delay: var(--reveal-delay, 0ms);
 }
-.drift-slow {
-  animation: drift 14s ease-in-out infinite;
+@keyframes hero-settle {
+  to { opacity: 1; transform: translateY(0); }
 }
-.drift-slower {
-  animation: drift 20s ease-in-out infinite reverse;
+
+.photo-wipe {
+  clip-path: inset(0 0 0 0);
 }
-.hover-lift {
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+.photo-wipe.wipe-in {
+  animation: photo-wipe-in 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--reveal-delay, 0ms);
 }
-.hover-lift:hover {
-  transform: translateY(-3px);
-  border-color: var(--border-strong);
-  box-shadow: 0 12px 30px -12px color-mix(in srgb, var(--bg) 70%, black);
+@keyframes photo-wipe-in {
+  from { clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+.photo-wipe.wipe-in img {
+  animation: photo-zoom-out 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+@keyframes photo-zoom-out {
+  from { transform: scale(1.12); }
+  to { transform: scale(1); }
+}
+
+.photo-card img {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.photo-card:hover img {
+  transform: scale(1.06);
+}
+.photo-card .rule {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.photo-card:hover .rule {
+  transform: scaleX(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1; animation: none; }
-  .drift-slow, .drift-slower { animation: none; }
-  .hover-lift:hover { transform: none; }
+  .hero-in { opacity: 1; transform: none; animation: none; }
+  .photo-wipe.wipe-in, .photo-wipe.wipe-in img { animation: none; clip-path: inset(0); transform: none; }
+  .photo-card img { transition: none; }
+  .photo-card:hover img { transform: none; }
 }
 
 /* Rendered markdown (deliverables, reports, messages) */

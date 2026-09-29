@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, CSSProperties, ReactNode } from "react";
 import type { MissionStatus, StepStatus } from "@/db/schema";
 import { MISSION_STATUS_LABELS, STEP_STATUS_LABELS } from "@/server/missions/status";
 
@@ -116,23 +116,29 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <span className={cx("inline-flex items-center gap-2 font-semibold tracking-tight", className)}>
-      <svg viewBox="0 0 28 28" className="h-6 w-6 shrink-0" aria-hidden>
-        <circle cx="18.5" cy="9.5" r="5.5" fill="var(--accent)" opacity="0.9" />
-        <path
-          d="M7 20.5a4.6 4.6 0 0 1 .3-9.18 6 6 0 0 1 11.6-1.3 4.9 4.9 0 0 1-.9 9.98A5 5 0 0 1 17 21H8a5.6 5.6 0 0 1-1-.5Z"
-          fill="var(--sky)"
-        />
-      </svg>
-      Nimbrel
+    <span className={cx("font-display font-semibold tracking-tight", className)}>
+      Nimbrel<span style={{ color: "var(--accent)" }}>.</span>
     </span>
   );
 }
 
-/** A small, reusable scroll/mount-in wrapper — the motion half of the design system. */
-export function Reveal({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
+/**
+ * The one deliberate motion moment on a page — the hero settling in on load.
+ * Not for scattering across every card or section (see globals.css).
+ */
+export function Reveal({
+  children,
+  delay = 0,
+  className,
+  style,
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+  style?: CSSProperties;
+}) {
   return (
-    <div className={cx("reveal", className)} style={{ ["--reveal-delay" as string]: `${delay}ms` }}>
+    <div className={cx("hero-in", className)} style={{ ["--reveal-delay" as string]: `${delay}ms`, ...style }}>
       {children}
     </div>
   );

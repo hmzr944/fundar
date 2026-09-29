@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Button, Logo, Reveal, Spinner } from "@/components/ui";
 import { PasswordField } from "@/components/password-field";
-import { SkyBurst } from "@/components/illustrations";
+import { Photo } from "@/components/illustrations";
 import { api } from "@/lib/client/api";
+import { unsplash } from "@/lib/photos";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
@@ -41,16 +42,26 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
-      <div className="relative hidden overflow-hidden border-r border-line bg-elev lg:flex lg:flex-col lg:justify-between lg:p-10">
-        <SkyBurst className="pointer-events-none absolute inset-0 h-full w-full opacity-90" />
+      <div className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between lg:p-10">
+        <div className="absolute inset-0">
+          <Photo src={unsplash("skhrNNKW740", 1200)} alt="" wipeIn className="h-full w-full" />
+        </div>
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to bottom, color-mix(in srgb, var(--sky-strong) 55%, transparent), transparent 35%, transparent 45%, color-mix(in srgb, var(--sky-strong) 92%, transparent))",
+          }}
+          aria-hidden
+        />
         <Link href="/" className="relative z-10">
-          <Logo className="text-lg" />
+          <Logo className="text-lg text-white" />
         </Link>
-        <Reveal delay={150} className="relative z-10 max-w-md">
-          <p className="font-display text-3xl leading-tight text-fg">
+        <Reveal delay={200} className="relative z-10 max-w-md">
+          <p className="font-display text-3xl leading-tight text-white">
             {mode === "login" ? "Reprenez là où vous vous êtes arrêté." : "Un problème de moins à porter seul."}
           </p>
-          <p className="mt-3 text-sm text-muted">
+          <p className="mt-3 text-sm text-white/80">
             Nimbrel garde vos dossiers en mémoire, relance à votre place, et vous prévient quand quelque chose bouge.
           </p>
         </Reveal>
