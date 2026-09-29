@@ -14,3 +14,5 @@ next-env.d.ts
 /test-results
 .DS_Store
 *.log
+
+__pycache__/
