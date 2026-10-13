@@ -2,18 +2,11 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
-const heading = localFont({
-  src: [
-    { path: "./fonts/HyperlegibleSans-Medium.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/HyperlegibleSans-Bold.woff2", weight: "700", style: "normal" },
-  ],
-  variable: "--font-heading-face",
-  display: "swap",
-});
-
+// Body: Archivo (OFL, self-hosted). Headlines: Satoshi, declared in globals.css
+// from public/fonts/satoshi/ (Fontshare licence), with Archivo as its fallback.
 const body = localFont({
-  src: "./fonts/SpaceGrotesk-Variable.ttf",
-  weight: "300 700",
+  src: "./fonts/Archivo-Variable.woff2",
+  weight: "100 900",
   variable: "--font-body-face",
   display: "swap",
 });
@@ -27,7 +20,7 @@ export const viewport: Viewport = { themeColor: "#eef1f4", width: "device-width"
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" className={`${heading.variable} ${body.variable}`} suppressHydrationWarning>
+    <html lang="fr" className={body.variable} suppressHydrationWarning>
       <body className="text-fg">{children}</body>
     </html>
   );

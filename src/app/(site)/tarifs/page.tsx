@@ -58,7 +58,7 @@ export default async function Pricing() {
               </thead>
               <tbody>
                 {OFFERS.map((o, i) => (
-                  <tr key={o.id} className="view-in border-b border-line align-top" style={{ ["--i" as string]: i }}>
+                  <tr key={o.id} className="write-in border-b border-line align-top" style={{ ["--i" as string]: i }}>
                     <th scope="row" className="px-5 py-5 font-normal sm:px-8">
                       <span className="block font-display text-lg font-bold">{o.title}</span>
                       <ul className="mt-2 space-y-1 text-muted">
@@ -78,7 +78,7 @@ export default async function Pricing() {
                 ))}
               </tbody>
               <tfoot>
-                <tr className="bg-sky-strong text-white">
+                <tr className="write-in bg-sky-strong text-white">
                   <th scope="row" className="px-5 py-5 font-display text-lg font-bold sm:px-8">
                     Commission sur les sommes récupérées
                   </th>

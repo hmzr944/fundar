@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* Satoshi (Fontshare, ITF Free Font License): drop Satoshi-Variable.woff2 in
+   public/fonts/satoshi/. Until then, headlines fall back to Archivo. */
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/satoshi/Satoshi-Variable.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 /*
  * Nimbrel — design tokens. Three colours, nothing else:
  *   1. Paper  — the neutral ground (cool, not cream).
@@ -34,7 +44,7 @@
   --warning: #9c2b2e;
   --danger: #7c2124;
 
-  --font-display: var(--font-heading-face), ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Satoshi", var(--font-body-face), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-body-face), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
@@ -365,6 +375,16 @@ h1, h2, h3, .font-display {
 }
 .text-link:hover { color: var(--accent); background-size: 100% 1.5px, 100% 1.5px; }
 
+/* ─── Feedback numbers and written lines ──────────────────────────────── */
+/* A changed total gives a short lift as it lands: the eye follows the number. */
+.count-pop { animation: count-pop 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes count-pop { 30% { transform: translateY(-3px) scale(1.03); } }
+/* Quote lines are written left to right, like ink, as they reach the reader. */
+@supports (animation-timeline: view()) {
+  .write-in { animation: write-in linear both; animation-timeline: view(); animation-range: entry 10% entry 70%; }
+  @keyframes write-in { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+}
+
 /* ─── Deadline rule (landing hero) ────────────────────────────────────── */
 /* A carpenter's rule: alternating month bands, ticks drawn in once, and a
    seal stamp that lands on the release date each time the answer changes. */
@@ -386,7 +406,7 @@ h1, h2, h3, .font-display {
   .step-number { animation: none; }
   .view-in, .tick { animation: none; }
   .cta::before, .cta-arrow, .text-link { transition: none; }
-  .ruler-tick, .stamp { animation: none; }
+  .ruler-tick, .stamp, .count-pop, .write-in { animation: none; }
   .faq-item::details-content, .faq-item .faq-mark { transition: none; }
   .photo-wipe.wipe-in, .photo-wipe.wipe-in img { animation: none; clip-path: inset(0); transform: none; }
   .photo-card img { transition: none; }

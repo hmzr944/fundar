@@ -1,0 +1,6 @@
+Satoshi (Indian Type Foundry, licence ITF Free Font License) se télécharge
+gratuitement sur https://www.fontshare.com/fonts/satoshi
+
+Placer ici le fichier Satoshi-Variable.woff2 (dossier « Fonts/WEB/fonts » de
+l'archive) : les grands titres l'utiliseront automatiquement. Sans ce fichier,
+ils s'affichent en Archivo.

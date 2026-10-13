@@ -2,7 +2,10 @@
 
 import { useId, useMemo, useState } from "react";
 import Link from "next/link";
+import { CountUp } from "@/components/count-up";
 import { addMonths, daysBetween, euros, frDate, retenueDeGarantie } from "@/lib/btp";
+
+const fmtEuros = (c: number) => euros(c);
 
 const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 
@@ -113,8 +116,8 @@ export function DeadlineRuler({ defaultReception, today }: { defaultReception: s
           <p className="text-sm text-muted">
             Le {frDate(r.releaseDate)}, {status}
           </p>
-          <p key={r.maxAmountCents} className="tick font-sans text-3xl font-semibold tabular-nums">
-            jusqu&apos;à {euros(r.maxAmountCents)}
+          <p className="font-sans text-3xl font-semibold tabular-nums">
+            jusqu&apos;à <CountUp value={r.maxAmountCents} format={fmtEuros} className="inline-block" />
           </p>
         </div>
         <Link href={`/diagnostic?${query}`} className="text-link text-sm">

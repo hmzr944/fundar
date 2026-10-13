@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { CountUp } from "@/components/count-up";
 import { CtaLink, TextLink, cx } from "@/components/ui";
 import {
   FLAT_INDEMNITY_CENTS,
@@ -28,6 +29,8 @@ type Line = { kind: Kind; label: string; amountCents: number; when: Date | null;
 
 const cents = (v: string) => Math.max(0, Math.round(Number(v.replace(/\s/g, "").replace(",", ".")) * 100) || 0);
 const date = (v: string) => (v ? new Date(`${v}T00:00:00Z`) : null);
+
+const fmtEuros = (c: number) => euros(c);
 
 let nextId = 1;
 const blank = (a = "", b = ""): Row => ({ id: nextId++, a, b, c: "", buyer: "etat" });
@@ -178,8 +181,8 @@ export function Diagnostic({ initialReception, initialWorks, today }: { initialR
           <h2 id="bilan" className="text-sm text-white/70">
             Vous pouvez réclamer jusqu&apos;à
           </h2>
-          <p key={total} className="tick mt-1 font-sans text-5xl font-semibold tabular-nums">
-            {euros(total)}
+          <p className="mt-1 font-sans text-5xl font-semibold tabular-nums">
+            <CountUp value={total} format={fmtEuros} className="inline-block" />
           </p>
           <p className="mt-1 text-sm text-white/70">
             {lines.length ? `${ready} dossier${ready > 1 ? "s" : ""} prêt${ready > 1 ? "s" : ""} à lancer` : "Renseignez au moins une ligne."}
@@ -191,7 +194,8 @@ export function Diagnostic({ initialReception, initialWorks, today }: { initialR
                 <li key={i} className="msg-in grid grid-cols-[1fr_auto] gap-x-4 text-sm">
                   <span>{l.label}</span>
                   <span className="text-right font-medium tabular-nums">{l.amountCents ? euros(l.amountCents) : "à venir"}</span>
-                  <span className={cx("col-span-2", l.urgent ? "text-[#f3b8b9]" : "text-white/60")}>
+                  <span className={cx("col-span-2 flex items-center gap-2", l.urgent ? "font-medium text-white" : "text-white/60")}>
+                    {l.urgent && <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent ring-2 ring-white/80" />}
                     {l.note}
                     {l.when && !l.urgent ? `, le ${frDate(l.when, false)}` : ""}
                   </span>
