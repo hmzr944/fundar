@@ -52,7 +52,7 @@ export function TextLink({ className, ...props }: ComponentProps<typeof Link>) {
 
 /** The one wording per intent, shared by every public page. */
 export function mainCta(signedIn: boolean) {
-  return signedIn ? { href: "/app", label: "Mon espace" } : { href: "/signup", label: "Régler mon litige" };
+  return signedIn ? { href: "/app", label: "Mon espace" } : { href: "/diagnostic", label: "Faire mon diagnostic" };
 }
 
 export function Card({ className, ...props }: ComponentProps<"section">) {

@@ -46,9 +46,9 @@ test.describe("route protection", () => {
 
 test("landing page presents Atlas without fake figures", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Règle ça pour moi");
-  await expect(page.getByRole("heading", { name: "Ce qu'on confie à Atlas" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Régler mon litige" }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("L'argent de vos chantiers");
+  await expect(page.getByRole("heading", { name: "Ce qui dort dans vos chantiers" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Faire mon diagnostic" }).first()).toBeVisible();
   // Billing is off in this environment: no price is shown.
   await expect(page.getByText("€ TTC")).toHaveCount(0);
   // Legal pages are public, and say plainly what is not configured yet.

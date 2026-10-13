@@ -1,82 +1,85 @@
 import { currentUser } from "@/lib/http";
 import { LegalFooter } from "@/components/legal-footer";
 import { SiteHeader } from "@/components/site-header";
-import { Photo } from "@/components/illustrations";
+import { DeadlineRuler } from "@/components/landing/deadline-ruler";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { InkField } from "@/components/landing/ink-field";
 import { LandingMotion } from "@/components/landing/landing-motion";
-import { ParallaxBand } from "@/components/landing/parallax-band";
-import { Ambient, CtaLink, LOGO_PATH, cx, mainCta } from "@/components/ui";
-import { describeFee, eurosShort } from "@/lib/fee";
-import { unsplash } from "@/lib/photos";
-import { billingConfig } from "@/server/billing/stripe";
+import { Ambient, CtaLink, LOGO_PATH, TextLink, cx, mainCta } from "@/components/ui";
+import { addMonths } from "@/lib/btp";
 
-// Bento: six cells for six cases, each with a photo of what the text describes.
-// The big tile and the two colour/photo splits break the grid's rhythm.
-const cases: { title: string; text: string; photo: string; tone?: "accent" | "ink"; cell: string }[] = [
+/*
+ * Design plan. Subject: second-œuvre companies (1-20 people) owed money by
+ * contractors, developers and public buyers. The page's one bold element is
+ * the carpenter's rule in the hero: a real tool, graduated in months, where
+ * the visitor sees the day their retenue de garantie can be claimed. Around
+ * it, everything stays quiet: paper, ink, one seal red for what is owed.
+ * Each kind of blocked money is shown as the document it lives on (the
+ * reception report, the subcontracting contract, the public invoice), with
+ * the rule and the deadline that make it claimable.
+ */
+
+const claims: { title: string; doc: string; rule: string; delay: string; price: string; tone?: "ink" | "seal"; cell: string; figure?: string }[] = [
   {
-    title: "Un colis jamais arrivé",
-    text: "Le vendeur ne rembourse pas, le transporteur renvoie vers le vendeur.",
-    photo: "ICaUOZ0PL70",
-    cell: "lg:col-span-3 lg:row-span-2",
-  },
-  {
-    title: "Une facture contestée",
-    text: "Frais injustifiés, régularisation énorme, erreur de facturation.",
-    photo: "3CLPBgNuX40",
-    cell: "lg:col-span-3",
-  },
-  {
-    title: "Une caution non rendue",
-    text: "Le délai est dépassé et le bailleur ne répond plus.",
-    photo: "3HfGnyPfWqQ",
-    tone: "accent",
-    cell: "lg:col-span-3",
-  },
-  {
-    title: "Un abonnement impossible à arrêter",
-    text: "Les prélèvements continuent malgré la résiliation.",
-    photo: "Q59HmzK38eQ",
-    cell: "lg:col-span-2",
-  },
-  {
-    title: "Un remboursement qui n'arrive pas",
-    text: "Vol annulé, commande annulée, avoir imposé au lieu d'un remboursement.",
-    photo: "mqvE1ctiW6Y",
+    title: "Retenue de garantie",
+    doc: "Procès-verbal de réception",
+    rule: "Les 5 % retenus doivent vous être rendus un an après la réception, sauf opposition motivée du client. Beaucoup ne sont jamais réclamés.",
+    delay: "1 an après la réception",
+    price: "49 € HT le dossier",
     tone: "ink",
-    cell: "lg:col-span-2",
+    cell: "lg:col-span-7 lg:row-span-2",
+    figure: "5 %",
   },
   {
-    title: "Une réclamation sans réponse",
-    text: "Service client muet, relances ignorées, médiateur à saisir.",
-    photo: "WEmqaN6eh8o",
-    cell: "lg:col-span-2",
+    title: "Action directe du sous-traitant",
+    doc: "Contrat de sous-traitance",
+    rule: "L'entreprise principale ne paie pas ? Un mois après votre mise en demeure, vous pouvez réclamer au maître d'ouvrage.",
+    delay: "1 mois après la mise en demeure",
+    price: "149 € HT le dossier",
+    tone: "seal",
+    cell: "lg:col-span-5",
+  },
+  {
+    title: "Intérêts des marchés publics",
+    doc: "Facture sur marché public",
+    rule: "Au-delà de 30 jours, l'acheteur public vous doit des intérêts de retard et 40 € d'indemnité, sans que vous ayez à les demander.",
+    delay: "Dès le 31e jour",
+    price: "39 € HT le dossier",
+    cell: "lg:col-span-5",
+  },
+  {
+    title: "Situation de travaux impayée",
+    doc: "Situation ou facture de chantier",
+    rule: "Relance, mise en demeure en recommandé, puis requête en injonction de payer prête à déposer.",
+    delay: "Dès l'échéance dépassée",
+    price: "79 € HT le dossier",
+    cell: "lg:col-span-12",
   },
 ];
 
 const steps = [
-  { title: "Vous décrivez le problème", text: "En quelques phrases, avec vos documents (factures, e-mails, contrat)." },
-  { title: "Atlas vous dit s'il peut s'en occuper", text: "Analyse gratuite. Il vous dit ce qu'il va demander, à qui, et pourquoi." },
-  { title: "Atlas prépare et vérifie tout", text: "Courriers relus et vérifiés : chaque montant et chaque date sont contrôlés dans vos pièces." },
-  { title: "Vous envoyez en un clic, Atlas suit", text: "Il reprend le dossier seul à l'échéance : relance, médiateur, jusqu'au bout." },
+  { title: "Diagnostic de vos chantiers", text: "En 10 minutes, la liste de ce que vous pouvez réclamer, et avant quelle date." },
+  { title: "Nimbrel prépare le dossier", text: "Courriers rédigés à partir de vos pièces, montants et dates vérifiés, délais calculés." },
+  { title: "Vous validez et envoyez", text: "Sous votre nom, en recommandé avec accusé de réception, en un clic." },
+  { title: "Nimbrel surveille la suite", text: "Relance à l'échéance, puis l'étape suivante : maître d'ouvrage, injonction de payer." },
 ];
 
 const limits = [
-  { title: "Pas de conseil juridique", text: "Atlas ne vous représente pas en justice et ne garantit pas le résultat." },
-  { title: "Rien ne part sans vous", text: "C'est vous qui envoyez, en un clic, les courriers qu'il a préparés." },
-  { title: "Aucun accès à vos comptes", text: "Atlas ne se connecte à aucun de vos comptes. Aucun mot de passe demandé." },
-  { title: "Réglé quand vous le dites", text: "Un dossier n'est marqué réglé que lorsque vous le confirmez." },
+  { title: "Vous restez l'expéditeur", text: "Chaque courrier part sous votre nom, après votre validation. Rien n'est envoyé sans vous." },
+  { title: "L'argent vous est versé directement", text: "Nimbrel ne touche jamais les sommes récupérées et ne prend aucune commission." },
+  { title: "Pas de conseil juridique", text: "Si votre client conteste le fond (malfaçon, avenant), on vous oriente vers un avocat." },
+  { title: "Pas d'huissier", text: "La signification et l'exécution forcée restent l'affaire d'un commissaire de justice." },
 ];
+
+const terms = ["Retenue de garantie", "Situation impayée", "Action directe", "Intérêts moratoires", "Paiement direct", "Décompte non soldé", "Mise en demeure", "Injonction de payer"];
 
 export default async function Landing() {
   const user = await currentUser();
-  const billing = billingConfig();
-  const pricing = !billing
-    ? ""
-    : billing.mode === "success"
-      ? ` Premier courrier rédigé gratuitement, sans carte bancaire. Vous ne payez que si votre problème est réglé : ${describeFee(billing.fee)}. Sinon, rien.`
-      : ` Prise en charge du dossier : ${eurosShort(billing.priceCents)} € TTC, paiement unique.`;
   const cta = mainCta(Boolean(user));
+  const today = new Date();
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  const todayIso = iso(today);
+  const defaultReception = iso(addMonths(new Date(`${todayIso}T00:00:00Z`), -11));
 
   return (
     <div className="min-h-dvh overflow-x-clip">
@@ -84,152 +87,91 @@ export default async function Landing() {
       <SiteHeader signedIn={Boolean(user)} />
 
       <main>
-        {/* 1. Split hero; the photo bleeds off the right edge on large screens. */}
-        <section data-hero className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-16 pt-8 sm:px-6 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-12 lg:gap-0 lg:px-10 lg:pb-12 lg:pt-4">
-          <div data-hero-copy className="lg:col-span-6 lg:pr-12">
-            <h1 className="font-display text-5xl font-bold leading-[1.02] tracking-[-0.035em] sm:text-7xl xl:text-8xl">
+        {/* 1. The promise, and the rule that proves it. */}
+        <section data-hero className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-16 pt-10 sm:px-6 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-12 lg:gap-12 lg:px-10 lg:pb-12 lg:pt-4">
+          <div data-hero-copy className="lg:col-span-5">
+            <h1 className="font-display text-5xl font-bold leading-[1.02] tracking-[-0.035em] sm:text-6xl xl:text-[4.25rem]">
               <span className="line-mask">
-                <span>Règle ça</span>
+                <span>L&apos;argent de vos chantiers</span>
               </span>{" "}
               <span className="line-mask">
-                <span style={{ ["--reveal-delay" as string]: "90ms" }}>pour moi.</span>
+                <span style={{ ["--reveal-delay" as string]: "90ms" }}>a une date limite.</span>
               </span>
             </h1>
-            <p className="hero-in mt-7 max-w-md text-lg text-muted sm:text-xl" style={{ ["--reveal-delay" as string]: "350ms" }}>
-              Un litige avec une entreprise ? Décrivez-le, c&apos;est gratuit. Atlas rédige, vérifie chaque chiffre et prépare chaque relance.
+            <p className="hero-in mt-7 max-w-md text-lg text-muted" style={{ ["--reveal-delay" as string]: "350ms" }}>
+              Retenues de garantie, situations impayées, intérêts des marchés publics : Nimbrel prépare les courriers et surveille les délais. Vous
+              envoyez, sous votre nom.
             </p>
             <div className="hero-in mt-9 flex flex-wrap items-center gap-6" style={{ ["--reveal-delay" as string]: "500ms" }}>
               <CtaLink href={cta.href} size="lg">
                 {cta.label}
               </CtaLink>
-              <a href="#fonctionnement" className="text-link text-sm">
-                Voir comment ça marche
-              </a>
+              <TextLink href="/tarifs" className="text-sm">
+                Voir les tarifs
+              </TextLink>
             </div>
           </div>
-          <div data-hero-photo className="relative h-[52vh] min-h-[340px] origin-left lg:col-span-6 lg:-mr-[max(2.5rem,calc((100vw_-_80rem)/2_+_2.5rem))] lg:h-[78vh]">
-            <Photo
-              src={unsplash("EahB9XZt310", 1600)}
-              alt="Une personne rédige un courrier à son bureau"
-              wipeIn
-              delay={120}
-              className="h-full w-full rounded-2xl lg:rounded-r-none"
-            />
-            <div aria-hidden className="pointer-events-none absolute inset-0 hidden sm:block">
-              <span className="glass float-a absolute left-6 top-8 flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium lg:-left-10">
-                <span className="h-2 w-2 rounded-full bg-sky" /> Courrier relu et vérifié
-              </span>
-              <span className="glass float-b absolute right-8 top-1/2 flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium">
-                <span className="h-2 w-2 rounded-full bg-accent animate-atlas-pulse" /> Relance programmée
-              </span>
-              <span className="glass-ink float-c absolute bottom-10 left-10 flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium lg:-left-6">
-                Réponse reçue
-              </span>
-            </div>
+          <div data-hero-photo className="hero-in lg:col-span-7" style={{ ["--reveal-delay" as string]: "200ms" }}>
+            <DeadlineRuler defaultReception={defaultReception} today={todayIso} />
           </div>
         </section>
 
-        {/* Marquee (the only one): the kinds of problems Atlas takes on. */}
-        <div className="border-y border-line/70 py-6" aria-label="Exemples de litiges">
+        {/* The one marquee: the words of the trade. */}
+        <div className="border-y border-line/70 py-6" aria-label="Ce que Nimbrel récupère">
           <div className="overflow-hidden">
             <div className="marquee">
               {[0, 1].map((copy) => (
                 <ul key={copy} aria-hidden={copy === 1} className="flex shrink-0 font-display text-3xl font-bold tracking-tight text-sky sm:text-4xl">
-                  <li className="flex items-center gap-10 pr-10">
-                    <span>Colis perdu</span>
-                    <svg viewBox="0 0 48 34" className="h-5 w-7 shrink-0 text-accent" fill="none" aria-hidden>
-                      <path d={LOGO_PATH} stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </li>
-                  <li className="flex items-center gap-10 pr-10">
-                    <span>Facture abusive</span>
-                    <svg viewBox="0 0 48 34" className="h-5 w-7 shrink-0 text-accent" fill="none" aria-hidden>
-                      <path d={LOGO_PATH} stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </li>
-                  <li className="flex items-center gap-10 pr-10">
-                    <span>Caution retenue</span>
-                    <svg viewBox="0 0 48 34" className="h-5 w-7 shrink-0 text-accent" fill="none" aria-hidden>
-                      <path d={LOGO_PATH} stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </li>
-                  <li className="flex items-center gap-10 pr-10">
-                    <span>Abonnement fantôme</span>
-                    <svg viewBox="0 0 48 34" className="h-5 w-7 shrink-0 text-accent" fill="none" aria-hidden>
-                      <path d={LOGO_PATH} stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </li>
-                  <li className="flex items-center gap-10 pr-10">
-                    <span>Vol annulé</span>
-                    <svg viewBox="0 0 48 34" className="h-5 w-7 shrink-0 text-accent" fill="none" aria-hidden>
-                      <path d={LOGO_PATH} stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </li>
-                  <li className="flex items-center gap-10 pr-10">
-                    <span>Service client muet</span>
-                    <svg viewBox="0 0 48 34" className="h-5 w-7 shrink-0 text-accent" fill="none" aria-hidden>
-                      <path d={LOGO_PATH} stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </li>
-                  <li className="flex items-center gap-10 pr-10">
-                    <span>Frais injustifiés</span>
-                    <svg viewBox="0 0 48 34" className="h-5 w-7 shrink-0 text-accent" fill="none" aria-hidden>
-                      <path d={LOGO_PATH} stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </li>
-                  <li className="flex items-center gap-10 pr-10">
-                    <span>Remboursement bloqué</span>
-                    <svg viewBox="0 0 48 34" className="h-5 w-7 shrink-0 text-accent" fill="none" aria-hidden>
-                      <path d={LOGO_PATH} stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </li>
+                  {terms.map((t) => (
+                    <li key={t} className="flex items-center gap-10 pr-10">
+                      <span>{t}</span>
+                      <svg viewBox="0 0 48 34" className="h-5 w-7 shrink-0 text-accent" fill="none" aria-hidden>
+                        <path d={LOGO_PATH} stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </li>
+                  ))}
                 </ul>
               ))}
             </div>
           </div>
         </div>
 
-        {/* 2. Bento of real cases: mixed sizes, photos and two colour tiles. */}
-        <section aria-labelledby="exemples" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
-          <h2 id="exemples" data-split-heading className="max-w-xl font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Ce qu&apos;on confie à Atlas
+        {/* 2. What sleeps in the sites: each claim on the document it lives on. */}
+        <section aria-labelledby="creances" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-10 lg:py-28">
+          <h2 id="creances" data-split-heading className="max-w-2xl font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            Ce qui dort dans vos chantiers
           </h2>
-          <div data-tiles className="mt-10 grid gap-4 [perspective:1400px] sm:grid-cols-2 lg:auto-rows-[15rem] lg:grid-cols-6">
-            {cases.map((c) => (
-              <article key={c.title} data-tile data-tilt className={cx("photo-card shine group relative overflow-hidden rounded-2xl will-change-transform", c.cell)}>
-                {c.tone ? (
-                  <div
-                    className={cx(
-                      "grid h-full min-h-64 grid-rows-[1fr_auto] sm:grid-cols-[1.35fr_1fr] sm:grid-rows-1",
-                      c.tone === "accent" ? "bg-accent text-accent-contrast" : "bg-sky-strong text-white",
-                    )}
-                  >
-                    <Photo src={unsplash(c.photo, 700)} alt="" className="min-h-36 sm:order-2 sm:h-full" />
-                    <div lang="fr" className="flex flex-col justify-end p-5 sm:p-6">
-                      <h3 className="hyphens-auto font-display text-xl font-bold leading-tight lg:text-2xl">{c.title}</h3>
-                      <p className="mt-2 text-sm opacity-85">{c.text}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="relative h-full min-h-64">
-                    <Photo src={unsplash(c.photo, 900)} alt="" className="absolute inset-0 h-full w-full" />
-                    <div
-                      aria-hidden
-                      className="absolute inset-0"
-                      style={{ background: "linear-gradient(to top, color-mix(in srgb, var(--sky-strong) 88%, transparent), transparent 62%)" }}
-                    />
-                    <div className="absolute inset-x-0 bottom-0 p-5 text-white sm:p-6">
-                      <h3 className="font-display text-xl font-bold leading-tight">{c.title}</h3>
-                      <p className="mt-1.5 max-w-sm text-sm text-white/80">{c.text}</p>
-                    </div>
-                  </div>
+          <div data-tiles className="mt-10 grid gap-4 lg:auto-rows-[minmax(13rem,auto)] lg:grid-cols-12">
+            {claims.map((c) => (
+              <article
+                key={c.title}
+                data-tile
+                className={cx(
+                  "shine flex flex-col justify-between gap-6 rounded-2xl p-6 sm:p-7",
+                  c.tone === "ink" ? "glass-ink" : c.tone === "seal" ? "bg-accent text-accent-contrast" : "glass",
+                  c.cell,
                 )}
+              >
+                <div>
+                  <p className={cx("text-sm", c.tone ? "opacity-75" : "text-muted")}>{c.doc}</p>
+                  <h3 className={cx("mt-1 font-display font-bold leading-tight", c.tone === "ink" ? "text-3xl sm:text-4xl" : "text-2xl")}>{c.title}</h3>
+                  <p className={cx("mt-3 max-w-xl", c.tone ? "opacity-85" : "text-muted")}>{c.rule}</p>
+                </div>
+                {c.figure && (
+                  <p aria-hidden className="font-sans text-[6rem] font-semibold leading-none tracking-tight text-white/90 sm:text-[9rem]">
+                    {c.figure}
+                  </p>
+                )}
+                <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                  <span className={cx("rounded-full border px-3 py-1", c.tone ? "border-current/30" : "border-line-strong")}>{c.delay}</span>
+                  <span className="font-medium">{c.price}</span>
+                </div>
               </article>
             ))}
           </div>
         </section>
 
-        {/* 3. The one pinned, scroll-driven story: the four steps. */}
+        {/* 3. The real sequence, pinned. */}
         <section id="fonctionnement" aria-labelledby="fonctionnement-titre" className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-10 lg:pb-32">
           <h2 id="fonctionnement-titre" data-split-heading className="mb-12 font-display text-3xl font-bold tracking-tight sm:text-4xl lg:mb-8">
             Fonctionnement
@@ -237,21 +179,21 @@ export default async function Landing() {
           <HowItWorks steps={steps} />
         </section>
 
-        {/* 4. Full-bleed band: one statement, scale shift. */}
-        <ParallaxBand src={unsplash("qIjGJgZOpsM", 1920)}>
-          <div className="mx-auto max-w-7xl px-4 py-28 sm:px-6 lg:px-10 lg:py-40">
-            <p data-scrub-words className="max-w-3xl font-display text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-6xl">
-              Les délais, c&apos;est Atlas qui les surveille.
+        {/* 4. One statement, read word by word. */}
+        <section className="bg-sky-strong text-white">
+          <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-10 lg:py-36">
+            <p data-scrub-words className="max-w-4xl font-display text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl">
+              Sur un chantier de <span className="font-sans">20 000 €</span>, la retenue de garantie, c&apos;est jusqu&apos;à <span className="font-sans">1 000 €</span> qui vous attendent.
             </p>
-            <p className="mt-6 max-w-md text-lg text-white/80">
-              Il reprend votre dossier seul à l&apos;échéance et relance jusqu&apos;à obtenir une réponse.
-            </p>
+            <p className="mt-6 max-w-md text-lg text-white/75">Encore faut-il la réclamer au bon moment, au bon interlocuteur, avec les bonnes pièces.</p>
           </div>
-        </ParallaxBand>
+        </section>
 
-        {/* 5. Limits and transparency: a statement grid, no cards. */}
+        {/* 5. What Nimbrel does not do: a statement grid, no cards. */}
         <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-10 lg:py-32">
-          <h2 data-split-heading className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Ce qu&apos;Atlas ne fait pas</h2>
+          <h2 data-split-heading className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+            Ce que Nimbrel ne fait pas
+          </h2>
           <dl className="mt-12 grid gap-x-12 gap-y-10 sm:grid-cols-2">
             {limits.map((l) => (
               <div key={l.title} className="relative pt-5">
@@ -262,17 +204,16 @@ export default async function Landing() {
             ))}
           </dl>
           <p className="mt-14 max-w-2xl text-sm text-muted">
-            Atlas est une intelligence artificielle. Analyse gratuite.{pricing}
+            Nimbrel est un outil d&apos;aide à la rédaction et au suivi, propulsé par une intelligence artificielle. Prix fixe par dossier, payé
+            d&apos;avance. Aucune commission sur les sommes récupérées.
           </p>
         </section>
 
-        {/* 6. Closing call to action over the WebGL ink field (the page's ambient layer). */}
+        {/* 6. Closing call to action over the ink field. */}
         <section className="relative isolate overflow-hidden border-t border-line bg-bg">
           <InkField className="absolute inset-0 -z-10" />
           <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-4 py-24 sm:px-6 md:flex-row md:items-end lg:px-10 lg:py-32">
-            <p className="max-w-xl font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
-              Un problème qui traîne ? Décrivez-le.
-            </p>
+            <p className="max-w-xl font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">Combien dort dans vos chantiers ?</p>
             <CtaLink href={cta.href} size="lg">
               {cta.label}
             </CtaLink>
