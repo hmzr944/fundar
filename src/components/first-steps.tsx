@@ -3,9 +3,9 @@ import type { CSSProperties } from "react";
 const tile = (i: number) => ({ ["--i" as string]: i }) as CSSProperties;
 
 const steps = [
-  { title: "Racontez", text: "Ce qui s'est passé, avec qui, depuis quand. Quelques phrases suffisent." },
-  { title: "Joignez vos pièces", text: "Facture, e-mails, contrat : Atlas y vérifie chaque montant et chaque date." },
-  { title: "Relisez et envoyez", text: "Atlas prépare le courrier. Vous l'envoyez en un clic, il suit la réponse." },
+  { title: "Décrivez le chantier", text: "Le client, le montant, les dates de réception ou d'échéance. Quelques phrases suffisent." },
+  { title: "Joignez vos pièces", text: "Devis, situations, PV de réception, contrat de sous-traitance : chaque montant et chaque date sont vérifiés." },
+  { title: "Relisez et envoyez", text: "Le courrier est prêt. Vous l'envoyez sous votre nom, en recommandé, et Nimbrel surveille le délai." },
 ];
 
 /** Shown until the first dossier exists: what to expect, in three moves. */

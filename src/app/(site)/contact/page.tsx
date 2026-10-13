@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   description: "Une question sur Nimbrel, un dossier ou un paiement : écrivez-nous.",
 };
 
-export default async function Contact() {
+export default async function Contact({ searchParams }: { searchParams: Promise<{ sujet?: string }> }) {
+  const { sujet } = await searchParams;
   const user = await currentUser();
   const inbox = legalIdentity().email;
 
@@ -23,7 +24,7 @@ export default async function Contact() {
           </span>
         </h1>
         <p className="hero-in mt-6 max-w-sm text-lg text-muted" style={{ ["--reveal-delay" as string]: "250ms" }}>
-          Une question sur le service, un dossier ou un paiement : nous répondons par e-mail.
+          Une question, un dossier ou envie d'être rappelé pour votre diagnostic : nous répondons par e-mail ou par téléphone.
         </p>
 
         {/* Two tiles: where else to look, and the direct address. */}
@@ -41,7 +42,7 @@ export default async function Contact() {
           {user ? (
             <Link href="/app" className="tile-in shine group block rounded-3xl bg-accent p-6 text-accent-contrast" style={{ ["--i" as string]: 3 }}>
               <p className="font-display text-xl font-bold">Une question sur un dossier ?</p>
-              <p className="mt-1 text-sm opacity-85">Posez-la directement à Atlas, dans le dossier : il connaît déjà tout le contexte.</p>
+              <p className="mt-1 text-sm opacity-85">Posez-la directement dans le dossier : tout le contexte y est déjà.</p>
               <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium">
                 Mes dossiers
                 <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">
@@ -63,7 +64,7 @@ export default async function Contact() {
       </div>
 
       <section aria-label="Formulaire de contact" className="glass tile-in relative rounded-3xl p-6 sm:p-8 lg:col-span-7 lg:p-10" style={{ ["--i" as string]: 1 }}>
-        <ContactForm topics={CONTACT_TOPICS} defaultEmail={user?.email} fallbackEmail={inbox} />
+        <ContactForm topics={CONTACT_TOPICS} defaultEmail={user?.email} defaultTopic={sujet && sujet in CONTACT_TOPICS ? sujet : undefined} fallbackEmail={inbox} />
       </section>
     </div>
   );

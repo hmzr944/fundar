@@ -7,7 +7,17 @@ import { api, ApiError } from "@/lib/client/api";
 const input =
   "w-full rounded-lg border border-line-strong bg-elev px-3 py-2.5 text-sm outline-none transition-colors placeholder:text-faint focus:border-accent";
 
-export function ContactForm({ topics, defaultEmail, fallbackEmail }: { topics: Record<string, string>; defaultEmail?: string; fallbackEmail: string | null }) {
+export function ContactForm({
+  topics,
+  defaultEmail,
+  defaultTopic = "question",
+  fallbackEmail,
+}: {
+  topics: Record<string, string>;
+  defaultEmail?: string;
+  defaultTopic?: string;
+  fallbackEmail: string | null;
+}) {
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState<{ message: string; offerMail: boolean } | null>(null);
   const [length, setLength] = useState(0);
@@ -54,8 +64,14 @@ export function ContactForm({ topics, defaultEmail, fallbackEmail }: { topics: R
         </label>
       </div>
       <label className="block">
+        <span className="mb-1.5 block text-sm font-medium">
+          Téléphone <span className="font-normal text-faint">(facultatif, pour être rappelé)</span>
+        </span>
+        <input name="phone" type="tel" autoComplete="tel" maxLength={30} className={input} />
+      </label>
+      <label className="block">
         <span className="mb-1.5 block text-sm font-medium">Sujet</span>
-        <select name="topic" defaultValue="question" className={input}>
+        <select name="topic" defaultValue={defaultTopic} className={input}>
           {Object.entries(topics).map(([k, v]) => (
             <option key={k} value={k}>
               {v}

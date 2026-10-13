@@ -20,7 +20,11 @@ export function SiteHeader({ signedIn }: { signedIn: boolean }) {
               Se connecter
             </Link>
           )}
-          <CtaLink href={cta.href}>{cta.label}</CtaLink>
+          <CtaLink href={cta.href}>
+            {/* The full label does not fit next to the logo and menu on a phone. */}
+            <span className="sm:hidden">{cta.href === "/diagnostic" ? "Diagnostic" : cta.label}</span>
+            <span className="hidden sm:inline">{cta.label}</span>
+          </CtaLink>
         </nav>
       </header>
     </div>

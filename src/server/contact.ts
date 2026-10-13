@@ -3,6 +3,7 @@ import { unavailable } from "@/server/errors";
 import type { Mailer } from "@/server/mail/mailer";
 
 export const CONTACT_TOPICS = {
+  diagnostic: "Mon diagnostic ou être rappelé",
   question: "Une question sur le service",
   dossier: "Un dossier en cours",
   paiement: "Un paiement ou une facture",
@@ -13,6 +14,7 @@ export const CONTACT_TOPICS = {
 export const contactSchema = z.object({
   name: z.string().trim().max(120).optional().default(""),
   email: z.string().trim().toLowerCase().email("Adresse e-mail invalide.").max(254),
+  phone: z.string().trim().max(30).regex(/^[+\d\s().-]*$/, "Numéro de téléphone invalide.").optional().default(""),
   topic: z.enum(Object.keys(CONTACT_TOPICS) as [keyof typeof CONTACT_TOPICS, ...(keyof typeof CONTACT_TOPICS)[]]),
   message: z.string().trim().min(10, "Votre message est un peu court (10 caractères minimum).").max(4000, "Votre message est trop long (4 000 caractères maximum)."),
   /** Honeypot: hidden from people, filled by naive bots. */
@@ -30,6 +32,7 @@ export async function sendContactMessage(mailer: Mailer | null, inbox: string | 
   if (!mailer || !inbox) throw unavailable("Le formulaire n'est pas encore relié à une boîte mail. Écrivez-nous directement par e-mail.");
   const lines = [
     `De : ${input.name ? `${input.name} <${input.email}>` : input.email}`,
+    ...(input.phone ? [`Téléphone : ${input.phone}`] : []),
     accountEmail ? `Compte connecté : ${accountEmail}` : "Envoyé sans être connecté.",
     `Sujet : ${CONTACT_TOPICS[input.topic]}`,
     "",

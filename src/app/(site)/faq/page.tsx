@@ -2,62 +2,48 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CtaLink, mainCta } from "@/components/ui";
 import { currentUser } from "@/lib/http";
-import { eurosShort } from "@/lib/fee";
-import { integrationStatus } from "@/server/deps";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Questions fréquentes",
-  description: "Ce que fait Atlas, ce qu'il ne fait pas, combien ça coûte et ce que deviennent vos données.",
+  description: "Ce que Nimbrel récupère, qui envoie les courriers, combien ça coûte et ce que deviennent vos données.",
 };
 
 type QA = { q: string; a: string };
 
 function groups(): { id: string; title: string; items: QA[] }[] {
-  const { billing, postal } = integrationStatus();
   const retention = Number(process.env.ATLAS_RETENTION_DAYS || 365);
-  const payment: QA[] = !billing.enabled
-    ? [{ q: "Combien ça coûte ?", a: "Aucun paiement n'est demandé sur ce site pour le moment. L'analyse de votre dossier est gratuite." }]
-    : billing.mode === "success"
-      ? [
-          {
-            q: "Combien ça coûte ?",
-            a: `L'analyse et le premier courrier sont gratuits. Si votre problème est réglé, une commission de ${billing.fee.ratePct} % de ce que vous récupérez (entre ${eurosShort(billing.fee.minCents)} et ${eurosShort(billing.fee.maxCents)} €), ou ${eurosShort(billing.fee.flatCents)} € si le résultat n'est pas une somme d'argent. Sinon, rien.`,
-          },
-          {
-            q: "Pourquoi enregistrer une carte si je ne paie rien d'avance ?",
-            a: "Pour que la commission puisse être prélevée une fois le problème réglé, sans vous redemander vos coordonnées. La carte est conservée par Stripe, notre prestataire de paiement : Nimbrel ne la voit jamais.",
-          },
-          {
-            q: "Qui décide que le problème est réglé ?",
-            a: "Vous. Vous indiquez vous-même le résultat et le montant obtenu à la fin du dossier. Aucune commission n'est prélevée sans cette déclaration.",
-          },
-        ]
-      : [{ q: "Combien ça coûte ?", a: `L'analyse est gratuite. La prise en charge d'un dossier coûte ${eurosShort(billing.priceCents)} € TTC, en une fois.` }];
-  if (billing.enabled) payment.push({ q: "Où retrouver mes paiements et mes factures ?", a: "Dans votre espace, rubrique Paiements : l'historique par dossier, et un accès à la page sécurisée de Stripe pour changer de carte ou télécharger vos factures." });
-  if (postal.enabled) payment.push({ q: "Atlas peut-il envoyer une lettre recommandée ?", a: `Oui, pour ${eurosShort(postal.priceCents)} € par envoi, payés au moment de l'envoi. La lettre est imprimée et postée avec accusé de réception.` });
-
   return [
     {
       id: "service",
       title: "Le service",
       items: [
-        { q: "Quels problèmes Atlas peut-il régler ?", a: "Les litiges avec une entreprise : colis perdu, facture contestée, caution non rendue, abonnement impossible à résilier, remboursement qui n'arrive pas, service client muet. L'analyse gratuite vous dit en quelques instants si votre cas en fait partie." },
-        { q: "Est-ce qu'Atlas envoie les courriers à ma place ?", a: `Atlas prépare et vérifie chaque courrier, puis c'est vous qui l'envoyez, en un clic. Rien ne part sans votre accord.${postal.enabled ? " Pour une lettre recommandée, Atlas peut aussi l'imprimer et la poster pour vous." : ""}` },
-        { q: "Atlas est-il un avocat ?", a: "Non. Atlas est une intelligence artificielle. Il ne donne pas de conseil juridique personnalisé, ne vous représente pas en justice et ne garantit pas le résultat." },
-        { q: "Que se passe-t-il si l'entreprise ne répond pas ?", a: "Atlas surveille les délais. À l'échéance, il reprend le dossier seul et prépare la suite : relance, mise en demeure, saisine du médiateur." },
-        { q: "Quels documents puis-je ajouter ?", a: "Factures, e-mails, contrats, captures : PDF texte, DOCX, TXT, MD ou CSV. Atlas vérifie chaque montant et chaque date dans vos pièces." },
+        { q: "Pour qui est Nimbrel ?", a: "Pour les entreprises du bâtiment, artisans et sous-traitants, qui attendent de l'argent d'un client professionnel ou public : entreprise générale, promoteur, syndic, mairie, office HLM." },
+        { q: "Qu'est-ce que Nimbrel récupère ?", a: "Les retenues de garantie non rendues, les intérêts de retard dus par les acheteurs publics, les situations et factures de chantier impayées, et les sommes dues à un sous-traitant par l'entreprise principale." },
+        { q: "Qui envoie les courriers ?", a: "Vous. Nimbrel prépare chaque courrier à partir de vos pièces, vous le relisez, puis vous l'envoyez sous votre nom, en recommandé avec accusé de réception, en un clic. Rien ne part sans votre accord." },
+        { q: "Que se passe-t-il si le client ne répond pas ?", a: "Nimbrel surveille les délais. À l'échéance, il prépare l'étape suivante : relance, mise en demeure, action directe contre le maître d'ouvrage si vous êtes sous-traitant, ou requête en injonction de payer prête à déposer." },
+        { q: "Nimbrel remplace-t-il un avocat ?", a: "Non. Nimbrel est un outil d'aide à la rédaction et au suivi, propulsé par une intelligence artificielle. Si votre client conteste le fond (malfaçon, avenant, pénalités de retard de chantier), nous vous orientons vers un avocat. La signification et l'exécution forcée restent l'affaire d'un commissaire de justice." },
+        { q: "Quels documents faut-il ?", a: "Selon le dossier : devis signé, contrat de sous-traitance, situations ou factures, procès-verbal de réception, bons de commande, échanges avec le client. PDF, Word ou texte." },
       ],
     },
-    { id: "paiement", title: "Paiement", items: payment },
+    {
+      id: "paiement",
+      title: "Prix et paiement",
+      items: [
+        { q: "Combien ça coûte ?", a: "Un prix fixe par dossier, payé d'avance : 49 € HT pour une retenue de garantie, 39 € HT pour des intérêts de marché public, 79 € HT pour une facture impayée, 149 € HT pour un dossier sous-traitant. Le diagnostic est gratuit." },
+        { q: "Prenez-vous une commission ?", a: "Non. Les sommes récupérées vous sont versées directement par votre client, en entier. Nimbrel ne les touche jamais." },
+        { q: "Les recommandés sont-ils compris ?", a: "Oui, les envois prévus dans chaque dossier sont compris dans le prix." },
+        { q: "Et si je n'ai rien récupéré ?", a: "Le prix couvre la préparation des courriers et le suivi des délais, pas le résultat, qui dépend de votre client. C'est pour cela que le diagnostic gratuit vous dit d'abord ce qui est réclamable, et à quelle date." },
+      ],
+    },
     {
       id: "donnees",
       title: "Vos données",
       items: [
-        { q: "Atlas a-t-il accès à mes comptes ?", a: "Non. Atlas ne se connecte à aucun de vos comptes et ne vous demande jamais de mot de passe ni de code bancaire." },
+        { q: "Nimbrel a-t-il accès à mes comptes ?", a: "Non. Nimbrel ne se connecte à aucun de vos comptes, bancaires ou autres, et ne vous demande jamais de mot de passe." },
         { q: "Combien de temps mes dossiers sont-ils conservés ?", a: `Un dossier inactif depuis ${retention} jours est supprimé automatiquement. Vous pouvez supprimer un dossier, ou votre compte entier, à tout moment depuis votre espace.` },
-        { q: "Qui voit mes documents ?", a: "Vous, et les prestataires techniques nécessaires au service (hébergement, modèle d'intelligence artificielle). Le détail est dans la politique de confidentialité." },
+        { q: "Le diagnostic envoie-t-il mes chiffres ?", a: "Non. Le diagnostic en ligne calcule tout dans votre navigateur. Rien n'est enregistré tant que vous ne créez pas de dossier." },
       ],
     },
   ];
@@ -132,7 +118,7 @@ export default async function Faq() {
           </section>
         ))}
         <div className="glass view-in flex flex-col items-start justify-between gap-5 rounded-3xl p-7 sm:flex-row sm:items-center">
-          <p className="font-display text-2xl font-bold leading-tight">Le plus simple, c&apos;est d&apos;essayer.<br />L&apos;analyse de votre cas est gratuite.</p>
+          <p className="font-display text-2xl font-bold leading-tight">Le plus simple : le diagnostic.<br />Gratuit, sans inscription.</p>
           <CtaLink href={cta.href}>{cta.label}</CtaLink>
         </div>
         <p className="text-sm text-muted lg:hidden">

@@ -40,10 +40,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   }
 
   return (
-    <AuthShell tagline={mode === "login" ? "Vos dossiers avancent, même quand vous n'y pensez plus." : "Un litige de moins à porter seul."}>
+    <AuthShell tagline={mode === "login" ? "Vos dossiers avancent, même quand vous êtes sur le chantier." : "L'argent de vos chantiers a une date limite."}>
           <h1 className="font-display text-2xl font-semibold">{mode === "login" ? "Connexion" : "Créer un compte"}</h1>
           <p className="mt-1 text-sm text-muted">
-            {mode === "login" ? "Retrouvez vos dossiers là où vous les avez laissés." : "Gratuit et sans carte bancaire. Atlas analyse votre problème dès l'inscription."}
+            {mode === "login" ? "Retrouvez vos dossiers là où vous les avez laissés." : "Inscription gratuite. Vous ne payez qu'au lancement d'un dossier, prix fixe, sans commission."}
           </p>
           <form onSubmit={onSubmit} className="mt-6 space-y-4" noValidate>
             {mode === "signup" && (

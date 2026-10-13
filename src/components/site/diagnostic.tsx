@@ -202,7 +202,7 @@ export function Diagnostic({ initialReception, initialWorks, today }: { initialR
 
           <div className="mt-7 flex flex-wrap items-center gap-5">
             <CtaLink href="/signup">Lancer mes dossiers</CtaLink>
-            <TextLink href="/contact" className="text-sm text-white! [background-image:none]! underline underline-offset-4">
+            <TextLink href="/contact?sujet=diagnostic" className="text-sm text-white! [background-image:none]! underline underline-offset-4">
               Être rappelé
             </TextLink>
           </div>

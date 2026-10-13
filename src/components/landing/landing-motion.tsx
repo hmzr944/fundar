@@ -36,12 +36,11 @@ export function LandingMotion() {
           tiles,
           { clipPath: "inset(100% 0% 0% 0%)" },
           { clipPath: "inset(0% 0% 0% 0%)", duration: 1.1, ease: EASE, stagger: 0.09, clearProps: "clipPath" },
-        ).fromTo(
-          tiles.map((t) => t.querySelector("img")).filter(Boolean),
-          { scale: 1.18 },
-          { scale: 1, duration: 1.5, ease: EASE, stagger: 0.09, clearProps: "transform" },
-          0,
         );
+        const photos = tiles.map((t) => t.querySelector("img")).filter((x): x is HTMLImageElement => Boolean(x));
+        if (photos.length) {
+          tl.fromTo(photos, { scale: 1.18 }, { scale: 1, duration: 1.5, ease: EASE, stagger: 0.09, clearProps: "transform" }, 0);
+        }
       }
 
       // Section titles rise line by line out of a mask as they enter the screen.

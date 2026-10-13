@@ -19,8 +19,8 @@ const body = localFont({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Nimbrel — votre agent personnel", template: "%s · Nimbrel" },
-  description: "Dites à Atlas, votre agent Nimbrel, ce que vous voulez accomplir. Il vous aide à le faire avancer, étape par étape.",
+  title: { default: "Nimbrel, l'argent de vos chantiers", template: "%s · Nimbrel" },
+  description: "Retenues de garantie, situations impayées, intérêts des marchés publics : Nimbrel prépare les courriers et surveille les délais pour les entreprises du bâtiment.",
 };
 
 export const viewport: Viewport = { themeColor: "#eef1f4", width: "device-width", initialScale: 1 };

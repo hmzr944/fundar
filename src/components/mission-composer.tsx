@@ -6,10 +6,10 @@ import { Button, Spinner } from "@/components/ui";
 import { api } from "@/lib/client/api";
 
 const suggestions = [
-  "Mon colis est indiqué livré mais je ne l'ai jamais reçu, et le vendeur refuse de me rembourser.",
-  "Mon opérateur m'a facturé des frais de résiliation que je pense injustifiés.",
-  "Mon ancien propriétaire ne m'a toujours pas rendu ma caution, plus de deux mois après l'état des lieux.",
-  "Mon vol a été annulé et la compagnie m'impose un avoir au lieu d'un remboursement.",
+  "Chantier réceptionné il y a plus d'un an : le promoteur ne m'a toujours pas rendu ma retenue de garantie de 5 %.",
+  "Je suis sous-traitant en électricité, l'entreprise générale ne règle pas ma dernière situation de 12 600 €.",
+  "La mairie a payé ma facture de travaux avec deux mois de retard, sans intérêts de retard.",
+  "Un client professionnel ne paie pas ma facture de plomberie échue depuis 45 jours.",
 ];
 
 export function MissionComposer({ disabled }: { disabled?: boolean }) {
@@ -49,7 +49,7 @@ export function MissionComposer({ disabled }: { disabled?: boolean }) {
         }}
         rows={4}
         maxLength={8000}
-        placeholder="Racontez simplement : avec quelle entreprise, ce qui s'est passé, les dates et montants, ce que vous avez déjà tenté, et ce que vous voulez obtenir."
+        placeholder="Décrivez simplement : le chantier, le client, les montants et les dates (réception, facture, échéance), et ce que vous avez déjà tenté."
         className="mt-3 w-full resize-y rounded-xl border border-line bg-elev px-4 py-3 text-[0.95rem] outline-none placeholder:text-faint focus:border-accent"
       />
       {error && (
